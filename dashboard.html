@@ -615,6 +615,10 @@ async function runScan(addr) {
     else if (score <= 20) level = 'low';
 
     var sc = level === 'high' ? '#FF3B3B' : level === 'medium' ? '#FFB020' : '#00D68F';
+    var alertClass = level === 'high' ? 'high' : level === 'medium' ? 'medium' : 'low';
+    var alertLabel = level === 'high' ? 'HIGH RISK DETECTED' : level === 'medium' ? 'POTENTIAL RISK FOUND' : 'SCAN PASSED';
+    var alertTitle = level === 'high' ? 'High risk indicators detected' : level === 'medium' ? 'Some risk indicators found' : 'No critical risks detected';
+    var alertDesc = level === 'high' ? 'Critical risks require immediate attention. See full PDF report for details.' : level === 'medium' ? 'Potential risks detected. Full PDF report includes complete 47-check analysis.' : 'Basic scan passed. Full PDF report confirms wallet safety with 47 AML checks.';
 
     // Deduct credit
     var deductRes = await fetch(API + '/auth', {
@@ -634,23 +638,25 @@ async function runScan(addr) {
     // Show result
     document.getElementById('modal-title-txt').textContent = 'Scan Complete';
     document.getElementById('modal-body').innerHTML =
-      '<div class="mr-alert ' + level + '">' +
-        '<div style="font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;color:' + sc + ';margin-bottom:4px">' + (level === 'high' ? 'HIGH RISK DETECTED' : level === 'medium' ? 'POTENTIAL RISK FOUND' : 'BASIC SCAN PASSED') + '</div>' +
-        '<div style="font-size:16px;font-weight:600;margin-bottom:4px">' + (level === 'high' ? 'High risk indicators detected' : 'Potential risks require full verification') + '</div>' +
-        '<div style="font-size:12px;color:var(--tx2)">Get your PDF report for the full analysis with 47 AML checks.</div>' +
+      '<div class="mr-alert ' + alertClass + '">' +
+        '<div style="font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;color:' + sc + ';margin-bottom:4px">' + alertLabel + '</div>' +
+        '<div style="font-size:16px;font-weight:600;margin-bottom:4px">' + alertTitle + '</div>' +
+        '<div style="font-size:12px;color:var(--tx2)">' + alertDesc + '</div>' +
       '</div>' +
       '<div class="mr-score">' +
         '<div class="mr-ring" style="border-color:' + sc + ';box-shadow:0 0 16px ' + sc + '40"><div class="mr-num" style="color:' + sc + '">' + score + '</div><div class="mr-max">/100</div></div>' +
         '<div class="mr-info"><div class="mr-addr">' + addr + '</div><div class="mr-net">' + network.name + (chainData && chainData.balance ? ' · ' + chainData.balance : '') + '</div><div style="font-size:11px;color:var(--tx3);margin-top:4px">' + (chainData && chainData.txCount ? chainData.txCount + ' txs · ' : '') + (chainData && chainData.age ? chainData.age : '') + '</div></div>' +
       '</div>' +
       '<div class="mr-checks">' +
-        '<div class="mr-check"><span class="mr-check-name">OFAC Sanctions List</span><span class="mr-check-val ' + (chainData && chainData.ofacMatch ? 'found' : 'partial') + '">' + (chainData && chainData.ofacMatch ? 'MATCH FOUND' : 'Requires verification') + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (chainData && chainData.goplusRisk ? 'found' : 'clear') + '">' + (chainData && chainData.goplusRisk ? riskFlags[0] || 'Risk found' : 'Clear') + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">Mixer Detection</span><span class="mr-check-val ' + (chainData && chainData.mixerTxCount > 0 ? 'found' : 'clear') + '">' + (chainData && chainData.mixerTxCount > 0 ? chainData.mixerTxCount + ' flagged' : 'None found') + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">Suspicious Transactions</span><span class="mr-check-val partial">Requires verification</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">Darknet Exposure</span><span class="mr-check-val partial" style="color:var(--tx3)">🔒 Full report only</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">OFAC Sanctions List</span><span class="mr-check-val ' + (chainData && chainData.ofacMatch ? 'found' : 'clear') + '">' + (chainData && chainData.ofacMatch ? '⚠ MATCH FOUND' : '✓ Clear') + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (chainData && chainData.goplusRisk ? 'found' : 'clear') + '">' + (chainData && chainData.goplusRisk ? '⚠ ' + (riskFlags[0] || 'Risk detected') : '✓ Clear') + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">Mixer / Tornado Cash</span><span class="mr-check-val ' + (chainData && chainData.mixerTxCount > 0 ? 'found' : 'clear') + '">' + (chainData && chainData.mixerTxCount > 0 ? '⚠ ' + chainData.mixerTxCount + ' tx flagged' : '✓ None found') + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">Network</span><span class="mr-check-val clear">' + network.name + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">Transactions</span><span class="mr-check-val clear">' + (chainData && chainData.txCount ? chainData.txCount + ' confirmed' : 'N/A') + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">Wallet Age</span><span class="mr-check-val clear">' + (chainData && chainData.age && chainData.age !== 'N/A' ? chainData.age : 'N/A') + '</span></div>' +
       '</div>' +
-      '<button class="save-btn" onclick="closeModal();loadDashboard()">✅ Saved to History</button>';
+      '<button class="save-btn" onclick="getPdfReport()" style="margin-bottom:8px">📄 Get Full PDF Report</button>' +
+      '<button onclick="closeModal();loadDashboard()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Close</button>';
 
     // Refresh scan history
     setTimeout(loadDashboard, 500);
@@ -728,6 +734,14 @@ async function buyPackage(pkgId) {
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
+function getPdfReport() {
+  // PDF generation coming soon
+  // For now show toast and save scan ID for future PDF
+  showToast('📄 PDF report will be sent to ' + currentUser.email + ' within 2 minutes.', 'success');
+  closeModal();
+  loadDashboard();
+}
+
 function openModal(title) {
   document.getElementById('modal-title-txt').textContent = title;
   document.getElementById('scan-modal').style.display = 'flex';

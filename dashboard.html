@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChainGuard — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090C;--s1:#0D1117;--s2:#131B24;--b1:#1C2733;--b2:#243040;
+  --tx:#EEF2F7;--tx2:#7B8FA6;--tx3:#38505F;
+  --red:#FF3B3B;--red-dim:rgba(255,59,59,.1);
+  --amber:#FFB020;--amber-dim:rgba(255,176,32,.1);
+  --green:#00D68F;--green-dim:rgba(0,214,143,.08);
+  --cyan:#00C8FF;--cyan2:#0077AA;
+  --head:'Syne',sans-serif;--body:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--body);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.02) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0}
+
+/* Layout */
+.layout{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* Sidebar */
+.sidebar{width:240px;background:var(--s1);border-right:1px solid var(--b1);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:.25rem;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:10}
+.logo{display:flex;align-items:center;gap:9px;padding:.5rem .75rem;margin-bottom:1.25rem}
+.logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo-name{font-family:var(--head);font-size:18px;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--tx2);transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--s2);color:var(--tx)}
+.nav-item.active{background:rgba(0,200,255,.08);color:var(--cyan);border:1px solid rgba(0,200,255,.15)}
+.nav-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.sidebar-bottom{margin-top:auto;padding-top:1rem;border-top:1px solid var(--b1)}
+.credits-badge{background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:10px;padding:10px 12px;margin-bottom:.75rem}
+.cb-label{font-size:10px;color:var(--tx3);font-family:var(--mono);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.cb-val{font-family:var(--head);font-size:22px;font-weight:700;color:var(--cyan)}
+.cb-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+
+/* Main */
+.main{margin-left:240px;flex:1;padding:2rem;max-width:calc(100vw - 240px)}
+.page-title{font-family:var(--head);font-size:24px;font-weight:700;margin-bottom:.25rem}
+.page-sub{font-size:13px;color:var(--tx2);margin-bottom:2rem}
+
+/* Cards grid */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem}
+.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px 18px}
+.sc-icon{font-size:20px;margin-bottom:8px}
+.sc-val{font-family:var(--head);font-size:28px;font-weight:700;margin-bottom:2px}
+.sc-label{font-size:12px;color:var(--tx3)}
+
+/* New scan card */
+.scan-card{background:linear-gradient(135deg,#0D1520,#0B1015);border:1.5px solid rgba(0,200,255,.2);border-radius:16px;padding:20px;margin-bottom:2rem}
+.sc-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.scan-input-row{display:flex;gap:8px}
+.scan-inp{flex:1;background:var(--s2);border:1.5px solid var(--b2);border-radius:10px;padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--tx);outline:none;transition:border-color .2s}
+.scan-inp:focus{border-color:var(--cyan)}
+.scan-inp::placeholder{color:var(--tx3)}
+.scan-go{background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:11px 20px;font-family:var(--head);font-size:15px;font-weight:700;color:#07090C;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.scan-go:hover{opacity:.88}
+.scan-go:disabled{opacity:.4;cursor:not-allowed}
+.scan-note{font-size:11px;color:var(--tx3);margin-top:8px;font-family:var(--mono)}
+
+/* History table */
+.section-title{font-size:11px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--b1)}
+.history-table{width:100%;border-collapse:collapse;margin-bottom:2rem}
+.history-table th{text-align:left;font-size:11px;color:var(--tx3);font-family:var(--mono);padding:8px 12px;border-bottom:1px solid var(--b1);text-transform:uppercase;letter-spacing:.05em}
+.history-table td{padding:12px;border-bottom:1px solid var(--b1);font-size:13px;color:var(--tx2);vertical-align:middle}
+.history-table tr:last-child td{border-bottom:none}
+.history-table tr:hover td{background:var(--s2)}
+.addr-cell{font-family:var(--mono);font-size:12px;color:var(--tx)}
+.risk-chip{font-size:10px;font-family:var(--mono);font-weight:600;padding:3px 8px;border-radius:6px}
+.risk-chip.high{background:var(--red-dim);color:var(--red)}
+.risk-chip.medium{background:var(--amber-dim);color:var(--amber)}
+.risk-chip.low{background:var(--green-dim);color:var(--green)}
+.report-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--b2);background:none;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--mono)}
+.report-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* Packages */
+.packages-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:2rem}
+.pkg-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px;cursor:pointer;transition:all .15s;position:relative}
+.pkg-card:hover{border-color:var(--b2)}
+.pkg-card.popular{border-color:rgba(0,200,255,.3);background:rgba(0,200,255,.03)}
+.pkg-popular{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:9px;font-family:var(--mono);font-weight:600;color:var(--cyan);background:var(--s1);border:1px solid rgba(0,200,255,.3);padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pkg-name{font-size:12px;color:var(--tx3);margin-bottom:6px;font-family:var(--mono)}
+.pkg-credits{font-family:var(--head);font-size:22px;font-weight:700;color:var(--tx);margin-bottom:2px}
+.pkg-price{font-size:13px;color:var(--cyan);font-weight:600}
+.pkg-per{font-size:10px;color:var(--tx3);margin-top:2px}
+.pkg-buy{width:100%;margin-top:10px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:8px;padding:8px;font-family:var(--head);font-size:13px;font-weight:700;color:#07090C;cursor:pointer;transition:opacity .15s}
+.pkg-buy:hover{opacity:.88}
+
+/* Empty state */
+.empty{text-align:center;padding:3rem;color:var(--tx3)}
+.empty-icon{font-size:40px;margin-bottom:1rem;opacity:.5}
+.empty-text{font-size:14px}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--tx);z-index:1000;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(0,214,143,.3)}
+.toast.error{border-color:rgba(255,59,59,.3)}
+
+/* Auth screens */
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center}
+.auth-box{background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:2.5rem;width:100%;max-width:400px;position:relative;z-index:1}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:2rem}
+.auth-title{font-family:var(--head);font-size:22px;font-weight:700;text-align:center;margin-bottom:.5rem}
+.auth-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:1.5rem}
+.auth-field{margin-bottom:12px}
+.auth-label{font-size:12px;color:var(--tx3);margin-bottom:5px;display:block;font-family:var(--mono)}
+.auth-input{width:100%;background:var(--s2);border:1.5px solid var(--b2);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:14px;color:var(--tx);outline:none;transition:border-color .2s}
+.auth-input:focus{border-color:var(--cyan)}
+.auth-input::placeholder{color:var(--tx3)}
+.auth-btn{width:100%;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:13px;font-family:var(--head);font-size:16px;font-weight:700;color:#07090C;cursor:pointer;margin-top:4px;transition:opacity .15s}
+.auth-btn:hover{opacity:.88}
+.auth-btn:disabled{opacity:.4;cursor:not-allowed}
+.auth-switch{text-align:center;margin-top:1rem;font-size:13px;color:var(--tx3)}
+.auth-switch a{color:var(--cyan);cursor:pointer;text-decoration:none}
+.auth-err{background:var(--red-dim);border:1px solid rgba(255,59,59,.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+
+/* Scan result modal */
+#scan-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:2rem;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:var(--head);font-size:20px;font-weight:700;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center}
+.modal-close{font-size:20px;cursor:pointer;color:var(--tx3);background:none;border:none;padding:4px}
+.modal-close:hover{color:var(--tx)}
+
+/* Scanning animation in modal */
+.modal-scanning{text-align:center;padding:2rem}
+.mini-spinner{width:48px;height:48px;border:2px solid var(--b2);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Result in modal */
+.modal-result{}
+.mr-alert{border-radius:12px;padding:14px 16px;margin-bottom:1rem;border:1px solid}
+.mr-alert.high{background:#130606;border-color:#3A1010}
+.mr-alert.medium{background:#130F04;border-color:#372705}
+.mr-alert.low{background:#031410;border-color:#0A3528}
+.mr-score{display:flex;align-items:center;gap:16px;background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:14px;margin-bottom:1rem}
+.mr-ring{width:64px;height:64px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0}
+.mr-num{font-family:var(--head);font-size:22px;font-weight:700;line-height:1}
+.mr-max{font-size:10px;color:var(--tx3);font-family:var(--mono)}
+.mr-info{}
+.mr-addr{font-family:var(--mono);font-size:11px;color:var(--tx3);margin-bottom:4px;word-break:break-all}
+.mr-net{font-size:12px;color:var(--tx2)}
+.mr-checks{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
+.mr-check{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--s2);border-radius:8px;font-size:12px}
+.mr-check-name{color:var(--tx2)}
+.mr-check-val{font-family:var(--mono);font-weight:600;font-size:11px}
+.mr-check-val.clear{color:var(--green)}
+.mr-check-val.found{color:var(--red)}
+.mr-check-val.partial{color:var(--amber)}
+.save-btn{width:100%;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:12px;font-family:var(--head);font-size:15px;font-weight:700;color:#07090C;cursor:pointer;transition:opacity .15s}
+.save-btn:hover{opacity:.88}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{margin-left:0;max-width:100%;padding:1rem}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .packages-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="auth-screen">
+  <div style="position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.02) 1px,transparent 1px);background-size:52px 52px"></div>
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-mark">🛡️</div>
+      <span style="font-family:var(--head);font-size:20px;font-weight:700">ChainGuard</span>
+    </div>
+    
+    <!-- Login form -->
+    <div id="form-login">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your account</div>
+      <div class="auth-err" id="login-err"></div>
+      <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="you@email.com"></div>
+      <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="login-pass" placeholder="••••••••"></div>
+      <button class="auth-btn" onclick="doLogin()" id="login-btn">Sign In →</button>
+      <div class="auth-switch">Don't have an account? <a onclick="showForm('register')">Create one</a> &nbsp;·&nbsp; <a onclick="showForm('forgot')">Forgot password?</a></div>
+    </div>
+
+    <!-- Register form -->
+    <div id="form-register" style="display:none">
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">Start protecting your crypto assets</div>
+      <div class="auth-err" id="reg-err"></div>
+      <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="reg-email" placeholder="you@email.com"></div>
+      <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="reg-pass" placeholder="Min 8 characters"></div>
+      <div class="auth-field"><label class="auth-label">Confirm Password</label><input type="password" class="auth-input" id="reg-pass2" placeholder="Repeat password"></div>
+      <button class="auth-btn" onclick="doRegister()" id="reg-btn">Create Account →</button>
+      <div class="auth-switch">Already have an account? <a onclick="showForm('login')">Sign in</a></div>
+    </div>
+
+    <!-- Forgot password -->
+    <div id="form-forgot" style="display:none">
+      <div class="auth-title">Reset password</div>
+      <div class="auth-sub">We'll send you a reset link</div>
+      <div class="auth-err" id="forgot-err"></div>
+      <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="forgot-email" placeholder="you@email.com"></div>
+      <button class="auth-btn" onclick="doForgot()" id="forgot-btn">Send Reset Link →</button>
+      <div class="auth-switch"><a onclick="showForm('login')">← Back to sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="layout" id="dashboard" style="display:none">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">🛡️</div>
+      <span class="logo-name">ChainGuard</span>
+    </div>
+    <button class="nav-item active" id="nav-overview" onclick="showPage('overview')"><span class="nav-icon">📊</span>Overview</button>
+    <button class="nav-item" id="nav-scan" onclick="showPage('scan')"><span class="nav-icon">🔍</span>New Scan</button>
+    <button class="nav-item" id="nav-history" onclick="showPage('history')"><span class="nav-icon">📋</span>Scan History</button>
+    <button class="nav-item" id="nav-packages" onclick="showPage('packages')"><span class="nav-icon">💎</span>Buy Credits</button>
+    <div class="sidebar-bottom">
+      <div class="credits-badge">
+        <div class="cb-label">Available Credits</div>
+        <div class="cb-val" id="sidebar-credits">0</div>
+        <div class="cb-sub">wallet scans remaining</div>
+      </div>
+      <button class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span>Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- OVERVIEW PAGE -->
+    <div id="page-overview">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub" id="dash-greeting">Welcome back</div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="sc-icon">💎</div>
+          <div class="sc-val" id="stat-credits" style="color:var(--cyan)">0</div>
+          <div class="sc-label">Credits remaining</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-icon">🔍</div>
+          <div class="sc-val" id="stat-scans">0</div>
+          <div class="sc-label">Total scans done</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-icon">⚠️</div>
+          <div class="sc-val" id="stat-risks" style="color:var(--amber)">0</div>
+          <div class="sc-label">Risks detected</div>
+        </div>
+      </div>
+
+      <!-- Quick scan -->
+      <div class="scan-card">
+        <div class="sc-title">🔍 Quick Scan</div>
+        <div class="scan-input-row">
+          <input type="text" class="scan-inp" id="quick-addr" placeholder="Paste wallet address (ETH, BTC, TRON, SOL...)">
+          <button class="scan-go" onclick="quickScan()" id="quick-scan-btn">Scan →</button>
+        </div>
+        <div class="scan-note" id="quick-note">1 credit per scan · You have <span id="quick-credits">0</span> credits</div>
+      </div>
+
+      <!-- Recent scans -->
+      <div class="section-title">Recent Scans</div>
+      <div id="recent-scans-wrap">
+        <table class="history-table" id="recent-table" style="display:none">
+          <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Date</th><th>Report</th></tr></thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+        <div class="empty" id="recent-empty">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-text">No scans yet. Run your first scan above.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCAN PAGE -->
+    <div id="page-scan" style="display:none">
+      <div class="page-title">New Scan</div>
+      <div class="page-sub">Check up to 3 wallet addresses at once</div>
+      <div class="scan-card">
+        <div id="multi-slots"></div>
+        <div style="margin-bottom:10px">
+          <button onclick="addScanSlot()" id="add-slot-btn" style="width:100%;background:none;border:1px dashed var(--b2);border-radius:10px;padding:9px;font-size:13px;color:var(--tx3);cursor:pointer;transition:all .15s">+ Add another address (up to 3)</button>
+        </div>
+        <button class="scan-go" style="width:100%;padding:13px;font-size:16px" onclick="runMultiScan()">Scan All →</button>
+        <div class="scan-note">1 credit used per scan · <span id="scan-page-credits">0</span> credits available</div>
+      </div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div id="page-history" style="display:none">
+      <div class="page-title">Scan History</div>
+      <div class="page-sub">All your previous wallet scans</div>
+      <div class="section-title">All Scans</div>
+      <table class="history-table" id="history-table" style="display:none">
+        <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Risk Level</th><th>Date</th><th>Report</th></tr></thead>
+        <tbody id="history-tbody"></tbody>
+      </table>
+      <div class="empty" id="history-empty">
+        <div class="empty-icon">📋</div>
+        <div class="empty-text">No scan history yet.</div>
+      </div>
+    </div>
+
+    <!-- PACKAGES PAGE -->
+    <div id="page-packages" style="display:none">
+      <div class="page-title">Buy Credits</div>
+      <div class="page-sub">Each credit = 1 full wallet scan with PDF report</div>
+      <div class="section-title">Available Packages</div>
+      <div class="packages-grid">
+        <div class="pkg-card" onclick="buyPackage('single')">
+          <div class="pkg-name">Single Report</div>
+          <div class="pkg-credits">1 <span style="font-size:14px;color:var(--tx3)">credit</span></div>
+          <div class="pkg-price">$19.99</div>
+          <div class="pkg-per">$19.99 per scan</div>
+          <button class="pkg-buy">Buy →</button>
+        </div>
+        <div class="pkg-card" onclick="buyPackage('starter')">
+          <div class="pkg-name">Starter Pack</div>
+          <div class="pkg-credits">3 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
+          <div class="pkg-price">$9.99</div>
+          <div class="pkg-per">$3.33 per scan</div>
+          <button class="pkg-buy">Buy →</button>
+        </div>
+        <div class="pkg-card popular" onclick="buyPackage('basic')">
+          <div class="pkg-popular">⭐ Most Popular</div>
+          <div class="pkg-name">Basic Pack</div>
+          <div class="pkg-credits">10 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
+          <div class="pkg-price">$24.99</div>
+          <div class="pkg-per">$2.50 per scan</div>
+          <button class="pkg-buy">Buy →</button>
+        </div>
+        <div class="pkg-card" onclick="buyPackage('pro')">
+          <div class="pkg-name">Pro Pack</div>
+          <div class="pkg-credits">30 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
+          <div class="pkg-price">$49.99</div>
+          <div class="pkg-per">$1.67 per scan</div>
+          <button class="pkg-buy">Buy →</button>
+        </div>
+        <div class="pkg-card" onclick="buyPackage('business')">
+          <div class="pkg-name">Business Pack</div>
+          <div class="pkg-credits">100 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
+          <div class="pkg-price">$99.99</div>
+          <div class="pkg-per">$1.00 per scan</div>
+          <button class="pkg-buy">Buy →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scan Modal -->
+<div id="scan-modal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="modal-title-txt">Scanning...</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+var API = '/.netlify/functions';
+var token = localStorage.getItem('cg_token');
+var currentUser = null;
+var profileData = null;
+var scanSlots = 1;
+
+// ── AUTH ──────────────────────────────────────────────────────
+function showForm(f) {
+  ['login','register','forgot'].forEach(function(n) {
+    document.getElementById('form-' + n).style.display = n === f ? '' : 'none';
+  });
+}
+
+async function doLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var pass = document.getElementById('login-pass').value;
+  var err = document.getElementById('login-err');
+  var btn = document.getElementById('login-btn');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Signing in...';
+
+  try {
+    var res = await fetch(API + '/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', email: email, password: pass }),
+    });
+    var data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Login failed');
+    token = data.token;
+    localStorage.setItem('cg_token', token);
+    localStorage.setItem('cg_refresh', data.refresh_token);
+    currentUser = data.user;
+    await loadDashboard();
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In →';
+  }
+}
+
+async function doRegister() {
+  var email = document.getElementById('reg-email').value.trim();
+  var pass = document.getElementById('reg-pass').value;
+  var pass2 = document.getElementById('reg-pass2').value;
+  var err = document.getElementById('reg-err');
+  var btn = document.getElementById('reg-btn');
+  err.style.display = 'none';
+  if (pass !== pass2) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+  if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters'; err.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Creating account...';
+
+  try {
+    var res = await fetch(API + '/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'register', email: email, password: pass }),
+    });
+    var data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Registration failed');
+    showToast('✅ Account created! Check your email to confirm.', 'success');
+    showForm('login');
+    document.getElementById('login-email').value = email;
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Account →';
+  }
+}
+
+async function doForgot() {
+  var email = document.getElementById('forgot-email').value.trim();
+  var btn = document.getElementById('forgot-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    await fetch(API + '/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'forgot', email: email }),
+    });
+    showToast('✅ Reset link sent to ' + email, 'success');
+    showForm('login');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Reset Link →';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('cg_token');
+  localStorage.removeItem('cg_refresh');
+  token = null; currentUser = null; profileData = null;
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  showForm('login');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function loadDashboard() {
+  if (!token) { document.getElementById('auth-screen').style.display = 'flex'; return; }
+
+  try {
+    var res = await fetch(API + '/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ action: 'profile' }),
+    });
+    if (res.status === 401) { logout(); return; }
+    profileData = await res.json();
+    currentUser = profileData.user;
+
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+
+    updateCreditsUI(profileData.profile.credits);
+    document.getElementById('dash-greeting').textContent = 'Welcome back, ' + currentUser.email;
+    document.getElementById('stat-scans').textContent = profileData.profile.total_scans || 0;
+
+    var risks = (profileData.scans || []).filter(function(s) { return s.risk_level === 'high'; }).length;
+    document.getElementById('stat-risks').textContent = risks;
+
+    renderRecentScans(profileData.scans || []);
+    renderHistory(profileData.scans || []);
+    initScanSlots();
+
+    // Check payment success
+    if (location.search.includes('payment=success')) {
+      showToast('✅ Payment confirmed! Credits added to your account.', 'success');
+      history.replaceState({}, '', '/dashboard');
+      setTimeout(loadDashboard, 3000);
+    }
+  } catch(e) {
+    console.error(e);
+    logout();
+  }
+}
+
+function updateCreditsUI(credits) {
+  document.getElementById('stat-credits').textContent = credits;
+  document.getElementById('sidebar-credits').textContent = credits;
+  document.getElementById('quick-credits').textContent = credits;
+  document.getElementById('scan-page-credits').textContent = credits;
+}
+
+// ── PAGES ─────────────────────────────────────────────────────
+function showPage(page) {
+  ['overview','scan','history','packages'].forEach(function(p) {
+    document.getElementById('page-' + p).style.display = p === page ? '' : 'none';
+    var nav = document.getElementById('nav-' + p);
+    if (nav) { nav.className = 'nav-item' + (p === page ? ' active' : ''); }
+  });
+}
+
+// ── SCAN ──────────────────────────────────────────────────────
+function initScanSlots() {
+  scanSlots = 1;
+  var wrap = document.getElementById('multi-slots');
+  wrap.innerHTML = makeSlotHTML(0);
+  document.getElementById('add-slot-btn').style.display = '';
+}
+
+function makeSlotHTML(idx) {
+  return '<div class="scan-input-row" style="margin-bottom:8px" id="slot-row-' + idx + '">' +
+    '<input type="text" class="scan-inp" id="slot-' + idx + '" placeholder="Wallet address #' + (idx+1) + '...">' +
+    (idx > 0 ? '<button onclick="removeSlot(' + idx + ')" style="background:none;border:1px solid var(--b2);border-radius:8px;padding:8px 12px;color:var(--tx3);cursor:pointer;flex-shrink:0">✕</button>' : '') +
+    '</div>';
+}
+
+function addScanSlot() {
+  if (scanSlots >= 3) return;
+  document.getElementById('multi-slots').insertAdjacentHTML('beforeend', makeSlotHTML(scanSlots));
+  scanSlots++;
+  if (scanSlots >= 3) document.getElementById('add-slot-btn').style.display = 'none';
+}
+
+function removeSlot(idx) {
+  var row = document.getElementById('slot-row-' + idx);
+  if (row) row.remove();
+  scanSlots--;
+  document.getElementById('add-slot-btn').style.display = '';
+}
+
+async function quickScan() {
+  var addr = document.getElementById('quick-addr').value.trim();
+  if (!addr) return;
+  await runScan(addr);
+}
+
+async function runMultiScan() {
+  var addrs = [];
+  for (var i = 0; i < 3; i++) {
+    var inp = document.getElementById('slot-' + i);
+    if (inp && inp.value.trim()) addrs.push(inp.value.trim());
+  }
+  if (addrs.length === 0) return;
+  await runScan(addrs[0]);
+}
+
+async function runScan(addr) {
+  if (!profileData || profileData.profile.credits < 1) {
+    showToast('⚠ No credits remaining. Buy a package to continue.', 'error');
+    showPage('packages');
+    return;
+  }
+
+  openModal('Scanning ' + addr.slice(0,10) + '...');
+  document.getElementById('modal-body').innerHTML = '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Analyzing blockchain data...</div></div>';
+
+  try {
+    // Detect network
+    var network = detectNet(addr);
+    var chainId = network.chainId || '0x1';
+
+    // Fetch real data
+    var chainData = null;
+    if (network.name === 'TRON') {
+      var r = await fetch(API + '/tron?addr=' + encodeURIComponent(addr));
+      chainData = await r.json();
+    } else if (network.name === 'Bitcoin') {
+      var r = await fetch('https://api.blockchair.com/bitcoin/dashboards/address/' + addr + '?limit=5');
+      var bd = await r.json();
+      if (bd.data && bd.data[addr]) {
+        var info = bd.data[addr].address;
+        chainData = { balance: (info.balance / 1e8).toFixed(8) + ' BTC', txCount: String(info.transaction_count), age: 'N/A', mixerTxCount: 0 };
+      }
+    } else {
+      var r = await fetch(API + '/moralis?addr=' + encodeURIComponent(addr) + '&chain=' + chainId);
+      chainData = await r.json();
+    }
+
+    // Calculate risk
+    var score = 15;
+    var level = 'medium';
+    var riskFlags = (chainData && chainData.riskFlags) ? chainData.riskFlags : [];
+    if (chainData && chainData.goplusRisk) score += 40;
+    if (chainData && chainData.mixerTxCount > 0) score += 30;
+    if (chainData && chainData.ofacMatch) score = 90;
+    score = Math.min(score, 100);
+    if (score >= 65) level = 'high';
+    else if (score <= 20) level = 'low';
+
+    var sc = level === 'high' ? '#FF3B3B' : level === 'medium' ? '#FFB020' : '#00D68F';
+
+    // Deduct credit
+    var deductRes = await fetch(API + '/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        action: 'deduct',
+        scanData: { address: addr, network: network.name, risk_score: score, risk_level: level, risk_flags: riskFlags }
+      }),
+    });
+    var deductData = await deductRes.json();
+    if (deductData.credits !== undefined) {
+      profileData.profile.credits = deductData.credits;
+      updateCreditsUI(deductData.credits);
+    }
+
+    // Show result
+    document.getElementById('modal-title-txt').textContent = 'Scan Complete';
+    document.getElementById('modal-body').innerHTML =
+      '<div class="mr-alert ' + level + '">' +
+        '<div style="font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;color:' + sc + ';margin-bottom:4px">' + (level === 'high' ? 'HIGH RISK DETECTED' : level === 'medium' ? 'POTENTIAL RISK FOUND' : 'BASIC SCAN PASSED') + '</div>' +
+        '<div style="font-size:16px;font-weight:600;margin-bottom:4px">' + (level === 'high' ? 'High risk indicators detected' : 'Potential risks require full verification') + '</div>' +
+        '<div style="font-size:12px;color:var(--tx2)">Get your PDF report for the full analysis with 47 AML checks.</div>' +
+      '</div>' +
+      '<div class="mr-score">' +
+        '<div class="mr-ring" style="border-color:' + sc + ';box-shadow:0 0 16px ' + sc + '40"><div class="mr-num" style="color:' + sc + '">' + score + '</div><div class="mr-max">/100</div></div>' +
+        '<div class="mr-info"><div class="mr-addr">' + addr + '</div><div class="mr-net">' + network.name + (chainData && chainData.balance ? ' · ' + chainData.balance : '') + '</div><div style="font-size:11px;color:var(--tx3);margin-top:4px">' + (chainData && chainData.txCount ? chainData.txCount + ' txs · ' : '') + (chainData && chainData.age ? chainData.age : '') + '</div></div>' +
+      '</div>' +
+      '<div class="mr-checks">' +
+        '<div class="mr-check"><span class="mr-check-name">OFAC Sanctions List</span><span class="mr-check-val ' + (chainData && chainData.ofacMatch ? 'found' : 'partial') + '">' + (chainData && chainData.ofacMatch ? 'MATCH FOUND' : 'Requires verification') + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (chainData && chainData.goplusRisk ? 'found' : 'clear') + '">' + (chainData && chainData.goplusRisk ? riskFlags[0] || 'Risk found' : 'Clear') + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">Mixer Detection</span><span class="mr-check-val ' + (chainData && chainData.mixerTxCount > 0 ? 'found' : 'clear') + '">' + (chainData && chainData.mixerTxCount > 0 ? chainData.mixerTxCount + ' flagged' : 'None found') + '</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">Suspicious Transactions</span><span class="mr-check-val partial">Requires verification</span></div>' +
+        '<div class="mr-check"><span class="mr-check-name">Darknet Exposure</span><span class="mr-check-val partial" style="color:var(--tx3)">🔒 Full report only</span></div>' +
+      '</div>' +
+      '<button class="save-btn" onclick="closeModal();loadDashboard()">✅ Saved to History</button>';
+
+    // Refresh scan history
+    setTimeout(loadDashboard, 500);
+
+  } catch(e) {
+    console.error(e);
+    document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red)">❌ Scan failed: ' + e.message + '</div>';
+  }
+}
+
+function detectNet(addr) {
+  if (/^0x[0-9a-fA-F]{40}$/.test(addr)) return { name: 'Ethereum / EVM', chainId: '0x1' };
+  if (/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,59}$/.test(addr)) return { name: 'Bitcoin', chainId: null };
+  if (/^T[a-zA-Z0-9]{33}$/.test(addr)) return { name: 'TRON', chainId: 'tron' };
+  if (addr.length >= 32 && addr.length <= 44) return { name: 'Solana', chainId: 'solana' };
+  return { name: 'Unknown', chainId: '0x1' };
+}
+
+// ── RENDER ─────────────────────────────────────────────────────
+function renderRecentScans(scans) {
+  var tbody = document.getElementById('recent-tbody');
+  var table = document.getElementById('recent-table');
+  var empty = document.getElementById('recent-empty');
+  var recent = scans.slice(0, 5);
+  if (recent.length === 0) { table.style.display = 'none'; empty.style.display = ''; return; }
+  table.style.display = ''; empty.style.display = 'none';
+  tbody.innerHTML = recent.map(function(s) { return scanRow(s); }).join('');
+}
+
+function renderHistory(scans) {
+  var tbody = document.getElementById('history-tbody');
+  var table = document.getElementById('history-table');
+  var empty = document.getElementById('history-empty');
+  if (scans.length === 0) { table.style.display = 'none'; empty.style.display = ''; return; }
+  table.style.display = ''; empty.style.display = 'none';
+  tbody.innerHTML = scans.map(function(s) { return scanRow(s, true); }).join('');
+}
+
+function scanRow(s, showLevel) {
+  var addr = s.address || '';
+  var short = addr.length > 20 ? addr.slice(0,10) + '...' + addr.slice(-8) : addr;
+  var sc = s.risk_score || 0;
+  var level = s.risk_level || 'unknown';
+  var color = level === 'high' ? 'var(--red)' : level === 'medium' ? 'var(--amber)' : 'var(--green)';
+  var date = s.created_at ? new Date(s.created_at).toLocaleDateString() : '-';
+  return '<tr>' +
+    '<td class="addr-cell" title="' + addr + '">' + short + '</td>' +
+    '<td>' + (s.network || '-') + '</td>' +
+    '<td><span style="font-family:var(--mono);font-weight:600;color:' + color + '">' + sc + '/100</span></td>' +
+    (showLevel ? '<td><span class="risk-chip ' + level + '">' + level.toUpperCase() + '</span></td>' : '') +
+    '<td style="color:var(--tx3);font-size:12px">' + date + '</td>' +
+    '<td>' + (s.report_url ? '<button class="report-btn" onclick="window.open(\'' + s.report_url + '\')">PDF</button>' : '<span style="font-size:11px;color:var(--tx3)">Coming soon</span>') + '</td>' +
+    '</tr>';
+}
+
+// ── PACKAGES ──────────────────────────────────────────────────
+async function buyPackage(pkgId) {
+  if (!currentUser) return;
+  try {
+    var res = await fetch(API + '/purchase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ packageId: pkgId, userId: currentUser.id }),
+    });
+    var data = await res.json();
+    if (data.invoice_url) {
+      window.open(data.invoice_url, '_blank');
+      showToast('💳 Payment page opened in new tab', 'success');
+    } else {
+      throw new Error(data.error || 'Failed to create invoice');
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+function openModal(title) {
+  document.getElementById('modal-title-txt').textContent = title;
+  document.getElementById('scan-modal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('scan-modal').style.display = 'none';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.className = 'toast'; }, 4000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  if (token) {
+    loadDashboard();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+  // Enter key on login
+  document.getElementById('login-pass').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+</script>
+</body>
+</html>

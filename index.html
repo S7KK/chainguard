@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -1094,6 +1095,7 @@ async function fetchMoralisData(addr, chainId) {
 
     var displayBalance = data.netWorth || data.balance || 'N/A';
     if (tokenSummary) displayBalance = displayBalance + ' (' + tokenSummary + ')';
+    var label = data.ensName ? ' (' + data.ensName + ')' : '';
 
     return {
       balance: displayBalance,
@@ -1101,6 +1103,11 @@ async function fetchMoralisData(addr, chainId) {
       age: data.age || 'N/A',
       mixerTxCount: data.mixerTxCount || 0,
       tokenTxCount: data.tokens ? data.tokens.length : 0,
+      goplusRisk: data.goplusRisk || false,
+      riskFlags: data.riskFlags || [],
+      ofacMatch: data.ofacMatch || false,
+      ensName: data.ensName || null,
+      displayLabel: label,
     };
   } catch(e) {
     console.error('Moralis error:', e);
@@ -1217,14 +1224,20 @@ async function fetchTronData(addr) {
 
     var trxBal = (data.trxBalance || '0') + ' TRX';
     var usdtBal = parseFloat(data.usdtBal || '0') > 0 ? data.usdtBal + ' USDT' : null;
-    var displayBalance = usdtBal ? trxBal + ' + ' + usdtBal : trxBal;
+    var frozenStr = parseFloat(data.frozenTrx || '0') > 0 ? ' [' + data.frozenTrx + ' frozen]' : '';
+    var displayBalance = usdtBal ? trxBal + ' + ' + usdtBal + frozenStr : trxBal + frozenStr;
 
     return {
       balance: displayBalance,
       txCount: data.txCount || 'N/A',
       age: data.age || 'N/A',
-      mixerTxCount: 0,
+      mixerTxCount: data.mixerTxCount || 0,
       tokenTxCount: data.trc20Count || 0,
+      goplusRisk: data.goplusRisk || false,
+      riskFlags: data.riskFlags || [],
+      ofacMatch: false,
+      isContract: data.isContract || false,
+      trc20List: data.trc20List || [],
     };
   } catch(e) {
     console.error('TRON error:', e);
@@ -1253,9 +1266,12 @@ function calcRiskScore(addr, chainData, ofac, mixer) {
 
 // Build risk profile from real data
 function buildRealProfile(addr, chainData, network) {
-  var ofac = isOfacMatch(addr);
-  var mixer = isMixerMatch(addr);
+  var ofac = isOfacMatch(addr) || (chainData && chainData.ofacMatch);
+  var mixer = isMixerMatch(addr) || (chainData && chainData.mixerTxCount > 0);
+  var goplusRisk = chainData && chainData.goplusRisk;
+  var riskFlags = chainData && chainData.riskFlags ? chainData.riskFlags : [];
   var score = calcRiskScore(addr, chainData, ofac, mixer);
+  if (goplusRisk) score = Math.min(score + 40, 100);
 
   var level, alertClass, alertIcon, alertLabel, alertTitle, alertDesc, sc, sg;
 
@@ -1286,12 +1302,13 @@ function buildRealProfile(addr, chainData, network) {
   var txs = chainData ? chainData.txCount : 'N/A';
   var age = chainData ? chainData.age : 'N/A';
 
+  var goplusBad = goplusRisk || riskFlags.length > 0;
   var checks = [
     {i: ofac ? '🔴' : '✅', n: 'OFAC Sanctions List', v: ofac ? 'MATCH FOUND' : 'Clear', c: ofac ? 'found' : 'clear'},
-    {i: mixer ? '🔴' : '✅', n: 'Mixer Interactions', v: mixer ? 'DETECTED' : 'None found', c: mixer ? 'found' : 'clear'},
+    {i: goplusBad ? '🔴' : '✅', n: 'GoPlus Security Check', v: goplusBad ? riskFlags[0] || 'Risk detected' : 'Clear', c: goplusBad ? 'found' : 'clear'},
+    {i: mixer ? '🔴' : '✅', n: 'Mixer / Tornado Cash', v: mixer ? 'DETECTED' : 'None found', c: mixer ? 'found' : 'clear'},
     {i: (chainData && chainData.mixerTxCount > 0) ? '🟡' : '✅', n: 'Suspicious Transactions', v: chainData && chainData.mixerTxCount > 0 ? chainData.mixerTxCount + ' flagged' : 'Clean', c: chainData && chainData.mixerTxCount > 0 ? 'partial' : 'clear'},
-    {i: '✅', n: 'EU / UN Sanctions', v: 'Clear', c: 'clear'},
-    {i: '🔒', n: 'Transaction Graph (5 levels)', v: 'LOCKED', c: 'locked'},
+    {i: '🔒', n: 'Darknet Exposure', v: 'LOCKED', c: 'locked'},
     {i: '🔒', n: 'Full 47-check AML Scan', v: 'LOCKED', c: 'locked'},
   ];
 

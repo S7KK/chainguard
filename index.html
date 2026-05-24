@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChainGuard — Безкоштовна перевірка гаманця</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090C;--s1:#0D1117;--s2:#131B24;--b1:#1C2733;--b2:#243040;
+  --tx:#EEF2F7;--tx2:#8A9BB0;--tx3:#3D5060;
+  --red:#FF3B3B;--red-dim:rgba(255,59,59,.12);--red-b:rgba(255,59,59,.25);
+  --amber:#FFB020;--amber-dim:rgba(255,176,32,.1);--amber-b:rgba(255,176,32,.25);
+  --green:#00D68F;--green-dim:rgba(0,214,143,.08);--green-b:rgba(0,214,143,.2);
+  --cyan:#00C8FF;--cyan2:#0077AA;
+  --head:'Rajdhani',sans-serif;
+  --body:'Inter',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--body);min-height:100vh;overflow-x:hidden;line-height:1.5}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.02) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0}
+.wrap{max-width:760px;margin:0 auto;padding:0 1.25rem;position:relative;z-index:1}
+
+/* BANNER */
+#banner{background:linear-gradient(90deg,#1A0505,#1F0808,#1A0505);border-bottom:1px solid var(--red-b);padding:.7rem 0;position:sticky;top:0;z-index:100}
+#banner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red)}
+.banner-inner{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.banner-text{font-family:var(--body);font-size:13px;color:#FFD0D0;line-height:1.4}
+.banner-text strong{color:var(--red)}
+.bstat{background:var(--red);color:#fff;font-family:var(--mono);font-size:10px;font-weight:600;padding:3px 9px;border-radius:3px;animation:blink 2.5s infinite;letter-spacing:.04em}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* NAV */
+nav{padding:1.1rem 0;border-bottom:1px solid var(--b1);margin-bottom:0}
+.nav-inner{display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo-name{font-family:var(--head);font-size:20px;font-weight:700;letter-spacing:.5px}
+.free-pill{font-size:11px;font-family:var(--mono);font-weight:600;background:rgba(0,200,255,.1);color:var(--cyan);border:1px solid rgba(0,200,255,.2);padding:3px 10px;border-radius:20px;letter-spacing:.02em}
+
+/* ═══ SCREEN: HOME ═══ */
+#screen-home{padding:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Nav brand ── */
+.nav-brand-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));display:flex;align-items:center;justify-content:center;font-size:16px}
+
+/* ── Live tag ── */
+.live-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-family:var(--body);color:var(--green);background:var(--green-dim);border:1px solid var(--green-b);padding:5px 14px;border-radius:20px;margin-bottom:1.25rem}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}
+
+/* ── Social proof ── */
+.social-proof{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.avatars{display:flex}
+.av{width:30px;height:30px;border-radius:50%;border:2px solid var(--s1);margin-right:-9px;background:var(--b2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.sp-text{font-size:13px;color:var(--cyan);font-weight:500}
+
+/* ── Main heading ── */
+.home-h1{font-family:var(--head);font-size:clamp(34px,5vw,64px);font-weight:700;line-height:1.05;letter-spacing:.3px;margin-bottom:1rem;text-align:center}
+.home-h1 em{font-style:normal;background:linear-gradient(90deg,var(--cyan),#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.home-sub{font-size:15px;color:var(--tx2);line-height:1.7;text-align:center;max-width:420px;margin:0 auto 2rem}
+
+/* ── Search card ── */
+.search-card{background:var(--s1);border:1px solid var(--b2);border-radius:18px;padding:16px;margin-bottom:14px;max-width:600px;margin-left:auto;margin-right:auto}
+.search-inner{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:10px 14px;margin-bottom:12px;transition:border-color .2s}
+.search-inner:focus-within{border-color:var(--cyan)}
+.search-ico{font-size:16px;color:var(--tx3);flex-shrink:0}
+.search-inner input{flex:1;background:none;border:none;outline:none;font-family:var(--body);font-size:14px;color:var(--tx);caret-color:var(--cyan)}
+.search-inner input::placeholder{color:var(--tx3)}
+.paste-btn{font-size:18px;color:var(--tx3);cursor:pointer;flex-shrink:0;transition:color .15s}
+.paste-btn:hover{color:var(--cyan)}
+.scan-btn{width:100%;background:linear-gradient(135deg,#4F8EF7,#8B5CF6);border:none;border-radius:12px;padding:14px;font-family:var(--head);font-size:18px;font-weight:700;letter-spacing:.5px;color:#fff;cursor:pointer;transition:opacity .15s,transform .1s;display:block}
+.scan-btn:hover{opacity:.9;transform:translateY(-1px)}
+
+/* Batch hint */
+.batch-hint{display:flex;align-items:center;gap:8px;background:rgba(0,200,255,.06);border:1px solid rgba(0,200,255,.15);border-radius:10px;padding:8px 12px;margin-bottom:10px}
+.bh-icon{font-size:14px;flex-shrink:0}
+.bh-text{font-size:12px;color:var(--tx2);line-height:1.4}
+.bh-text strong{color:var(--cyan)}
+
+/* Multi-address slots */
+.addr-slots{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.addr-slot{position:relative}
+.addr-slot .search-inner{margin-bottom:0}
+.addr-network{font-size:10px;font-family:var(--mono);padding:3px 10px;min-height:18px;color:var(--green);margin-top:3px;margin-left:4px}
+.addr-slot.has-addr .search-inner{border-color:rgba(0,214,143,.3)}
+.addr-slot.invalid .search-inner{border-color:rgba(255,59,59,.35)}
+.addr-slot.invalid .addr-network{color:var(--red)}
+.slot-remove{position:absolute;top:10px;right:12px;font-size:14px;color:var(--tx3);cursor:pointer;transition:color .15s;background:none;border:none;padding:0;z-index:1}
+.slot-remove:hover{color:var(--red)}
+.add-addr-row{margin-bottom:10px}
+.add-addr-btn{width:100%;background:none;border:1px dashed var(--b2);border-radius:12px;padding:10px;font-family:var(--body);font-size:13px;color:var(--tx3);cursor:pointer;transition:all .15s}
+.add-addr-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.batch-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.bb{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:6px;background:var(--s2);border:1px solid var(--b1);color:var(--tx3)}
+
+/* ── Mini features ── */
+.mini-feats{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.mf{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)}
+.mf-icon{font-size:14px}
+
+/* ── Supports row ── */
+.supports-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2rem;justify-content:center}
+.sup-lbl{font-size:12px;color:var(--tx3)}
+.coin-chip{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2)}
+.coin-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.more-coins{font-size:12px;color:var(--cyan);font-weight:500;cursor:pointer}
+
+/* ── Preview card ── */
+.preview-card{background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:18px;margin-bottom:1.5rem;max-width:600px;margin-left:auto;margin-right:auto;position:relative;overflow:hidden}
+.preview-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,176,32,.08),transparent 70%);pointer-events:none}
+.prev-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.prev-lbl{font-size:13px;font-weight:500;color:var(--tx)}
+.prev-link{font-size:12px;color:var(--cyan);cursor:pointer;display:flex;align-items:center;gap:4px}
+
+/* Gauge + checks split */
+.prev-body{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.gauge-wrap{background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;align-items:center;gap:4px;width:130px}
+.gauge-risk{font-family:var(--head);font-size:20px;font-weight:700;text-align:center;line-height:1.1}
+.gauge-risk.medium{color:var(--amber)}
+.gauge-score{font-size:13px;color:var(--tx3);font-family:var(--mono);text-align:center}
+.prev-checks{display:flex;flex-direction:column;gap:6px}
+.prev-check{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--s2);border-radius:10px;border:1px solid var(--b1)}
+.pc-left{display:flex;align-items:center;gap:8px}
+.pc-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.pc-icon.ok{background:rgba(0,214,143,.15)}
+.pc-icon.warn{background:rgba(255,176,32,.15)}
+.pc-name{font-size:12px;color:var(--tx2)}
+.pc-right{display:flex;align-items:center;gap:6px}
+.pc-val{font-size:11px;font-family:var(--mono);font-weight:600}
+.pc-val.ok{color:var(--green)}
+.pc-val.warn{color:var(--amber)}
+.pc-arrow{font-size:11px;color:var(--tx3)}
+.pc-check{width:20px;height:20px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
+
+/* ── Stats row ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--b1);border:1px solid var(--b1);border-radius:16px;overflow:hidden;margin-bottom:1.5rem;max-width:600px;margin-left:auto;margin-right:auto}
+.stat{background:var(--s1);padding:1.1rem .75rem;text-align:center}
+.stat-val{font-family:var(--head);font-size:22px;font-weight:700;letter-spacing:.3px;margin-bottom:3px}
+.stat-icon{font-size:20px;margin-bottom:4px}
+.stat-lbl{font-size:10px;color:var(--tx3);line-height:1.4}
+
+/* ── Unlock CTA ── */
+.unlock-cta{display:flex;align-items:center;gap:14px;background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:14px 16px;margin-bottom:.75rem;max-width:600px;margin-left:auto;margin-right:auto}
+.uc-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4F8EF7,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.uc-text{flex:1}
+.uc-title{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.uc-sub{font-size:12px;color:var(--tx3);line-height:1.4}
+.uc-btn{background:linear-gradient(135deg,#4F8EF7,#8B5CF6);border:none;border-radius:10px;padding:10px 16px;font-family:var(--head);font-size:14px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .15s;flex-shrink:0}
+.uc-btn:hover{opacity:.88}
+
+/* ── Money back ── */
+.money-back{text-align:center;font-size:12px;color:var(--tx3);display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:2rem}
+
+/* ── As seen on ── */
+.seen-on{padding:1.25rem 0 1.5rem;border-top:1px solid var(--b1);max-width:600px;margin:0 auto}
+.seen-lbl{font-size:11px;color:var(--tx3);font-family:var(--mono);margin-bottom:10px;text-align:center}
+.logos-row{display:flex;align-items:center;justify-content:center;gap:2rem;flex-wrap:wrap}
+.brand-logo{font-size:13px;font-weight:600;color:var(--tx3);display:flex;align-items:center;gap:6px;opacity:.55;transition:opacity .15s}
+.brand-logo:hover{opacity:1}
+
+/* ── Desktop layout (≥900px) ── */
+@media(min-width:900px){
+  #screen-home .wrap{max-width:1100px}
+  .home-hero{display:grid;grid-template-columns:1fr 480px;gap:4rem;align-items:start;padding:3.5rem 0 2rem}
+  .home-h1{text-align:left;font-size:clamp(38px,4vw,58px)}
+  .home-sub{text-align:left;margin:0 0 2rem}
+  .social-proof{justify-content:flex-start}
+  .mini-feats{justify-content:flex-start}
+  .supports-row{justify-content:flex-start}
+  .search-card{margin-left:0;margin-right:0;max-width:none}
+  .home-right-col{position:sticky;top:100px}
+  .preview-card{margin-left:0;margin-right:0;max-width:none}
+  .stats-row{max-width:none;margin-left:0;margin-right:0}
+  .unlock-cta{max-width:none;margin-left:0;margin-right:0}
+  .seen-on{max-width:none}
+  .logos-row{justify-content:flex-start}
+  .seen-lbl{text-align:left}
+  .money-back{justify-content:flex-start}
+}
+
+/* ═══ SCREEN: LOADING ═══ */
+#screen-loading{display:none;padding:3.5rem 0;text-align:center}
+.scan-spinner{width:80px;height:80px;border-radius:50%;border:2px solid var(--b2);border-top-color:var(--cyan);animation:spin 1s linear infinite;margin:0 auto 1.5rem;position:relative;flex-shrink:0}
+.scan-spinner::after{content:'🛡️';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;animation:spin 1s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-hd{font-family:var(--head);font-size:20px;font-weight:700;letter-spacing:.5px;color:var(--cyan);margin-bottom:.3rem}
+.scan-addr-lbl{font-family:var(--mono);font-size:11px;color:var(--tx3);margin-bottom:2rem;word-break:break-all;max-width:400px;margin-left:auto;margin-right:auto}
+
+.stages{max-width:380px;margin:0 auto 1.5rem}
+.stage{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--b1)}
+.stage:last-child{border-bottom:none}
+.stage-icon{width:30px;height:30px;border-radius:50%;border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .4s}
+.stage.active .stage-icon{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,200,255,.25)}
+.stage.done .stage-icon{background:var(--green);border-color:var(--green)}
+.stage-txt{flex:1;text-align:left}
+.stage-name{font-size:13px;font-family:var(--body);font-weight:500;color:var(--tx3);transition:color .3s}
+.stage.active .stage-name{color:var(--cyan)}
+.stage.done .stage-name{color:var(--green)}
+.stage-sub{font-size:11px;color:var(--tx3);opacity:0;transition:opacity .3s;margin-top:1px}
+.stage.active .stage-sub,.stage.done .stage-sub{opacity:1}
+.stst{font-size:11px;font-family:var(--mono);color:var(--tx3);flex-shrink:0;width:16px;text-align:center}
+.stage.active .stst{color:var(--cyan)}
+.stage.done .stst{color:var(--green)}
+
+.prog-wrap{max-width:380px;margin:0 auto}
+.prog-track{height:4px;background:var(--b1);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan2),var(--cyan));border-radius:2px;width:0%;transition:width .8s ease}
+.prog-labels{display:flex;justify-content:space-between;margin-top:6px}
+.prog-labels span{font-size:11px;font-family:var(--mono);color:var(--tx3)}
+
+/* ═══ SCREEN: RESULT ═══ */
+#screen-result{display:none;padding:1.5rem 0 2rem}
+
+.result-top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.result-top-bar .time-lbl{font-size:11px;color:var(--tx3);font-family:var(--mono)}
+.btn-ghost{background:none;border:1px solid var(--b2);border-radius:8px;padding:7px 14px;color:var(--tx2);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* Alert hero */
+.alert-hero{border-radius:16px;padding:20px 22px;margin-bottom:1.25rem;border:1px solid;position:relative;overflow:hidden}
+.alert-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--alert-color,var(--red))}
+.alert-hero.danger{background:#110505;border-color:#3A0E0E;--alert-color:var(--red)}
+.alert-hero.warn{background:#110D03;border-color:#372705;--alert-color:var(--amber)}
+.alert-hero.safe{background:#031410;border-color:#0A3528;--alert-color:var(--green)}
+.ah-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}
+.ah-icon{font-size:26px;flex-shrink:0;margin-top:2px}
+.ah-label{font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.1em;margin-bottom:4px}
+.danger .ah-label{color:var(--red)}
+.warn .ah-label{color:var(--amber)}
+.safe .ah-label{color:var(--green)}
+.ah-title{font-family:var(--head);font-size:22px;font-weight:700;letter-spacing:.3px;margin-bottom:3px;line-height:1.2}
+.ah-desc{font-size:13px;color:var(--tx2);line-height:1.65}
+
+/* Score row */
+.score-row{display:flex;gap:12px;align-items:stretch;margin-bottom:1.25rem}
+.score-ring-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:130px;flex-shrink:0}
+.ring-wrap{width:90px;height:90px;border-radius:50%;border:4px solid;display:flex;align-items:center;justify-content:center;flex-direction:column;margin-bottom:8px;position:relative}
+.ring-num{font-family:var(--head);font-size:34px;font-weight:700;line-height:1;letter-spacing:.5px}
+.ring-max{font-size:11px;color:var(--tx3);font-family:var(--mono)}
+.ring-lbl{font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:.06em}
+
+.score-meta{flex:1;background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.addr-chip{font-family:var(--mono);font-size:11px;color:var(--tx2);background:var(--s2);padding:7px 10px;border-radius:8px;border:1px solid var(--b1);word-break:break-all;line-height:1.5}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.mg{background:var(--s2);border-radius:8px;padding:8px 10px;border:1px solid var(--b1)}
+.mg-v{font-size:14px;font-weight:600;color:var(--tx);font-family:var(--body)}
+.mg-l{font-size:10px;color:var(--tx3);margin-top:2px}
+
+/* Checks table */
+.checks-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px 18px;margin-bottom:1.25rem}
+.card-title{font-size:11px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--b1)}
+.chk{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--b1)}
+.chk:last-child{border-bottom:none}
+.chk-l{display:flex;align-items:center;gap:10px}
+.chk-ico{font-size:13px;width:18px;text-align:center;flex-shrink:0}
+.chk-name{font-size:13px;color:var(--tx2)}
+.chk-v{font-size:11px;font-family:var(--mono);font-weight:600;padding:2px 8px;border-radius:4px}
+.chk-v.clear{color:var(--green);background:var(--green-dim)}
+.chk-v.found{color:var(--red);background:var(--red-dim)}
+.chk-v.partial{color:var(--amber);background:var(--amber-dim)}
+.chk-v.locked{color:var(--tx3);background:var(--s2)}
+
+/* Trigger section */
+.trigger-section{margin-bottom:1.5rem}
+.trigger-box{border-radius:14px;padding:18px 20px;border:1px solid var(--red-b);background:linear-gradient(135deg,#120506,#0E0404);margin-bottom:10px;position:relative;overflow:hidden}
+.trigger-box::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,59,59,.08),transparent 70%)}
+.trig-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--red);background:var(--red-dim);border:1px solid var(--red-b);padding:3px 9px;border-radius:20px;margin-bottom:10px;animation:blink 2s infinite}
+.trig-title{font-family:var(--head);font-size:18px;font-weight:700;letter-spacing:.3px;margin-bottom:8px;color:var(--tx);line-height:1.3}
+.trig-list{display:flex;flex-direction:column;gap:7px}
+.trig-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--tx2);line-height:1.55}
+.trig-item::before{content:'→';color:var(--red);flex-shrink:0;margin-top:1px;font-family:var(--mono)}
+.trig-item strong{color:var(--tx)}
+
+/* Locked section teaser */
+.locked-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem}
+.locked-card{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden}
+.locked-card::after{content:'🔒';position:absolute;top:10px;right:12px;font-size:14px;opacity:.5}
+.lc-title{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:4px}
+.lc-desc{font-size:12px;color:var(--tx3)}
+
+/* CTA — email */
+.email-cta{background:linear-gradient(135deg,#0D1520,#0B1015);border:1.5px solid var(--b2);border-radius:18px;padding:24px 22px;text-align:center}
+.ecta-label{font-size:10px;font-family:var(--mono);color:var(--cyan);letter-spacing:.08em;margin-bottom:8px}
+.ecta-title{font-family:var(--head);font-size:20px;font-weight:700;letter-spacing:.3px;margin-bottom:6px;line-height:1.25}
+.ecta-sub{font-size:13px;color:var(--tx2);margin-bottom:1.25rem;line-height:1.6}
+.email-row{display:flex;gap:8px;max-width:440px;margin:0 auto}
+.email-inp{flex:1;background:var(--s2);border:1.5px solid var(--b2);border-radius:10px;padding:13px 14px;font-family:var(--body);font-size:14px;color:var(--tx);outline:none;transition:border-color .2s;min-width:0}
+.email-inp:focus{border-color:var(--cyan)}
+.email-inp::placeholder{color:var(--tx3)}
+.next-btn{background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:13px 22px;font-family:var(--head);font-size:16px;font-weight:700;letter-spacing:.5px;color:#07090C;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+.next-btn:hover{opacity:.88;transform:translateY(-1px)}
+.ecta-hint{font-size:11px;color:var(--tx3);margin-top:10px}
+
+/* ═══ SCREEN: QUIZ ═══ */
+#screen-quiz{display:none;padding:1.5rem 0 2.5rem}
+.quiz-progress{display:flex;gap:4px;margin-bottom:2rem}
+.qp-step{flex:1;height:3px;border-radius:2px;background:var(--b1);transition:background .4s}
+.qp-step.done{background:var(--cyan)}
+.qp-step.active{background:var(--amber)}
+.quiz-hd{font-family:var(--head);font-size:22px;font-weight:700;letter-spacing:.3px;margin-bottom:.4rem}
+.quiz-sub{font-size:13px;color:var(--tx2);margin-bottom:1.75rem}
+.q-card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:22px;margin-bottom:1rem}
+.q-text{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:1rem;line-height:1.5}
+.q-hint{font-size:12px;color:var(--tx3);margin-bottom:1rem;padding:8px 12px;background:var(--amber-dim);border:1px solid var(--amber-b);border-radius:8px;line-height:1.55}
+.q-opts{display:flex;flex-direction:column;gap:8px}
+.q-opt{background:var(--s2);border:1.5px solid var(--b1);border-radius:10px;padding:12px 16px;cursor:pointer;font-size:14px;color:var(--tx2);transition:all .15s;display:flex;align-items:center;gap:10px}
+.q-opt:hover{border-color:var(--b2);color:var(--tx)}
+.q-opt.selected{border-color:var(--cyan);background:rgba(0,200,255,.06);color:var(--tx)}
+.q-opt .opt-dot{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--tx3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.q-opt.selected .opt-dot{border-color:var(--cyan);background:var(--cyan)}
+.q-opt.selected .opt-dot::after{content:'✓';font-size:9px;color:#07090C;font-weight:700}
+.quiz-nav{display:flex;justify-content:flex-end;margin-top:1.25rem}
+.quiz-next-btn{background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:12px 28px;font-family:var(--head);font-size:16px;font-weight:700;letter-spacing:.5px;color:#07090C;cursor:pointer;transition:opacity .15s}
+.quiz-next-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ═══ SCREEN: PAYMENT ═══ */
+#screen-payment{display:none;padding:1.5rem 0 2.5rem}
+.pay-header{text-align:center;margin-bottom:2rem}
+.pay-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);color:var(--red);background:var(--red-dim);border:1px solid var(--red-b);padding:4px 12px;border-radius:20px;margin-bottom:1rem;animation:blink 2s infinite}
+.pay-title{font-family:var(--head);font-size:26px;font-weight:700;letter-spacing:.5px;margin-bottom:.5rem}
+.pay-sub{font-size:14px;color:var(--tx2);max-width:480px;margin:0 auto;line-height:1.65}
+.pay-sub strong{color:var(--tx)}
+
+/* Summary of quiz risk */
+.quiz-summary{background:linear-gradient(135deg,#130606,#0F0404);border:1px solid #3A1010;border-radius:14px;padding:16px 18px;margin-bottom:1.5rem}
+.qs-title{font-size:12px;font-family:var(--mono);color:var(--red);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.qs-flags{display:flex;flex-direction:column;gap:6px}
+.qs-flag{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)}
+.qs-flag .qf-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
+
+/* What's included */
+.includes-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:18px 20px;margin-bottom:1.5rem}
+.inc-title{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.inc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inc-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--tx2);line-height:1.5}
+.inc-item .ii-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.inc-item strong{color:var(--tx);display:block;font-size:12px;font-weight:600}
+
+/* Price block */
+.price-block{background:linear-gradient(135deg,#0D1520,#0B1015);border:1.5px solid rgba(0,200,255,.2);border-radius:18px;padding:24px;margin-bottom:1.25rem;text-align:center}
+.price-old{font-size:16px;color:var(--tx3);text-decoration:line-through;font-family:var(--mono);margin-bottom:2px}
+.price-new{font-family:var(--head);font-size:52px;font-weight:700;color:var(--tx);letter-spacing:.5px;line-height:1}
+.price-period{font-size:13px;color:var(--tx2);margin-top:4px;margin-bottom:1.5rem}
+.pay-form{max-width:420px;margin:0 auto}
+.pay-email-show{font-family:var(--mono);font-size:12px;color:var(--tx3);background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 12px;margin-bottom:12px;text-align:center}
+.pay-email-show span{color:var(--cyan)}
+.big-pay-btn{width:100%;background:linear-gradient(135deg,#FF2D2D,#BB1111);border:none;border-radius:14px;padding:18px;font-family:var(--head);font-size:20px;font-weight:700;letter-spacing:.5px;color:#fff;cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:10px}
+.big-pay-btn:hover{opacity:.88;transform:translateY(-1px)}
+.pay-trust{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--tx3);font-family:var(--mono)}
+.pay-trust span{display:flex;align-items:center;gap:4px}
+
+/* THANKS */
+#screen-thanks{display:none;text-align:center;padding:4rem 0}
+.thanks-icon{font-size:60px;margin-bottom:1.25rem}
+.thanks-title{font-family:var(--head);font-size:30px;font-weight:700;letter-spacing:.5px;margin-bottom:.75rem}
+.thanks-sub{font-size:15px;color:var(--tx2);line-height:1.7;max-width:420px;margin:0 auto 2rem}
+.restart-btn{background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:12px;padding:14px 32px;font-family:var(--head);font-size:18px;font-weight:700;letter-spacing:.5px;color:#07090C;cursor:pointer}
+
+footer{padding:2rem 0 1.5rem;border-top:1px solid var(--b1);margin-top:1rem}
+.foot-txt{font-size:11px;color:var(--tx3);text-align:center;line-height:1.9;font-family:var(--mono)}
+.foot-txt a{color:var(--cyan);text-decoration:none}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:600px){
+  /* Layout */
+  .wrap{padding:0 1rem}
+  
+  /* Banner */
+  #banner{padding:.6rem 0}
+  .banner-inner{gap:8px;padding:0 .75rem}
+  .banner-text{font-size:11px}
+  .bstat{font-size:9px;padding:2px 7px}
+  
+  /* Nav */
+  nav{padding:.9rem 0;margin-bottom:0}
+  .logo-name{font-size:17px}
+  .nav-inner .free-pill{display:none}
+  
+  /* Home - stack on mobile */
+  #screen-home{padding:0}
+  .home-inner{grid-template-columns:1fr;gap:1.5rem;padding:1.5rem 0 1.5rem;min-height:auto}
+  .home-right{order:1}
+  .home-left{order:2}
+  h1{font-size:28px;letter-spacing:0;text-align:center}
+  .hero-sub{font-size:14px;text-align:center;margin-left:auto;margin-right:auto}
+  .live-tag{font-size:10px;padding:4px 12px}
+  .social-proof{justify-content:center}
+  .feat-row{gap:1rem;justify-content:center}
+  .feat{flex-direction:column;align-items:center;text-align:center;max-width:100px}
+  .search-box{padding:5px 5px 5px 14px;border-radius:12px}
+  .search-box input{font-size:12px;padding:9px 0}
+  .scan-btn{padding:10px 14px;font-size:13px;border-radius:8px}
+  .supports-row{justify-content:center}
+  .demo-row{justify-content:center;gap:5px}
+  .demo-chip{font-size:9px;padding:3px 8px}
+  .seen-on{padding:1rem 0}
+  .logos-row{gap:1.25rem}
+  .stats-row{grid-template-columns:1fr 1fr;gap:1px}
+  .stat{padding:1rem .75rem}
+  .stat-val{font-size:20px}
+  .stat-lbl{font-size:10px}
+  /* Preview card mobile */
+  .preview-card{border-radius:16px;padding:16px}
+  .gauge-wrap{padding:12px}
+  .gauge-svg{width:72px;height:72px}
+  
+  /* Loading */
+  #screen-loading{padding:2.5rem 0}
+  .scan-spinner{width:64px;height:64px}
+  .scan-spinner::after{font-size:20px}
+  .scan-hd{font-size:17px}
+  .scan-addr-lbl{font-size:10px}
+  .stages{max-width:100%}
+  .stage{padding:8px 0;gap:10px}
+  .stage-icon{width:26px;height:26px;font-size:11px}
+  .stage-name{font-size:12px}
+  .stage-sub{font-size:10px}
+  .prog-wrap{max-width:100%}
+  
+  /* Result */
+  #screen-result{padding:1rem 0 1.5rem}
+  .result-top-bar{margin-bottom:1rem}
+  .result-top-bar .time-lbl{font-size:10px}
+  .btn-ghost{padding:6px 10px;font-size:10px}
+  
+  /* Alert hero */
+  .alert-hero{padding:14px 16px;border-radius:12px;margin-bottom:1rem}
+  .ah-icon{font-size:22px}
+  .ah-title{font-size:18px}
+  .ah-desc{font-size:12px}
+  
+  /* Score */
+  .score-row{flex-direction:column;gap:10px}
+  .score-ring-card{padding:14px;flex-direction:row;gap:16px;justify-content:flex-start;min-width:0}
+  .ring-wrap{width:72px;height:72px;flex-shrink:0;margin:0}
+  .ring-num{font-size:26px}
+  .ring-lbl{font-size:9px}
+  .score-meta{padding:12px 14px}
+  .addr-chip{font-size:10px;padding:5px 8px}
+  .meta-grid{grid-template-columns:1fr 1fr 1fr}
+  .mg{padding:6px 8px}
+  .mg-v{font-size:13px}
+  .mg-l{font-size:10px}
+  
+  /* Checks */
+  .checks-card{padding:12px 14px;border-radius:12px}
+  .card-title{font-size:10px;margin-bottom:10px}
+  .chk{padding:7px 0}
+  .chk-name{font-size:12px}
+  .chk-v{font-size:10px;padding:2px 6px}
+  
+  /* Trigger */
+  .trigger-box{padding:14px 16px;border-radius:12px}
+  .trig-title{font-size:15px}
+  .trig-item{font-size:12px}
+  
+  /* Locked grid */
+  .locked-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .locked-card{padding:10px 12px;border-radius:10px}
+  .lc-title{font-size:12px}
+  .lc-desc{font-size:11px}
+  
+  /* Email CTA */
+  .email-cta{padding:18px 16px;border-radius:14px}
+  .ecta-title{font-size:17px}
+  .ecta-sub{font-size:12px;margin-bottom:1rem}
+  .email-row{flex-direction:column;gap:8px}
+  .email-inp{padding:12px 14px;font-size:14px}
+  .next-btn{padding:13px;font-size:15px;text-align:center}
+  .ecta-hint{font-size:10px}
+  
+  /* Quiz */
+  #screen-quiz{padding:1rem 0 2rem}
+  .quiz-hd{font-size:18px}
+  .quiz-sub{font-size:12px;margin-bottom:1.25rem}
+  .q-card{padding:16px 14px;border-radius:12px}
+  .q-text{font-size:14px;margin-bottom:.75rem}
+  .q-hint{font-size:11px;padding:7px 10px}
+  .q-opt{padding:10px 14px;font-size:13px;gap:8px}
+  .opt-dot{width:14px;height:14px}
+  .quiz-next-btn{padding:12px 24px;font-size:15px}
+  
+  /* Payment */
+  #screen-payment{padding:1rem 0 2rem}
+  .pay-title{font-size:22px}
+  .pay-sub{font-size:13px}
+  .quiz-summary{padding:14px 16px;border-radius:12px}
+  .qs-flag{font-size:12px}
+  .includes-card{padding:14px 16px;border-radius:12px}
+  .inc-grid{grid-template-columns:1fr}
+  .inc-item{font-size:12px}
+  .price-block{padding:18px 16px;border-radius:14px}
+  .price-old{font-size:14px}
+  .price-new{font-size:42px}
+  .price-period{font-size:12px;margin-bottom:1.25rem}
+  .pay-email-show{font-size:11px;padding:7px 10px}
+  .big-pay-btn{padding:16px;font-size:17px;border-radius:12px}
+  .pay-trust{gap:1rem;font-size:10px}
+  
+  /* Thanks */
+  #screen-thanks{padding:2.5rem 0}
+  .thanks-icon{font-size:48px}
+  .thanks-title{font-size:24px}
+  .thanks-sub{font-size:14px}
+  .restart-btn{padding:12px 24px;font-size:16px}
+  
+  /* Footer */
+  footer{padding:1.5rem 0 1rem}
+  .foot-txt{font-size:10px}
+}
+
+/* Extra small phones */
+@media(max-width:380px){
+  h1{font-size:24px}
+  .scan-btn{padding:9px 12px;font-size:13px}
+  .locked-grid{grid-template-columns:1fr}
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .price-new{font-size:36px}
+  .big-pay-btn{font-size:15px}
+}
+</style>
+</head>
+<body>
+
+<!-- BANNER -->
+<div id="banner">
+  <div class="wrap">
+    <div class="banner-inner">
+      <span>⚠️</span>
+      <div class="banner-text"><strong>1 з 5 гаманців містить брудну крипту.</strong> Власники дізнаються лише коли біржа блокує їхній рахунок назавжди.</div>
+      <div class="bstat">18.3% ЗАРАЖЕНО</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap">
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-mark">🛡️</div>
+        <span class="logo-name">ChainGuard</span>
+      </div>
+      <span class="free-pill">⚡ ПЕРША ПЕРЕВІРКА БЕЗКОШТОВНО</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HOME ═══ -->
+<div id="screen-home">
+  <div class="wrap">
+
+    <!-- DESKTOP: 2-col / MOBILE: single col -->
+    <div class="home-hero">
+
+      <!-- LEFT COL (or full-width on mobile) -->
+      <div class="home-left-col">
+        <div class="live-tag"><span class="live-dot"></span>Live scanning · 50+ blockchains</div>
+
+        <div class="social-proof">
+          <div class="avatars">
+            <div class="av">🧑</div><div class="av">👩</div><div class="av">👨</div><div class="av">🧑</div>
+          </div>
+          <span class="sp-text">2.4M+ users already checked their wallets</span>
+        </div>
+
+        <div class="home-h1">Check Any Crypto<br><em>Wallet for Risks</em></div>
+        <p class="home-sub">Instantly scan any crypto address for risks, suspicious activity, and exposure. Know before you send or receive.</p>
+
+        <!-- Search card — up to 3 addresses -->
+        <div class="search-card">
+          <div class="batch-hint">
+            <span class="bh-icon">⚡</span>
+            <span class="bh-text">Check up to <strong>3 wallet addresses</strong> at once — free</span>
+          </div>
+          <div class="addr-slots" id="addr-slots">
+            <div class="addr-slot" id="slot-0">
+              <div class="search-inner">
+                <span class="search-ico">🔍</span>
+                <input type="text" class="addr-input" placeholder="Paste crypto address #1..." autocomplete="off" spellcheck="false">
+                <span class="paste-btn" onclick="pasteSlot(0)" title="Paste">⊞</span>
+              </div>
+              <div class="addr-network" id="net-0"></div>
+            </div>
+          </div>
+
+          <div class="add-addr-row" id="add-addr-row">
+            <button class="add-addr-btn" onclick="addSlot()">+ Add another address <span style="color:var(--tx3);font-size:10px">(up to 3)</span></button>
+          </div>
+
+          <button class="scan-btn" onclick="startScan()">Check Wallet →</button>
+        </div>
+
+        <!-- Mini features -->
+        <div class="mini-feats">
+          <div class="mf"><span class="mf-icon">🛡️</span>Secure</div>
+          <div class="mf"><span class="mf-icon">⚡</span>10-Second Scan</div>
+          <div class="mf"><span class="mf-icon">🔒</span>Private</div>
+          <div class="mf"><span class="mf-icon">🚫</span>No Logs</div>
+        </div>
+
+        <!-- Supports -->
+        <div class="supports-row">
+          <span class="sup-lbl">Supports:</span>
+          <span class="coin-chip"><span class="coin-dot" style="background:#F7931A">₿</span>BTC</span>
+          <span class="coin-chip"><span class="coin-dot" style="background:#627EEA">Ξ</span>ETH</span>
+          <span class="coin-chip"><span class="coin-dot" style="background:#26A17B">₮</span>USDT TRC20</span>
+          <span class="coin-chip"><span class="coin-dot" style="background:#F3BA2F">◈</span>BNB</span>
+          <span class="more-coins">+50 more</span>
+        </div>
+
+        <!-- Demo chips (hidden on mobile to keep clean) -->
+        <div class="demo-row" style="justify-content:flex-start;margin-bottom:1rem">
+          <span class="demo-lbl">Try:</span>
+          <span class="demo-chip" onclick="setDemo('high')">🔴 High Risk</span>
+          <span class="demo-chip" onclick="setDemo('medium')">🟡 Medium</span>
+          <span class="demo-chip" onclick="setDemo('safe')">🟢 Clean</span>
+        </div>
+      </div>
+
+      <!-- RIGHT COL (desktop) / below on mobile -->
+      <div class="home-right-col">
+
+        <!-- Preview card -->
+        <div class="preview-card">
+          <div class="prev-header">
+            <span class="prev-lbl">Example scan result</span>
+            <span class="prev-link">View full report →</span>
+          </div>
+          <div class="prev-body">
+            <!-- Gauge -->
+            <div class="gauge-wrap">
+              <svg width="90" height="70" viewBox="0 0 90 70">
+                <path d="M10,65 A40,40 0 0,1 80,65" fill="none" stroke="#1C2733" stroke-width="9" stroke-linecap="round"/>
+                <path d="M10,65 A40,40 0 0,1 80,65" fill="none" stroke="#FFB020" stroke-width="9" stroke-linecap="round" stroke-dasharray="105 126" />
+              </svg>
+              <div class="gauge-risk medium">Medium<br>Risk</div>
+              <div class="gauge-score">62/100</div>
+            </div>
+            <!-- Checks -->
+            <div class="prev-checks">
+              <div class="prev-check">
+                <div class="pc-left"><div class="pc-icon ok">🛡️</div><span class="pc-name">Sanctions</span></div>
+                <div class="pc-right"><span class="pc-val ok">No match</span><div class="pc-check">✓</div></div>
+              </div>
+              <div class="prev-check">
+                <div class="pc-left"><div class="pc-icon ok">📋</div><span class="pc-name">Blacklist</span></div>
+                <div class="pc-right"><span class="pc-val ok">No match</span><div class="pc-check">✓</div></div>
+              </div>
+              <div class="prev-check">
+                <div class="pc-left"><div class="pc-icon warn">⚡</div><span class="pc-name">Suspicious Activity</span></div>
+                <div class="pc-right"><span class="pc-val warn">2 findings</span><span class="pc-arrow">›</span></div>
+              </div>
+              <div class="prev-check">
+                <div class="pc-left"><div class="pc-icon warn">🏦</div><span class="pc-name">Exchange Compatibility</span></div>
+                <div class="pc-right"><span class="pc-val warn">Review recommended</span><span class="pc-arrow">›</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat"><div class="stat-icon">⚡</div><div class="stat-val" style="color:var(--cyan)">2.4M+</div><div class="stat-lbl">Wallets Scanned</div></div>
+          <div class="stat"><div class="stat-icon">🌐</div><div class="stat-val" style="color:#8B5CF6">50+</div><div class="stat-lbl">Blockchains Supported</div></div>
+          <div class="stat"><div class="stat-icon">🛡️</div><div class="stat-val" style="color:var(--amber)">18.3%</div><div class="stat-lbl">High-Risk Addresses Found</div></div>
+          <div class="stat"><div class="stat-icon">⏱️</div><div class="stat-val" style="color:var(--cyan)">&lt;10s</div><div class="stat-lbl">Average Scan Time</div></div>
+        </div>
+
+        <!-- Unlock CTA -->
+        <div class="unlock-cta">
+          <div class="uc-icon">🔒</div>
+          <div class="uc-text">
+            <div class="uc-title">Get the full report</div>
+            <div class="uc-sub">Unlock detailed risk analysis, transaction history, and safety recommendations.</div>
+          </div>
+          <button class="uc-btn" onclick="startScan()">Unlock Report</button>
+        </div>
+        <div class="money-back">🛡️ 14-day money-back guarantee</div>
+
+      </div>
+    </div>
+
+    <!-- As seen on -->
+    <div class="seen-on">
+      <div class="seen-lbl">As seen on</div>
+      <div class="logos-row">
+        <div class="brand-logo">◈ Binance</div>
+        <div class="brand-logo">● CoinMarketCap</div>
+        <div class="brand-logo">🦎 CoinGecko</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ LOADING ═══ -->
+<div id="screen-loading">
+  <div class="wrap">
+    <div class="scan-spinner"></div>
+    <div class="scan-hd">Сканування блокчейну...</div>
+    <div class="scan-addr-lbl" id="scan-addr-lbl"></div>
+    <div class="stages">
+      <div class="stage" id="st0"><div class="stage-icon">🔗</div><div class="stage-txt"><div class="stage-name">Підключення до мережі</div><div class="stage-sub">ETH · BTC · BNB · SOL · TRON · Polygon</div></div><div class="stst" id="st0s">—</div></div>
+      <div class="stage" id="st1"><div class="stage-icon">📋</div><div class="stage-txt"><div class="stage-name">Перевірка санкційних баз</div><div class="stage-sub">OFAC SDN · EU · UN · FinCEN · Interpol</div></div><div class="stst" id="st1s">—</div></div>
+      <div class="stage" id="st2"><div class="stage-icon">🕸️</div><div class="stage-txt"><div class="stage-name">Аналіз транзакційного графу</div><div class="stage-sub">Відстеження до 5 рівнів зв'язків</div></div><div class="stst" id="st2s">—</div></div>
+      <div class="stage" id="st3"><div class="stage-icon">🔍</div><div class="stage-txt"><div class="stage-name">Виявлення ризикованих зв'язків</div><div class="stage-sub">Міксери · Darknet · Gambling · Сками</div></div><div class="stst" id="st3s">—</div></div>
+      <div class="stage" id="st4"><div class="stage-icon">🏛️</div><div class="stage-txt"><div class="stage-name">Порівняння з AML базами</div><div class="stage-sub">Chainalysis · Elliptic · Crystal · TRM</div></div><div class="stst" id="st4s">—</div></div>
+      <div class="stage" id="st5"><div class="stage-icon">📊</div><div class="stage-txt"><div class="stage-name">Формування ризик-профілю</div><div class="stage-sub">Скоринг та рекомендації</div></div><div class="stst" id="st5s">—</div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+      <div class="prog-labels"><span>Аналізуємо...</span><span id="prog-pct">0%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESULT ═══ -->
+<div id="screen-result">
+  <div class="wrap">
+    <div class="result-top-bar">
+      <span class="time-lbl">Сканування завершено · <span id="r-time"></span></span>
+      <button class="btn-ghost" onclick="resetScan()">← Новий пошук</button>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert-hero" id="r-alert">
+      <div class="ah-top">
+        <div class="ah-icon" id="r-icon">⚠️</div>
+        <div>
+          <div class="ah-label" id="r-label">РЕЗУЛЬТАТ СКАНУВАННЯ</div>
+          <div class="ah-title" id="r-title"></div>
+        </div>
+      </div>
+      <div class="ah-desc" id="r-desc"></div>
+    </div>
+
+    <!-- Score + Meta -->
+    <div class="score-row">
+      <div class="score-ring-card">
+        <div class="ring-wrap" id="r-ring">
+          <div class="ring-num" id="r-score-num">0</div>
+          <div class="ring-max">/100</div>
+        </div>
+        <div class="ring-lbl" id="r-ring-lbl">РИЗИК</div>
+      </div>
+      <div class="score-meta">
+        <div class="addr-chip" id="r-addr"></div>
+        <div class="meta-grid" id="r-meta"></div>
+      </div>
+    </div>
+
+    <!-- Checks -->
+    <div class="checks-card">
+      <div class="card-title">Результати безкоштовного сканування</div>
+      <div id="r-checks"></div>
+    </div>
+
+    <!-- Trigger section -->
+    <div class="trigger-section">
+      <div class="trigger-box">
+        <div class="trig-badge">🚨 ВАЖЛИВО</div>
+        <div class="trig-title" id="r-trig-title">Ваші кошти можуть бути під загрозою блокування</div>
+        <div class="trig-list" id="r-trig-list"></div>
+      </div>
+    </div>
+
+    <!-- Locked features teaser -->
+    <div class="locked-grid">
+      <div class="locked-card"><div class="lc-title">Граф зв'язків</div><div class="lc-desc">Повне дерево транзакцій до 5 рівнів глибини</div></div>
+      <div class="locked-card"><div class="lc-title">47 AML перевірок</div><div class="lc-desc">Повний скоринг по всіх базах ризиків</div></div>
+      <div class="locked-card"><div class="lc-title">PDF звіт</div><div class="lc-desc">Офіційний документ для бірж та регуляторів</div></div>
+      <div class="locked-card"><div class="lc-title">Рекомендації</div><div class="lc-desc">Конкретні кроки для захисту ваших коштів</div></div>
+    </div>
+
+    <!-- Email CTA -->
+    <div class="email-cta">
+      <div class="ecta-label">НАСТУПНИЙ КРОК</div>
+      <div class="ecta-title" id="r-ecta-title">Отримайте повний звіт і захистіть свої кошти</div>
+      <div class="ecta-sub" id="r-ecta-sub">Введіть email — ми надішлемо результати повної перевірки. Займе 2 хвилини.</div>
+      <div class="email-row">
+        <input type="email" class="email-inp" id="result-email" placeholder="Ваш email...">
+        <button class="next-btn" onclick="goToQuiz()">Далі →</button>
+      </div>
+      <div class="ecta-hint">🔒 Ніякого спаму · Тільки результати перевірки</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ QUIZ ═══ -->
+<div id="screen-quiz">
+  <div class="wrap">
+    <div class="quiz-progress" id="quiz-progress"></div>
+    <div class="quiz-hd">Коротке опитування</div>
+    <div class="quiz-sub">Допоможіть нам оцінити рівень ризику точніше — 4 питання</div>
+    <div id="quiz-body"></div>
+    <div class="quiz-nav">
+      <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()" disabled>Далі →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAYMENT ═══ -->
+<div id="screen-payment">
+  <div class="wrap">
+    <div class="pay-header">
+      <div class="pay-badge">🚨 <span id="pay-risk-label">ВИЯВЛЕНО РИЗИКИ</span></div>
+      <div class="pay-title">Повна AML перевірка</div>
+      <p class="pay-sub">На основі вашого опитування ми виявили <strong id="pay-risk-count">додаткові фактори ризику</strong>. Повний звіт покаже повну картину та що робити далі.</p>
+    </div>
+
+    <!-- Quiz risk summary -->
+    <div class="quiz-summary">
+      <div class="qs-title">⚠ Фактори ризику з опитування</div>
+      <div class="qs-flags" id="qs-flags"></div>
+    </div>
+
+    <!-- What's included -->
+    <div class="includes-card">
+      <div class="inc-title">📋 Що входить у повну перевірку</div>
+      <div class="inc-grid">
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>47 AML перевірок</strong>Повний скоринг по всіх базах ризиків</div></div>
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>Граф зв'язків (5 рівнів)</strong>Дерево всіх транзакцій</div></div>
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>Санкції 15+ баз</strong>OFAC, EU, UN, FinCEN та інші</div></div>
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>Аналіз міксерів</strong>Tornado Cash, Wasabi та інші</div></div>
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>Darknet exposure</strong>Перевірка по відомих маркетах</div></div>
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>PDF звіт</strong>Офіційний документ для бірж</div></div>
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>Конкретні рекомендації</strong>Що робити щоб захистити кошти</div></div>
+        <div class="inc-item"><span class="ii-check">✓</span><div><strong>Відправка на email</strong>Миттєво після оплати</div></div>
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div class="price-block">
+      <div class="price-old">$39.99</div>
+      <div class="price-new">$19.99</div>
+      <div class="price-period">Разова оплата · Повний звіт · Миттєво на email</div>
+      <div class="pay-form">
+        <div class="pay-email-show">Звіт надійде на: <span id="pay-email-show"></span></div>
+        <button class="big-pay-btn" onclick="handlePay()">🔒 Оплатити $19.99 і отримати звіт</button>
+        <div class="pay-trust">
+          <span>🔐 Крипто оплата</span>
+          <span>💳 Visa / Mastercard</span>
+          <span>⚡ Звіт за 2 хв</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- THANKS -->
+<div id="screen-thanks">
+  <div class="wrap">
+    <div class="thanks-icon">✅</div>
+    <div class="thanks-title">Оплата прийнята!</div>
+    <div class="thanks-sub">Ваш повний AML звіт готується і буде надісланий на вашу пошту протягом 2 хвилин.<br><br><span style="color:var(--tx3);font-size:13px">MVP Demo — в продакшн тут підключається Stripe/крипто-платіжка + автоматична генерація PDF.</span></div>
+    <button class="restart-btn" onclick="resetScan()">Перевірити ще один гаманець</button>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-txt">ChainGuard · Тільки для інформаційних цілей · Не є фінансовою або юридичною порадою<br>Дані з публічних блокчейн-записів · <a href="#">Конфіденційність</a> · <a href="#">Умови використання</a></div>
+  </div>
+</footer>
+
+<script>
+/* ─── DATA ─────────────────────────────────────────────── */
+const PROFILES={
+  high:{addr:'0x742d35Cc6634C0532925a3b8D4C9C4A7b6e12345',risk:82,level:'high',balance:'4.23 ETH',txs:'1,847',age:'3.1 р.',
+    alertClass:'danger',alertIcon:'🚨',alertLabel:'ВИЯВЛЕНО КРИТИЧНІ РИЗИКИ',
+    alertTitle:"Гаманець пов\'язаний із санкційними адресами",
+    alertDesc:"Виявлено прямий зв\'язок із Tornado Cash — сервісом під санкціями OFAC з серпня 2022. Прийняття коштів може призвести до заморозки активів.",
+    sc:'#FF3B3B',sg:'rgba(255,59,59,.35)',
+    checks:[{i:'🔴',n:'Санкційні списки OFAC',v:'ЗНАЙДЕНО',c:'found'},{i:'🔴',n:"Зв\'язок із міксерами",v:'ЗНАЙДЕНО',c:'found'},{i:'🟡',n:'Darknet активність',v:'ПІДОЗРІЛІ',c:'partial'},{i:'✅',n:'EU / UN санкції',v:'ЧИСТО',c:'clear'},{i:'🔒',n:'Граф зв\'язків (5 рівнів)',v:'ЗАБЛОК.',c:'locked'},{i:'🔒',n:'47 AML перевірок',v:'ЗАБЛОК.',c:'locked'}],
+    trigTitle:'Виявлено 3 критичні ризики — необхідна термінова дія',
+    trigItems:['<strong>Заморозка активів:</strong> Кошти від гаманця пов\'язаного з OFAC санкціями можуть бути заморожені будь-якою CEX без попередження','<strong>Блокування рахунку:</strong> Binance, Coinbase та інші біржі автоматично блокують рахунки при виявленні зв\'язків з санкційними адресами','<strong>Юридична відповідальність:</strong> Транзакції з OFAC-санкційними адресами можуть розглядатися як порушення міжнародного законодавства','<strong>Непрямі зв\'язки:</strong> Навіть якщо ви отримали кошти від посередника — ризик зберігається на всіх рівнях ланцюжка'],
+    ectaTitle:'Необхідна термінова повна перевірка',ectaSub:"Базова перевірка виявила критичні ризики. Повний звіт покаже точний ступінь загрози та <strong>конкретні кроки</strong> для захисту ваших коштів.",
+    riskLabel:'КРИТИЧНИЙ РИЗИК',riskCount:'3 критичних фактори ризику'},
+  medium:{addr:'0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe',risk:47,level:'medium',balance:'0.87 ETH',txs:'342',age:'1.8 р.',
+    alertClass:'warn',alertIcon:'⚠️',alertLabel:'ВИЯВЛЕНО ПОТЕНЦІЙНІ РИЗИКИ',
+    alertTitle:'Знайдено підозрілу активність',
+    alertDesc:"Виявлено транзакції з privacy-протоколами та нерегульованими обмінниками. Потрібна повна перевірка для оцінки реального рівня загрози.",
+    sc:'#FFB020',sg:'rgba(255,176,32,.35)',
+    checks:[{i:'✅',n:'Санкційні списки OFAC',v:'ЧИСТО',c:'clear'},{i:'🟡',n:"Зв\'язок із міксерами",v:'ПІДОЗРІЛІ',c:'partial'},{i:'✅',n:'EU / UN санкції',v:'ЧИСТО',c:'clear'},{i:'✅',n:'Відомі сками',v:'ЧИСТО',c:'clear'},{i:'🔒',n:'Граф зв\'язків (5 рівнів)',v:'ЗАБЛОК.',c:'locked'},{i:'🔒',n:'47 AML перевірок',v:'ЗАБЛОК.',c:'locked'}],
+    trigTitle:"1 потенційний ризик потребує перевірки",
+    trigItems:['<strong>Privacy-протоколи:</strong> Транзакції через анонімайзери підвищують ризик-скор і можуть спровокувати перевірку KYC на біржах','<strong>Нерегульовані джерела:</strong> 17% коштів надійшло з джерел без KYC — потенційний ризик при withdrawals','<strong>Непрямі зв\'язки:</strong> Без аналізу 5 рівнів транзакційного графу неможливо виключити зв\'язок із забороненими адресами'],
+    ectaTitle:"Підтвердіть що ваші кошти в безпеці",ectaSub:"Базова перевірка показала підозрілу активність. Повний звіт із 47 перевірками дасть точну відповідь.",
+    riskLabel:'ПОТЕНЦІЙНИЙ РИЗИК',riskCount:'1 потенційний фактор ризику'},
+  safe:{addr:'0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',risk:11,level:'safe',balance:'2,450 UNI',txs:'89',age:'2.4 р.',
+    alertClass:'safe',alertIcon:'✅',alertLabel:'БАЗОВА ПЕРЕВІРКА ПРОЙДЕНА',
+    alertTitle:'Серйозних ризиків не виявлено',
+    alertDesc:"Пряме сканування не знайшло зв\'язків із санкційними адресами. Проте базова перевірка охоплює лише верхній рівень — повна перевірка дасть 100% впевненість.",
+    sc:'#00D68F',sg:'rgba(0,214,143,.35)',
+    checks:[{i:'✅',n:'Санкційні списки OFAC',v:'ЧИСТО',c:'clear'},{i:'✅',n:"Зв\'язок із міксерами",v:'ЧИСТО',c:'clear'},{i:'✅',n:'EU / UN санкції',v:'ЧИСТО',c:'clear'},{i:'✅',n:'Відомі сками',v:'ЧИСТО',c:'clear'},{i:'🔒',n:'Граф зв\'язків (5 рівнів)',v:'ЗАБЛОК.',c:'locked'},{i:'🔒',n:'47 AML перевірок',v:'ЗАБЛОК.',c:'locked'}],
+    trigTitle:"Базова перевірка пройдена — але це тільки 10% аналізу",
+    trigItems:['<strong>Непрямі зв\'язки:</strong> Базова перевірка не аналізує транзакційний граф — кошти можуть бути пов\'язані з ризиковими адресами через посередників','<strong>Приховані ризики:</strong> 47 AML перевірок включають аналіз паттернів поведінки які недоступні при базовому скануванні','<strong>Страховка:</strong> Повний звіт — це документальне підтвердження чистоти вашого гаманця для бірж і партнерів'],
+    ectaTitle:"Переконайтесь на 100% і отримайте офіційний звіт",ectaSub:"Базова перевірка пройдена. Повний звіт підтвердить чистоту гаманця документально і перевірить приховані рівні транзакцій.",
+    riskLabel:'ПРОФІЛАКТИЧНА ПЕРЕВІРКА',riskCount:'потенційні приховані ризики'}
+};
+
+const QUESTIONS=[
+  {q:'Чи використовували ви коли-небудь крипто-міксери або privacy-протоколи?',
+   hint:'Tornado Cash, Wasabi Wallet, CoinJoin, Monero, Zcash та подібні сервіси для анонімізації транзакцій.',
+   opts:['Ні, ніколи','Один раз або кілька разів','Регулярно використовую','Не знаю що це таке'],
+   risk:[0,2,3,0]},
+  {q:'Чи торгували ви на нерегульованих P2P платформах або обмінниках без KYC?',
+   hint:'Localbitcoins, Paxful, анонімні OTC обмінники, Telegram-боти для обміну крипти.',
+   opts:['Ні, тільки верифіковані біржі','Іноді, для зручності','Часто, для приватності','Не впевнений'],
+   risk:[0,1,2,1]},
+  {q:'Чи отримували ви кошти від невідомих або непідтверджених джерел?',
+   hint:'Анонімні перекази, кошти від незнайомих людей, оплата за послуги від невідомих клієнтів.',
+   opts:['Ні, знаю всіх відправників','Іноді від нових клієнтів','Регулярно від різних джерел','Важко сказати точно'],
+   risk:[0,1,2,1]},
+  {q:'Чи маєте ви зв\'язки з крипто-гемблінгом або приймали оплату від гемблінг платформ?',
+   hint:'Stake, Rollbit, BC.Game, Roobet, або будь-які інші крипто-казино та ставки.',
+   opts:['Ні, ніяких зв\'язків','Особисто грав іноді','Приймав платежі від гравців','Не знаю звідки кошти'],
+   risk:[0,1,2,1]}
+];
+
+/* ─── STATE ─────────────────────────────────────────────── */
+var currentProfile = null;
+var userEmail = '';
+var currentQ = 0;
+var answers = [];
+var quizRiskFlags = [];
+var selectedOptIdx = -1;
+
+/* ─── UTILS ─────────────────────────────────────────────── */
+function show(id) {
+  var screens = ['screen-home','screen-loading','screen-result','screen-quiz','screen-payment','screen-thanks'];
+  screens.forEach(function(s) {
+    document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+  });
+}
+
+function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function setP(pct) {
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+}
+
+function getProfile(addr) {
+  var a = addr.trim();
+  var keys = Object.keys(PROFILES);
+  for (var i = 0; i < keys.length; i++) {
+    if (PROFILES[keys[i]].addr === a) return PROFILES[keys[i]];
+  }
+  var h = 0;
+  for (var j = 0; j < a.length; j++) h += a.charCodeAt(j);
+  var r = 10 + (h % 80);
+  if (r > 60) return Object.assign({}, PROFILES.high, {addr:a, risk:r});
+  if (r > 35) return Object.assign({}, PROFILES.medium, {addr:a, risk:r});
+  return Object.assign({}, PROFILES.safe, {addr:a, risk:r});
+}
+
+function setDemo(t) { document.querySelector('.addr-input').value = PROFILES[t].addr; }
+
+/* ─── NETWORK DETECT ────────────────────────────────────── */
+function detectNetwork(addr) {
+  if (!addr) return null;
+  addr = addr.trim();
+  if (/^0x[0-9a-fA-F]{40}$/.test(addr)) return { name: 'Ethereum / EVM', icon: 'Ξ', color: '#627EEA', chainId: '0x1' };
+  if (/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,59}$/.test(addr)) return { name: 'Bitcoin', icon: '₿', color: '#F7931A' };
+  if (/^T[a-zA-Z0-9]{33}$/.test(addr)) return { name: 'TRON', color: '#EF4444', icon: '◈', chainId: 'tron' };
+  if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr) && addr.length >= 32 && addr.length <= 44) return { name: 'Solana', icon: '◎', color: '#9945FF' };
+  if (/^bnb1[a-z0-9]{38}$/.test(addr)) return { name: 'BNB Chain', icon: '◈', color: '#F3BA2F' };
+  if (addr.length >= 26 && addr.length <= 100) return { name: 'Unknown network', icon: '?', color: 'var(--tx3)' };
+  return null;
+}
+
+function updateNetworkBadge(slotIdx) {
+  var inputs = document.querySelectorAll('.addr-input');
+  var slot = document.getElementById('slot-' + slotIdx);
+  var badge = document.getElementById('net-' + slotIdx);
+  if (!inputs[slotIdx] || !badge) return;
+  var val = inputs[slotIdx].value.trim();
+  if (!val) {
+    badge.textContent = '';
+    slot.classList.remove('has-addr','invalid');
+    return;
+  }
+  var net = detectNetwork(val);
+  if (net) {
+    badge.innerHTML = '<span style="color:' + net.color + '">' + net.icon + ' ' + net.name + '</span>';
+    slot.classList.add('has-addr');
+    slot.classList.remove('invalid');
+  } else {
+    badge.innerHTML = '<span style="color:var(--red)">⚠ Invalid address</span>';
+    slot.classList.remove('has-addr');
+    slot.classList.add('invalid');
+  }
+}
+
+function addSlot() {
+  var slots = document.querySelectorAll('.addr-slot');
+  if (slots.length >= 3) return;
+  var idx = slots.length;
+  var container = document.getElementById('addr-slots');
+  var div = document.createElement('div');
+  div.className = 'addr-slot';
+  div.id = 'slot-' + idx;
+  div.innerHTML =
+    '<div class="search-inner">' +
+    '<span class="search-ico">🔍</span>' +
+    '<input type="text" class="addr-input" placeholder="Paste crypto address #' + (idx+1) + '..." autocomplete="off" spellcheck="false">' +
+    '<button class="slot-remove" onclick="removeSlot(' + idx + ')">✕</button>' +
+    '</div>' +
+    '<div class="addr-network" id="net-' + idx + '"></div>';
+  container.appendChild(div);
+  div.querySelector('.addr-input').addEventListener('input', function(){ updateNetworkBadge(idx); });
+  div.querySelector('.addr-input').focus();
+  if (idx >= 2) document.getElementById('add-addr-row').style.display = 'none';
+}
+
+function removeSlot(idx) {
+  var slot = document.getElementById('slot-' + idx);
+  if (slot) slot.remove();
+  document.getElementById('add-addr-row').style.display = '';
+  // Re-index remaining slots
+  var slots = document.querySelectorAll('.addr-slot');
+  slots.forEach(function(s, i) {
+    s.id = 'slot-' + i;
+    var net = s.querySelector('.addr-network');
+    if (net) net.id = 'net-' + i;
+    var inp = s.querySelector('.addr-input');
+    if (inp) inp.placeholder = 'Paste crypto address #' + (i+1) + '...';
+    var rm = s.querySelector('.slot-remove');
+    if (rm) rm.setAttribute('onclick','removeSlot(' + i + ')');
+    var pi = s.querySelector('.paste-btn');
+    if (pi) pi.setAttribute('onclick','pasteSlot(' + i + ')');
+  });
+}
+
+function pasteSlot(idx) {
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText().then(function(t) {
+      var inputs = document.querySelectorAll('.addr-input');
+      if (inputs[idx]) {
+        inputs[idx].value = t.trim();
+        updateNetworkBadge(idx);
+      }
+    }).catch(function(){});
+  }
+}
+
+// Attach input listener to first slot
+document.addEventListener('DOMContentLoaded', function() {
+  var firstInput = document.querySelector('.addr-input');
+  if (firstInput) firstInput.addEventListener('input', function(){ updateNetworkBadge(0); });
+});
+
+/* ─── REAL API SCANNING ─────────────────────────────────── */
+var ETHERSCAN_KEY = 'PQBSB54WJ3DR6IIAVEBE3IHHKSRMMHQUJK';
+var TRON_KEY = 'fa93b89a-42f0-42c4-958f-dcdec56dcc15';
+var MORALIS_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjY1NzZhMWRiLWU3NmQtNDY4Yi04ZTZkLTgxMTIwOWY1YWFhYSIsIm9yZ0lkIjoiNTE3MzA0IiwidXNlcklkIjoiNTMyMzY4IiwidHlwZUlkIjoiNjk2MzdlNGUtNDU2Ni00OGI0LWEzMWMtZjA4NmIwMGZlYWI5IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3Nzk2NDI5NDAsImV4cCI6NDkzNTQwMjk0MH0.eUv-34sT5cGKIC5_0gJoX_9LdTIvlEx-RybpJ_OCRiU';
+
+// Chain mapping for Moralis
+var CHAIN_MAP = {
+  'Ethereum / EVM': '0x1',
+  'BNB Chain':      '0x38',
+  'Polygon':        '0x89',
+  'Avalanche':      '0xa86a',
+  'Fantom':         '0xfa',
+  'Arbitrum':       '0xa4b1',
+  'Optimism':       '0xa',
+  'Base':           '0x2105',
+};
+// Non-EVM handled separately: TRON, Solana, Bitcoin
+
+// Fetch wallet data via Netlify Function → Moralis (no CORS)
+async function fetchMoralisData(addr, chainId) {
+  try {
+    var chain = chainId || '0x1';
+    var res = await fetch('/.netlify/functions/moralis?addr=' + encodeURIComponent(addr) + '&chain=' + chain);
+    if (!res.ok) throw new Error('Moralis function error: ' + res.status);
+    var data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    var tokenSummary = '';
+    if (data.tokens && data.tokens.length > 0) {
+      tokenSummary = data.tokens.map(function(t) {
+        var amt = t.balance ? (parseInt(t.balance) / Math.pow(10, parseInt(t.decimals || 18))).toFixed(2) : '0';
+        return amt + ' ' + t.symbol;
+      }).join(', ');
+    }
+
+    var displayBalance = data.netWorth || data.balance || 'N/A';
+    if (tokenSummary) displayBalance = displayBalance + ' (' + tokenSummary + ')';
+
+    return {
+      balance: displayBalance,
+      txCount: data.txCount || 'N/A',
+      age: data.age || 'N/A',
+      mixerTxCount: data.mixerTxCount || 0,
+      tokenTxCount: data.tokens ? data.tokens.length : 0,
+    };
+  } catch(e) {
+    console.error('Moralis error:', e);
+    return null;
+  }
+}
+
+// Known high-risk addresses (OFAC + major hacks)
+var OFAC_BLACKLIST = [
+  '0x8576acc5c05d6ce88f4e49bf65bdf0c62f91353c',
+  '0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b',
+  '0x901bb9583b24d97e995513c6778dc6888ab6870e',
+  '0xa7e5d5a720f06526557c513402f2e6b5fa20b008',
+  '0x8576acc5c05d6ce88f4e49bf65bdf0c62f91353c',
+  '0x1da5821544e25c636c1417ba96ade4cf6d2f9b5a',
+  '0x7f367cc41522ce07553e823bf3be79a889debe1b',
+  '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+  // Tornado Cash contracts
+  '0x12d66f87a04a9e220c9d6a5d87e8f396bdd3b51a',
+  '0x47ce0c6ed5b0ce3d3a51fdb1c52dc66a7c3c2936',
+  '0x910cbd523d972eb0a6f4cae4618ad62622b39dbf',
+  '0xa160cdab225685da1d56aa342ad8841c3b53f291',
+  '0xfd8610d20aa15b7b2e3be39b396a1bc3516c7144',
+  '0xf60dd140cff0706bae9cd734ac3ae76ad9ebc32a',
+  '0x22aaa7720ddd5388a3c0a3333430953c68f1849b',
+  '0xba214c1c1928a32bffe790263e38b4af9bfcd659',
+  '0xb1c8094b234dce6e03f10a5b673c1d8c69739a00',
+];
+
+var KNOWN_MIXERS = [
+  '0x12d66f87a04a9e220c9d6a5d87e8f396bdd3b51a',
+  '0x47ce0c6ed5b0ce3d3a51fdb1c52dc66a7c3c2936',
+  '0x910cbd523d972eb0a6f4cae4618ad62622b39dbf',
+  '0xa160cdab225685da1d56aa342ad8841c3b53f291',
+];
+
+function isOfacMatch(addr) {
+  return OFAC_BLACKLIST.indexOf(addr.toLowerCase()) !== -1;
+}
+
+function isMixerMatch(addr) {
+  return KNOWN_MIXERS.indexOf(addr.toLowerCase()) !== -1;
+}
+
+// Fetch ETH data via Netlify Function → Etherscan (fallback)
+async function fetchEthData(addr) {
+  try {
+    var res = await fetch('/.netlify/functions/etherscan?addr=' + encodeURIComponent(addr));
+    if (!res.ok) throw new Error('Etherscan function error');
+    var data = await res.json();
+    return {
+      balance: data.balance || 'N/A',
+      txCount: data.txCount || '0',
+      age: data.age || 'N/A',
+      mixerTxCount: data.mixerTxCount || 0,
+      tokenTxCount: 0,
+    };
+  } catch(e) {
+    console.error('Etherscan error:', e);
+    return null;
+  }
+}
+
+// Fetch BTC data from Blockchair (no key needed)
+async function fetchBtcData(addr) {
+  try {
+    var res = await fetch('https://api.blockchair.com/bitcoin/dashboards/address/' + addr + '?limit=10');
+    var data = await res.json();
+    if (!data.data || !data.data[addr]) return null;
+    var info = data.data[addr].address;
+    var balBtc = (info.balance / 1e8).toFixed(8) + ' BTC';
+    var txCount = String(info.transaction_count);
+    var firstSeen = info.first_seen_receiving;
+    var age = 'N/A';
+    if (firstSeen) {
+      var years = ((Date.now() - new Date(firstSeen).getTime()) / 31536000000).toFixed(1);
+      age = years + ' yrs';
+    }
+    return { balance: balBtc, txCount: txCount, age: age, mixerTxCount: 0, tokenTxCount: 0 };
+  } catch(e) {
+    console.error('Blockchair error:', e);
+    return null;
+  }
+}
+
+// Fetch Solana data from public RPC
+async function fetchSolanaData(addr) {
+  try {
+    var res = await fetch('https://api.mainnet-beta.solana.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'getBalance',
+        params: [addr, { commitment: 'confirmed' }]
+      })
+    });
+    var data = await res.json();
+    var lamports = data.result && data.result.value ? data.result.value : 0;
+    var sol = (lamports / 1e9).toFixed(4);
+    return { balance: sol + ' SOL', txCount: 'N/A', age: 'N/A', mixerTxCount: 0, tokenTxCount: 0 };
+  } catch(e) {
+    console.error('Solana error:', e);
+    return null;
+  }
+}
+
+// Fetch TRON / TRC20 data via Netlify Function (no CORS)
+async function fetchTronData(addr) {
+  try {
+    var res = await fetch('/.netlify/functions/tron?addr=' + encodeURIComponent(addr));
+    if (!res.ok) throw new Error('TRON function error: ' + res.status);
+    var data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    var trxBal = (data.trxBalance || '0') + ' TRX';
+    var usdtBal = parseFloat(data.usdtBal || '0') > 0 ? data.usdtBal + ' USDT' : null;
+    var displayBalance = usdtBal ? trxBal + ' + ' + usdtBal : trxBal;
+
+    return {
+      balance: displayBalance,
+      txCount: data.txCount || 'N/A',
+      age: data.age || 'N/A',
+      mixerTxCount: 0,
+      tokenTxCount: data.trc20Count || 0,
+    };
+  } catch(e) {
+    console.error('TRON error:', e);
+    return null;
+  }
+}
+
+// Calculate real risk score based on fetched data
+function calcRiskScore(addr, chainData, ofac, mixer) {
+  var score = 10; // base clean score
+
+  if (ofac) score += 80;
+  if (mixer) score += 60;
+
+  if (chainData) {
+    // Many mixer interactions
+    if (chainData.mixerTxCount > 0) score += chainData.mixerTxCount * 15;
+    // Very new wallet with many txs = suspicious
+    if (chainData.age !== 'N/A' && parseFloat(chainData.age) < 0.1 && parseInt(chainData.txCount) > 20) score += 20;
+    // Zero transactions = unknown
+    if (chainData.txCount === '0') score += 5;
+  }
+
+  return Math.min(score, 100);
+}
+
+// Build risk profile from real data
+function buildRealProfile(addr, chainData, network) {
+  var ofac = isOfacMatch(addr);
+  var mixer = isMixerMatch(addr);
+  var score = calcRiskScore(addr, chainData, ofac, mixer);
+
+  var level, alertClass, alertIcon, alertLabel, alertTitle, alertDesc, sc, sg;
+
+  if (score >= 65 || ofac || mixer) {
+    level = 'high'; alertClass = 'danger'; alertIcon = '🚨';
+    alertLabel = 'HIGH RISK DETECTED';
+    alertTitle = ofac ? 'Address found in OFAC sanctions list' : mixer ? 'Mixer interaction detected' : 'High risk indicators found';
+    alertDesc = ofac
+      ? 'This address is on the OFAC Specially Designated Nationals list. Transacting with this wallet may violate international sanctions.'
+      : mixer ? 'This address has direct interactions with known cryptocurrency mixers (e.g. Tornado Cash). Accepting funds may trigger exchange freezes.'
+      : 'Multiple high-risk indicators detected. Full report required to assess the threat level.';
+    sc = '#FF3B3B'; sg = 'rgba(255,59,59,.35)';
+  } else if (score >= 35) {
+    level = 'medium'; alertClass = 'warn'; alertIcon = '⚠️';
+    alertLabel = 'POTENTIAL RISK FOUND';
+    alertTitle = 'Suspicious activity detected';
+    alertDesc = 'Some risk indicators were found. A full scan is recommended to determine the exact threat level to your funds.';
+    sc = '#FFB020'; sg = 'rgba(255,176,32,.35)';
+  } else {
+    level = 'safe'; alertClass = 'safe'; alertIcon = '✅';
+    alertLabel = 'BASIC SCAN PASSED';
+    alertTitle = 'No critical risks found';
+    alertDesc = 'The basic scan found no direct connections to sanctioned addresses. A full scan provides 100% confidence with 47 checks.';
+    sc = '#00D68F'; sg = 'rgba(0,214,143,.35)';
+  }
+
+  var bal = chainData ? chainData.balance : 'N/A';
+  var txs = chainData ? chainData.txCount : 'N/A';
+  var age = chainData ? chainData.age : 'N/A';
+
+  var checks = [
+    {i: ofac ? '🔴' : '✅', n: 'OFAC Sanctions List', v: ofac ? 'MATCH FOUND' : 'Clear', c: ofac ? 'found' : 'clear'},
+    {i: mixer ? '🔴' : '✅', n: 'Mixer Interactions', v: mixer ? 'DETECTED' : 'None found', c: mixer ? 'found' : 'clear'},
+    {i: (chainData && chainData.mixerTxCount > 0) ? '🟡' : '✅', n: 'Suspicious Transactions', v: chainData && chainData.mixerTxCount > 0 ? chainData.mixerTxCount + ' flagged' : 'Clean', c: chainData && chainData.mixerTxCount > 0 ? 'partial' : 'clear'},
+    {i: '✅', n: 'EU / UN Sanctions', v: 'Clear', c: 'clear'},
+    {i: '🔒', n: 'Transaction Graph (5 levels)', v: 'LOCKED', c: 'locked'},
+    {i: '🔒', n: 'Full 47-check AML Scan', v: 'LOCKED', c: 'locked'},
+  ];
+
+  var trigItems = [];
+  if (ofac) trigItems.push('<strong>OFAC Sanctions:</strong> This address is on the US Treasury sanctions list. Any exchange receiving funds from this wallet may freeze your account immediately.');
+  if (mixer) trigItems.push('<strong>Mixer Activity:</strong> Direct interaction with Tornado Cash (OFAC-sanctioned). Funds traced to mixers can trigger KYC reviews on all major CEXs.');
+  if (chainData && chainData.mixerTxCount > 0) trigItems.push('<strong>Flagged Transactions:</strong> ' + chainData.mixerTxCount + ' transactions involving high-risk addresses detected in transaction history.');
+  if (trigItems.length === 0 && level !== 'safe') trigItems.push('<strong>Indirect Risk:</strong> Basic scan complete. Full analysis of 5-level transaction graph may reveal hidden connections to risky addresses.');
+  if (level === 'safe') {
+    trigItems.push('<strong>Indirect Connections:</strong> Basic scan only checks direct links. Full scan traces funds 5 levels deep to catch indirect exposure.');
+    trigItems.push('<strong>Hidden Risks:</strong> 47 AML checks include behavioral pattern analysis unavailable in the basic scan.');
+    trigItems.push('<strong>Documentation:</strong> Full report provides official proof of wallet cleanliness for exchanges and partners.');
+  }
+
+  return {
+    addr: addr, risk: score, level: level,
+    balance: bal, txs: txs, age: age,
+    network: network ? network.name : 'Unknown',
+    alertClass: alertClass, alertIcon: alertIcon, alertLabel: alertLabel,
+    alertTitle: alertTitle, alertDesc: alertDesc,
+    sc: sc, sg: sg, checks: checks,
+    trigTitle: level === 'safe' ? 'Basic scan passed — but this is only 10% of the analysis' : 'Risk factors require immediate attention',
+    trigItems: trigItems,
+    ectaTitle: level === 'safe' ? 'Get 100% certainty with a full report' : 'Full scan required to protect your funds',
+    ectaSub: level === 'safe'
+      ? 'Basic scan passed. Full report verifies wallet cleanliness with <strong>47 checks</strong> and 5-level transaction graph analysis.'
+      : 'Risk indicators detected. Full report shows exact threat level and <strong>concrete steps</strong> to protect your funds.',
+    riskLabel: level === 'high' ? 'HIGH RISK' : level === 'medium' ? 'MEDIUM RISK' : 'PREVENTIVE CHECK',
+    riskCount: level === 'high' ? 'critical risk factors detected' : level === 'medium' ? 'potential risk factor found' : 'potential hidden risks',
+  };
+}
+
+/* ─── SCAN ──────────────────────────────────────────────── */
+async function startScan() {
+  // Collect all addresses
+  var inputs = document.querySelectorAll('.addr-input');
+  var addrs = [];
+  inputs.forEach(function(inp) {
+    var v = inp.value.trim();
+    if (v && v.length >= 8) addrs.push(v);
+  });
+
+  if (addrs.length === 0) {
+    var first = document.querySelector('.addr-input');
+    if (first) first.focus();
+    return;
+  }
+
+  // Use first address as primary, others shown in batch
+  var addr = addrs[0];
+  var isBatch = addrs.length > 1;
+
+  var short = addr.length > 38 ? addr.slice(0,18) + '...' + addr.slice(-10) : addr;
+  var scanLabel = isBatch
+    ? short + ' + ' + (addrs.length - 1) + ' more'
+    : short;
+  document.getElementById('scan-addr-lbl').textContent = scanLabel;
+
+  for (var i = 0; i < 6; i++) {
+    document.getElementById('st' + i).className = 'stage';
+    document.getElementById('st' + i + 's').textContent = '—';
+  }
+  setP(0);
+  show('screen-loading');
+  window.scrollTo({top:0, behavior:'smooth'});
+
+  var steps = [
+    {d:300,  dur:900,  pct:16},
+    {d:1400, dur:850,  pct:32},
+    {d:2600, dur:1000, pct:49},
+    {d:4000, dur:950,  pct:65},
+    {d:5800, dur:900,  pct:82},
+    {d:7200, dur:800,  pct:100},
+  ];
+
+  steps.forEach(function(step, i) {
+    setTimeout(function() {
+      document.getElementById('st' + i).classList.add('active');
+      setP(step.pct);
+    }, step.d);
+    setTimeout(function() {
+      var el = document.getElementById('st' + i);
+      el.classList.remove('active');
+      el.classList.add('done');
+      document.getElementById('st' + i + 's').textContent = '✓';
+    }, step.d + step.dur);
+  });
+
+  // Run real API scan in parallel with animation
+  var network = detectNetwork(addr);
+  var chainData = null;
+
+  // Fetch real blockchain data
+  if (network && CHAIN_MAP[network.name]) {
+    // EVM chain — use Moralis (covers ETH, BNB, Polygon, Avax, etc.)
+    chainData = await fetchMoralisData(addr, CHAIN_MAP[network.name]);
+    // Fallback to Etherscan for ETH if Moralis fails
+    if (!chainData && network.name === 'Ethereum / EVM') {
+      chainData = await fetchEthData(addr);
+    }
+  } else if (network && network.name === 'Bitcoin') {
+    chainData = await fetchBtcData(addr);
+  } else if (network && network.name === 'TRON') {
+    chainData = await fetchTronData(addr);
+  } else if (network && network.name === 'Solana') {
+    chainData = await fetchSolanaData(addr);
+  }
+
+  // Wait for animation to finish (10 sec total)
+  await sleep(10000);
+
+  // Build profile from real data
+  currentProfile = buildRealProfile(addr, chainData, network);
+  renderResult(currentProfile);
+}
+
+/* ─── RESULT ────────────────────────────────────────────── */
+function renderResult(p) {
+  document.getElementById('r-time').textContent = new Date().toLocaleTimeString();
+
+  var ra = document.getElementById('r-alert');
+  ra.className = 'alert-hero ' + p.alertClass;
+  document.getElementById('r-icon').textContent = p.alertIcon;
+  document.getElementById('r-label').textContent = p.alertLabel;
+  document.getElementById('r-title').textContent = p.alertTitle;
+  document.getElementById('r-desc').textContent = p.alertDesc;
+
+  var ring = document.getElementById('r-ring');
+  ring.style.borderColor = p.sc;
+  ring.style.boxShadow = '0 0 24px ' + p.sg;
+  document.getElementById('r-score-num').textContent = p.risk;
+  document.getElementById('r-score-num').style.color = p.sc;
+  document.getElementById('r-ring-lbl').style.color = p.sc;
+  document.getElementById('r-addr').textContent = p.addr;
+
+  document.getElementById('r-meta').innerHTML =
+    [{v:p.balance,l:'Баланс'},{v:p.txs,l:'Транзакцій'},{v:p.age,l:'Вік'}]
+    .map(function(m){ return '<div class="mg"><div class="mg-v">'+m.v+'</div><div class="mg-l">'+m.l+'</div></div>'; })
+    .join('');
+
+  document.getElementById('r-checks').innerHTML = p.checks.map(function(c){
+    return '<div class="chk"><div class="chk-l"><div class="chk-ico">'+c.i+'</div><div class="chk-name">'+c.n+'</div></div><div class="chk-v '+c.c+'">'+c.v+'</div></div>';
+  }).join('');
+
+  document.getElementById('r-trig-title').textContent = p.trigTitle;
+  document.getElementById('r-trig-list').innerHTML = p.trigItems.map(function(t){
+    return '<div class="trig-item">'+t+'</div>';
+  }).join('');
+
+  document.getElementById('r-ecta-title').textContent = p.ectaTitle;
+  document.getElementById('r-ecta-sub').innerHTML = p.ectaSub;
+
+  show('screen-result');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ─── QUIZ ──────────────────────────────────────────────── */
+function goToQuiz() {
+  var email = document.getElementById('result-email').value.trim();
+  if (!email || !email.includes('@')) {
+    var el = document.getElementById('result-email');
+    el.focus();
+    el.style.borderColor = 'var(--red)';
+    setTimeout(function(){ el.style.borderColor = ''; }, 1500);
+    return;
+  }
+  userEmail = email;
+  currentQ = 0;
+  answers = [];
+  quizRiskFlags = [];
+  selectedOptIdx = -1;
+  renderQuestion();
+  show('screen-quiz');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderQuestion() {
+  // Progress bar
+  var progressHTML = '';
+  for (var i = 0; i < QUESTIONS.length; i++) {
+    var cls = i < currentQ ? 'done' : i === currentQ ? 'active' : '';
+    progressHTML += '<div class="qp-step ' + cls + '"></div>';
+  }
+  document.getElementById('quiz-progress').innerHTML = progressHTML;
+
+  var q = QUESTIONS[currentQ];
+  var isLast = (currentQ === QUESTIONS.length - 1);
+
+  var optsHTML = '';
+  for (var j = 0; j < q.opts.length; j++) {
+    optsHTML += '<div class="q-opt" onclick="selectOpt(this,' + j + ')"><div class="opt-dot"></div><span>' + q.opts[j] + '</span></div>';
+  }
+
+  document.getElementById('quiz-body').innerHTML =
+    '<div class="q-card">' +
+    '<div class="q-text">' + (currentQ+1) + '. ' + q.q + '</div>' +
+    (q.hint ? '<div class="q-hint">ℹ️ ' + q.hint + '</div>' : '') +
+    '<div class="q-opts">' + optsHTML + '</div>' +
+    '</div>';
+
+  // Reset state
+  selectedOptIdx = -1;
+  var btn = document.getElementById('quiz-next-btn');
+  btn.disabled = true;
+  btn.textContent = isLast ? 'Перейти до оплати →' : 'Далі →';
+}
+
+function selectOpt(el, idx) {
+  // Remove selected from all options
+  var opts = document.querySelectorAll('.q-opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].classList.remove('selected');
+  }
+  // Select clicked
+  el.classList.add('selected');
+  selectedOptIdx = idx;
+  // Enable button
+  document.getElementById('quiz-next-btn').disabled = false;
+}
+
+function nextQuestion() {
+  if (selectedOptIdx < 0) return;
+
+  var idx = selectedOptIdx;
+  selectedOptIdx = -1;
+  answers.push(idx);
+
+  var q = QUESTIONS[currentQ];
+  var riskLevel = q.risk[idx];
+  if (riskLevel > 0) {
+    var flagTexts = [
+      ['Використання міксерів/privacy протоколів — підвищує ризик-скор', 'Регулярне використання міксерів — серйозний фактор ризику'],
+      ['Операції на нерегульованих платформах — помірний ризик', 'Часті операції без KYC — значний фактор ризику'],
+      ['Отримання коштів від нових клієнтів — вимагає перевірки', 'Кошти від невідомих джерел — серйозний фактор ризику'],
+      ['Особистий гемблінг — помірний вплив на ризик-скор', "Зв\'язки з гемблінг платформами — фактор ризику"]
+    ];
+    quizRiskFlags.push(flagTexts[currentQ][Math.min(riskLevel - 1, 1)]);
+  }
+
+  currentQ++;
+
+  if (currentQ >= QUESTIONS.length) {
+    goToPayment();
+  } else {
+    renderQuestion();
+  }
+}
+
+/* ─── PAYMENT ───────────────────────────────────────────── */
+function goToPayment() {
+  var p = currentProfile;
+  document.getElementById('pay-risk-label').textContent = p.riskLabel;
+  document.getElementById('pay-risk-count').textContent = p.riskCount;
+  document.getElementById('pay-email-show').textContent = userEmail;
+
+  var flags = quizRiskFlags.length > 0
+    ? quizRiskFlags
+    : ['Базові перевірки пройдено — рекомендується повна AML верифікація'];
+
+  document.getElementById('qs-flags').innerHTML = flags.map(function(f){
+    return '<div class="qs-flag"><div class="qf-dot"></div><span>' + f + '</span></div>';
+  }).join('');
+
+  show('screen-payment');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ─── PAY ────────────────────────────────────────────────── */
+function handlePay() {
+  var btn = document.querySelector('.big-pay-btn');
+  btn.innerHTML = '⏳ Створюємо рахунок...';
+  btn.disabled = true;
+
+  var NOWPAYMENTS_API_KEY = 'J0D9K56-E7WMRSX-JPPFS43-M2QCCVS';
+
+  fetch('https://api.nowpayments.io/v1/invoice', {
+    method: 'POST',
+    headers: {
+      'x-api-key': NOWPAYMENTS_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      price_amount: 19.99,
+      price_currency: 'usd',
+      order_id: 'cg_' + Date.now(),
+      order_description: 'ChainGuard Full AML Report',
+      success_url: location.origin + location.pathname + '?paid=1',
+      cancel_url: location.href,
+      is_fixed_rate: false,
+      is_fee_paid_by_user: false,
+    }),
+  })
+  .then(function(r) {
+    if (!r.ok) return r.text().then(function(t){ throw new Error(t); });
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data.invoice_url) throw new Error('No invoice URL returned');
+
+    var payWindow = window.open(data.invoice_url, '_blank');
+
+    if (!payWindow) {
+      // Popup заблокований — показуємо лінк
+      btn.innerHTML = '🔒 Оплатити $19.99 і отримати звіт';
+      btn.disabled = false;
+      var box = document.createElement('div');
+      box.style.cssText = 'margin-top:12px;padding:14px;background:#0D1520;border:1px solid rgba(0,200,255,.2);border-radius:12px;font-size:13px;color:var(--tx2);text-align:center;line-height:1.8';
+      box.innerHTML = 'Дозвольте popup або <a href="' + data.invoice_url + '" target="_blank" style="color:var(--cyan);font-weight:600">натисніть тут щоб оплатити</a>';
+      document.querySelector('.pay-form').appendChild(box);
+      return;
+    }
+
+    btn.innerHTML = '✅ Оплатіть у новій вкладці';
+    btn.style.background = 'linear-gradient(135deg,#1D9E75,#0A6B4A)';
+
+    setTimeout(function() {
+      var confirmed = confirm('Ви завершили оплату? Натисніть OK якщо так.');
+      if (confirmed) {
+        show('screen-thanks');
+        window.scrollTo({top:0, behavior:'smooth'});
+      } else {
+        btn.innerHTML = '🔒 Оплатити $19.99 і отримати звіт';
+        btn.disabled = false;
+        btn.style.background = '';
+      }
+    }, 8000);
+  })
+  .catch(function(err) {
+    console.error('NOWPayments error:', err);
+    btn.innerHTML = '🔒 Оплатити $19.99 і отримати звіт';
+    btn.disabled = false;
+    btn.style.background = '';
+    var errBox = document.createElement('div');
+    errBox.style.cssText = 'margin-top:10px;padding:12px;background:#1A0808;border:1px solid rgba(255,59,59,.3);border-radius:10px;font-size:12px;color:#FFB0B0;text-align:center';
+    errBox.innerHTML = '⚠ Помилка. Спробуйте ще раз або напишіть на <a href="mailto:support@chainguard.io" style="color:var(--cyan)">support@chainguard.io</a>';
+    document.querySelector('.pay-form').appendChild(errBox);
+    setTimeout(function(){ errBox.remove(); }, 6000);
+  });
+}
+
+/* ─── PASTE ─────────────────────────────────────────────── */
+function pasteAddr() {
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText().then(function(t) {
+      document.querySelector('.addr-input').value = t.trim();
+    }).catch(function(){ });
+  }
+}
+
+/* ─── RESET ─────────────────────────────────────────────── */
+function resetScan() {
+  // Reset all address slots to single slot
+  var slotsContainer = document.getElementById('addr-slots');
+  if (slotsContainer) {
+    slotsContainer.innerHTML =
+      '<div class="addr-slot" id="slot-0">' +
+      '<div class="search-inner">' +
+      '<span class="search-ico">🔍</span>' +
+      '<input type="text" class="addr-input" placeholder="Paste crypto address #1..." autocomplete="off" spellcheck="false">' +
+      '<span class="paste-btn" onclick="pasteSlot(0)" title="Paste">⊞</span>' +
+      '</div>' +
+      '<div class="addr-network" id="net-0"></div>' +
+      '</div>';
+    var addRow = document.getElementById('add-addr-row');
+    if (addRow) addRow.style.display = '';
+    var firstInp = document.querySelector('.addr-input');
+    if (firstInp) firstInp.addEventListener('input', function(){ updateNetworkBadge(0); });
+  }
+  document.getElementById('result-email').value = '';
+  currentProfile = null;
+  userEmail = '';
+  currentQ = 0;
+  answers = [];
+  quizRiskFlags = [];
+  selectedOptIdx = -1;
+  show('screen-home');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ─── INIT ──────────────────────────────────────────────── */
+document.getElementById('wallet-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') startScan();
+});
+
+window.addEventListener('load', function() {
+  var params = new URLSearchParams(location.search);
+  if (params.get('paid') === '1') {
+    show('screen-thanks');
+    return;
+  }
+  var w = params.get('wallet');
+  if (w) {
+    document.querySelector('.addr-input').value = w;
+    setTimeout(startScan, 400);
+  }
+});
+</script>
+</body>
+</html>

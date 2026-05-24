@@ -898,8 +898,8 @@ const PROFILES={
     alertClass:'safe',alertIcon:'✅',alertLabel:'БАЗОВА ПЕРЕВІРКА ПРОЙДЕНА',
     alertTitle:'Серйозних ризиків не виявлено',
     alertDesc:"Пряме сканування не знайшло зв\'язків із санкційними адресами. Проте базова перевірка охоплює лише верхній рівень — повна перевірка дасть 100% впевненість.",
-    sc:'#00D68F',sg:'rgba(0,214,143,.35)',
-    checks:[{i:'✅',n:'Санкційні списки OFAC',v:'ЧИСТО',c:'clear'},{i:'✅',n:"Зв\'язок із міксерами",v:'ЧИСТО',c:'clear'},{i:'✅',n:'EU / UN санкції',v:'ЧИСТО',c:'clear'},{i:'✅',n:'Відомі сками',v:'ЧИСТО',c:'clear'},{i:'🔒',n:'Граф зв\'язків (5 рівнів)',v:'ЗАБЛОК.',c:'locked'},{i:'🔒',n:'47 AML перевірок',v:'ЗАБЛОК.',c:'locked'}],
+    sc:'#FFB020',sg:'rgba(255,176,32,.35)',
+    checks:[{i:'🟡',n:'Санкційні списки OFAC',v:'Requires verification',c:'partial'},{i:'✅',n:"Зв\'язок із міксерами",v:'None found',c:'clear'},{i:'✅',n:'EU / UN санкції',v:'Clear',c:'clear'},{i:'🟡',n:'Suspicious Transactions',v:'Requires verification',c:'partial'},{i:'🔒',n:'Darknet Exposure',v:'LOCKED',c:'locked'},{i:'🔒',n:'47 AML перевірок',v:'LOCKED',c:'locked'}],
     trigTitle:"Базова перевірка пройдена — але це тільки 10% аналізу",
     trigItems:['<strong>Непрямі зв\'язки:</strong> Базова перевірка не аналізує транзакційний граф — кошти можуть бути пов\'язані з ризиковими адресами через посередників','<strong>Приховані ризики:</strong> 47 AML перевірок включають аналіз паттернів поведінки які недоступні при базовому скануванні','<strong>Страховка:</strong> Повний звіт — це документальне підтвердження чистоти вашого гаманця для бірж і партнерів'],
     ectaTitle:"Переконайтесь на 100% і отримайте офіційний звіт",ectaSub:"Базова перевірка пройдена. Повний звіт підтвердить чистоту гаманця документально і перевірить приховані рівні транзакцій.",
@@ -1291,11 +1291,11 @@ function buildRealProfile(addr, chainData, network) {
     alertDesc = 'Some risk indicators were found. A full scan is recommended to determine the exact threat level to your funds.';
     sc = '#FFB020'; sg = 'rgba(255,176,32,.35)';
   } else {
-    level = 'safe'; alertClass = 'safe'; alertIcon = '✅';
-    alertLabel = 'BASIC SCAN PASSED';
-    alertTitle = 'No critical risks found';
-    alertDesc = 'The basic scan found no direct connections to sanctioned addresses. A full scan provides 100% confidence with 47 checks.';
-    sc = '#00D68F'; sg = 'rgba(0,214,143,.35)';
+    level = 'medium'; alertClass = 'warn'; alertIcon = '⚠️';
+    alertLabel = 'POTENTIAL RISK DETECTED';
+    alertTitle = 'Potential risks detected — full verification required';
+    alertDesc = 'Basic scan complete. Potential risk indicators were found that require deeper analysis. Get a full PDF report with all details about your wallet and recommendations to protect your funds.';
+    sc = '#FFB020'; sg = 'rgba(255,176,32,.35)';
   }
 
   var bal = chainData ? chainData.balance : 'N/A';
@@ -1304,10 +1304,10 @@ function buildRealProfile(addr, chainData, network) {
 
   var goplusBad = goplusRisk || riskFlags.length > 0;
   var checks = [
-    {i: ofac ? '🔴' : '✅', n: 'OFAC Sanctions List', v: ofac ? 'MATCH FOUND' : 'Clear', c: ofac ? 'found' : 'clear'},
+    {i: ofac ? '🔴' : '🟡', n: 'OFAC Sanctions List', v: ofac ? 'MATCH FOUND' : 'Requires verification', c: ofac ? 'found' : 'partial'},
     {i: goplusBad ? '🔴' : '✅', n: 'GoPlus Security Check', v: goplusBad ? riskFlags[0] || 'Risk detected' : 'Clear', c: goplusBad ? 'found' : 'clear'},
     {i: mixer ? '🔴' : '✅', n: 'Mixer / Tornado Cash', v: mixer ? 'DETECTED' : 'None found', c: mixer ? 'found' : 'clear'},
-    {i: (chainData && chainData.mixerTxCount > 0) ? '🟡' : '✅', n: 'Suspicious Transactions', v: chainData && chainData.mixerTxCount > 0 ? chainData.mixerTxCount + ' flagged' : 'Clean', c: chainData && chainData.mixerTxCount > 0 ? 'partial' : 'clear'},
+    {i: (chainData && chainData.mixerTxCount > 0) ? '🔴' : '🟡', n: 'Suspicious Transactions', v: chainData && chainData.mixerTxCount > 0 ? chainData.mixerTxCount + ' flagged' : 'Requires verification', c: chainData && chainData.mixerTxCount > 0 ? 'found' : 'partial'},
     {i: '🔒', n: 'Darknet Exposure', v: 'LOCKED', c: 'locked'},
     {i: '🔒', n: 'Full 47-check AML Scan', v: 'LOCKED', c: 'locked'},
   ];
@@ -1330,14 +1330,18 @@ function buildRealProfile(addr, chainData, network) {
     alertClass: alertClass, alertIcon: alertIcon, alertLabel: alertLabel,
     alertTitle: alertTitle, alertDesc: alertDesc,
     sc: sc, sg: sg, checks: checks,
-    trigTitle: level === 'safe' ? 'Basic scan passed — but this is only 10% of the analysis' : 'Risk factors require immediate attention',
-    trigItems: trigItems,
-    ectaTitle: level === 'safe' ? 'Get 100% certainty with a full report' : 'Full scan required to protect your funds',
-    ectaSub: level === 'safe'
-      ? 'Basic scan passed. Full report verifies wallet cleanliness with <strong>47 checks</strong> and 5-level transaction graph analysis.'
-      : 'Risk indicators detected. Full report shows exact threat level and <strong>concrete steps</strong> to protect your funds.',
-    riskLabel: level === 'high' ? 'HIGH RISK' : level === 'medium' ? 'MEDIUM RISK' : 'PREVENTIVE CHECK',
-    riskCount: level === 'high' ? 'critical risk factors detected' : level === 'medium' ? 'potential risk factor found' : 'potential hidden risks',
+    trigTitle: level === 'high' ? 'Critical risks detected — immediate action required' : 'Potential risks found — full verification needed',
+    trigItems: trigItems.length > 0 ? trigItems : [
+      '<strong>Indirect Connections:</strong> Basic scan only checks direct links. Full scan traces funds 5 levels deep to catch hidden exposure to sanctioned addresses.',
+      '<strong>Suspicious Patterns:</strong> Transaction behavior analysis requires full AML scan to identify money laundering patterns.',
+      '<strong>Unverified Sources:</strong> Some transaction sources could not be fully verified in the basic scan. Full report identifies all fund origins.',
+    ],
+    ectaTitle: level === 'high' ? 'Immediate full scan required to protect your funds' : 'Full scan required — get your PDF report now',
+    ectaSub: level === 'high'
+      ? 'Critical risk indicators detected. Full report shows exact threat level and <strong>concrete steps</strong> to protect your funds.'
+      : 'Potential risks detected. Full PDF report includes <strong>47 AML checks</strong>, complete transaction graph analysis and personalized recommendations.',
+    riskLabel: level === 'high' ? 'HIGH RISK' : 'POTENTIAL RISK',
+    riskCount: level === 'high' ? 'critical risk factors detected' : 'potential risk indicators found',
   };
 }
 

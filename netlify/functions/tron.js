@@ -11,78 +11,94 @@ exports.handler = async (event) => {
   if (!addr) return { statusCode: 400, headers, body: JSON.stringify({ error: 'No address' }) };
 
   const TRON_KEY = 'fa93b89a-42f0-42c4-958f-dcdec56dcc15';
-  const h = { 'TRON-PRO-API-KEY': TRON_KEY, 'Accept': 'application/json' };
+  const h = { 'TRON-PRO-API-KEY': TRON_KEY, 'Accept': 'application/json', 'Content-Type': 'application/json' };
 
   try {
-    // Method 1: wallet/getaccount (more reliable than v1/accounts)
-    const accRes = await fetch('https://api.trongrid.io/wallet/getaccount', {
-      method: 'POST',
-      headers: { ...h, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: addr, visible: true }),
-    });
-    const acc = await accRes.json();
-    console.log('Account raw:', JSON.stringify(acc).slice(0, 300));
+    // Try Tronscan API as alternative — more reliable for balance
+    const tronscanRes = await fetch(
+      `https://apilist.tronscanapi.com/api/accountv2?address=${addr}`,
+      { headers: { 'TRON-PRO-API-KEY': TRON_KEY } }
+    );
+    const tronscan = await tronscanRes.json();
 
-    const trxBalance = acc.balance ? (acc.balance / 1e6).toFixed(2) : '0';
-    const createTime = acc.create_time || acc.createTime || null;
-    const age = createTime
-      ? ((Date.now() - createTime) / 31536000000).toFixed(1) + ' yrs'
-      : 'N/A';
-
-    // TRC20 tokens from trc20 field in account
-    const trc20List = acc.trc20 || [];
+    let trxBalance = '0';
     let usdtBal = '0';
-    const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-    
-    for (const token of trc20List) {
-      if (token[USDT_CONTRACT]) {
-        usdtBal = (parseInt(token[USDT_CONTRACT]) / 1e6).toFixed(2);
-        break;
+    let age = 'N/A';
+    let txCount = '0';
+    let trc20Count = 0;
+
+    if (tronscan && tronscan.balance !== undefined) {
+      trxBalance = (tronscan.balance / 1e6).toFixed(2);
+    }
+
+    if (tronscan && tronscan.date_created) {
+      const yrs = ((Date.now() - tronscan.date_created) / 31536000000).toFixed(1);
+      age = yrs + ' yrs';
+    }
+
+    if (tronscan && tronscan.totalTransactionCount !== undefined) {
+      txCount = String(tronscan.totalTransactionCount);
+    }
+
+    // TRC20 tokens from Tronscan
+    if (tronscan && tronscan.trc20token_balances) {
+      const tokens = tronscan.trc20token_balances;
+      trc20Count = tokens.length;
+      const usdt = tokens.find(t =>
+        t.tokenId === 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t' ||
+        t.tokenAbbr === 'USDT'
+      );
+      if (usdt) {
+        usdtBal = (parseInt(usdt.balance) / Math.pow(10, usdt.tokenDecimal || 6)).toFixed(2);
       }
     }
 
-    // Transaction count via v1 API
-    let txCount = '0';
-    try {
+    // Fallback: TronGrid v1 if Tronscan empty
+    if (trxBalance === '0' && txCount === '0') {
+      const v1Res = await fetch(
+        `https://api.trongrid.io/v1/accounts/${addr}?only_confirmed=true`,
+        { headers: h }
+      );
+      const v1Data = await v1Res.json();
+      const acc = v1Data.data && v1Data.data.length > 0 ? v1Data.data[0] : null;
+
+      if (acc) {
+        trxBalance = acc.balance ? (acc.balance / 1e6).toFixed(2) : '0';
+        if (acc.create_time) {
+          age = ((Date.now() - acc.create_time) / 31536000000).toFixed(1) + ' yrs';
+        }
+        // TRC20 from v1
+        const trc20 = acc.trc20 || [];
+        trc20Count = trc20.length;
+        const USDT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+        for (const t of trc20) {
+          if (t[USDT]) {
+            usdtBal = (parseInt(t[USDT]) / 1e6).toFixed(2);
+            break;
+          }
+        }
+      }
+
+      // TX count via transfers endpoint
       const txRes = await fetch(
-        `https://api.trongrid.io/v1/accounts/${addr}/transactions?limit=1&only_confirmed=true`,
+        `https://api.trongrid.io/v1/accounts/${addr}/transactions?limit=50&only_confirmed=true`,
         { headers: h }
       );
       const txData = await txRes.json();
-      // Get total from meta
-      if (txData.meta && txData.meta.page_size !== undefined) {
-        // Fetch with larger limit to count
-        const txRes2 = await fetch(
-          `https://api.trongrid.io/v1/accounts/${addr}/transactions?limit=50&only_confirmed=true`,
-          { headers: h }
-        );
-        const txData2 = await txRes2.json();
-        const list = txData2.data || [];
-        txCount = list.length >= 50 ? '50+' : String(list.length);
-      }
-    } catch(e) {
-      console.log('TX count error:', e.message);
+      const list = txData.data || [];
+      txCount = list.length >= 50 ? '50+' : String(list.length);
     }
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        trxBalance,
-        usdtBal,
-        age,
-        txCount,
-        trc20Count: trc20List.length,
-        trc20: trc20List.slice(0, 3),
-        debug: { hasBalance: !!acc.balance, hasCreateTime: !!createTime }
-      }),
+      body: JSON.stringify({ trxBalance, usdtBal, age, txCount, trc20Count, trc20: [] }),
     };
   } catch (e) {
-    console.error('TRON error:', e);
-    return { 
-      statusCode: 500, 
-      headers, 
-      body: JSON.stringify({ error: e.message }) 
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: e.message }),
     };
   }
 };

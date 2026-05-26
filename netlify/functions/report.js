@@ -140,6 +140,7 @@ async function fetchTronReport(addr) {
   riskScore = Math.min(riskScore, 100);
 
   const riskLevel = riskScore >= 65 ? 'high' : riskScore >= 30 ? 'medium' : 'low';
+  const ofacMatch = sanctionedRisk > 0;
 
   // Funds structure: estimated based on GoPlus flags
   // Real % requires Chainalysis/AMLBot API
@@ -157,8 +158,6 @@ async function fetchTronReport(addr) {
     { category: 'Підозрілі транзакції', percentage: riskFlags.length * 0.5, color: '#F59E0B' },
     { category: 'Інші ризики', percentage: 1.0, color: '#9CA3AF' },
   ].filter(r => r.percentage > 0);
-
-  const ofacMatch = sanctionedRisk > 0;
 
   return {
     network: 'TRON (TRC20)',

@@ -578,55 +578,33 @@ async function runScan(addr) {
     return;
   }
 
-  openModal('Scanning ' + addr.slice(0,10) + '...');
-  document.getElementById('modal-body').innerHTML = '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Analyzing blockchain data...</div></div>';
+  openModal('Сканування ' + addr.slice(0,10) + '...');
+  document.getElementById('modal-body').innerHTML = '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Аналізуємо блокчейн дані...</div></div>';
 
   try {
-    // Detect network
-    var network = detectNet(addr);
-    var chainId = network.chainId || '0x1';
+    // Use unified report.js function
+    var reportRes = await fetch(API + '/report?addr=' + encodeURIComponent(addr));
+    var report = await reportRes.json();
+    if (report.error) throw new Error(report.error);
 
-    // Fetch real data
-    var chainData = null;
-    if (network.name === 'TRON') {
-      var r = await fetch(API + '/tron?addr=' + encodeURIComponent(addr));
-      chainData = await r.json();
-    } else if (network.name === 'Bitcoin') {
-      var r = await fetch('https://api.blockchair.com/bitcoin/dashboards/address/' + addr + '?limit=5');
-      var bd = await r.json();
-      if (bd.data && bd.data[addr]) {
-        var info = bd.data[addr].address;
-        chainData = { balance: (info.balance / 1e8).toFixed(8) + ' BTC', txCount: String(info.transaction_count), age: 'N/A', mixerTxCount: 0 };
-      }
-    } else {
-      var r = await fetch(API + '/moralis?addr=' + encodeURIComponent(addr) + '&chain=' + chainId);
-      chainData = await r.json();
-    }
-
-    // Calculate risk
-    var score = 15;
-    var level = 'medium';
-    var riskFlags = (chainData && chainData.riskFlags) ? chainData.riskFlags : [];
-    if (chainData && chainData.goplusRisk) score += 40;
-    if (chainData && chainData.mixerTxCount > 0) score += 30;
-    if (chainData && chainData.ofacMatch) score = 90;
-    score = Math.min(score, 100);
-    if (score >= 65) level = 'high';
-    else if (score <= 20) level = 'low';
-
+    var score = report.riskScore || 15;
+    var level = report.riskLevel || 'medium';
     var sc = level === 'high' ? '#FF3B3B' : level === 'medium' ? '#FFB020' : '#00D68F';
-    var alertClass = level === 'high' ? 'high' : level === 'medium' ? 'medium' : 'low';
-    var alertLabel = level === 'high' ? 'HIGH RISK DETECTED' : level === 'medium' ? 'POTENTIAL RISK FOUND' : 'SCAN PASSED';
-    var alertTitle = level === 'high' ? 'High risk indicators detected' : level === 'medium' ? 'Some risk indicators found' : 'No critical risks detected';
-    var alertDesc = level === 'high' ? 'Critical risks require immediate attention. See full PDF report for details.' : level === 'medium' ? 'Potential risks detected. Full PDF report includes complete 47-check analysis.' : 'Basic scan passed. Full PDF report confirms wallet safety with 47 AML checks.';
+    var levelLabel = level === 'high' ? 'ВИСОКИЙ РИЗИК' : level === 'medium' ? 'ПОТЕНЦІЙНИЙ РИЗИК' : 'НИЗЬКИЙ РИЗИК';
 
-    // Deduct credit
+    // Deduct credit and save scan
     var deductRes = await fetch(API + '/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({
         action: 'deduct',
-        scanData: { address: addr, network: network.name, risk_score: score, risk_level: level, risk_flags: riskFlags }
+        scanData: {
+          address: addr,
+          network: report.network || 'Unknown',
+          risk_score: score,
+          risk_level: level,
+          risk_flags: report.riskFlags || [],
+        }
       }),
     });
     var deductData = await deductRes.json();
@@ -635,35 +613,14 @@ async function runScan(addr) {
       updateCreditsUI(deductData.credits);
     }
 
-    // Show result
-    document.getElementById('modal-title-txt').textContent = 'Scan Complete';
-    document.getElementById('modal-body').innerHTML =
-      '<div class="mr-alert ' + alertClass + '">' +
-        '<div style="font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;color:' + sc + ';margin-bottom:4px">' + alertLabel + '</div>' +
-        '<div style="font-size:16px;font-weight:600;margin-bottom:4px">' + alertTitle + '</div>' +
-        '<div style="font-size:12px;color:var(--tx2)">' + alertDesc + '</div>' +
-      '</div>' +
-      '<div class="mr-score">' +
-        '<div class="mr-ring" style="border-color:' + sc + ';box-shadow:0 0 16px ' + sc + '40"><div class="mr-num" style="color:' + sc + '">' + score + '</div><div class="mr-max">/100</div></div>' +
-        '<div class="mr-info"><div class="mr-addr">' + addr + '</div><div class="mr-net">' + network.name + (chainData && chainData.balance ? ' · ' + chainData.balance : '') + '</div><div style="font-size:11px;color:var(--tx3);margin-top:4px">' + (chainData && chainData.txCount ? chainData.txCount + ' txs · ' : '') + (chainData && chainData.age ? chainData.age : '') + '</div></div>' +
-      '</div>' +
-      '<div class="mr-checks">' +
-        '<div class="mr-check"><span class="mr-check-name">OFAC Sanctions List</span><span class="mr-check-val ' + (chainData && chainData.ofacMatch ? 'found' : 'clear') + '">' + (chainData && chainData.ofacMatch ? '⚠ MATCH FOUND' : '✓ Clear') + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (chainData && chainData.goplusRisk ? 'found' : 'clear') + '">' + (chainData && chainData.goplusRisk ? '⚠ ' + (riskFlags[0] || 'Risk detected') : '✓ Clear') + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">Mixer / Tornado Cash</span><span class="mr-check-val ' + (chainData && chainData.mixerTxCount > 0 ? 'found' : 'clear') + '">' + (chainData && chainData.mixerTxCount > 0 ? '⚠ ' + chainData.mixerTxCount + ' tx flagged' : '✓ None found') + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">Network</span><span class="mr-check-val clear">' + network.name + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">Transactions</span><span class="mr-check-val clear">' + (chainData && chainData.txCount ? chainData.txCount + ' confirmed' : 'N/A') + '</span></div>' +
-        '<div class="mr-check"><span class="mr-check-name">Wallet Age</span><span class="mr-check-val clear">' + (chainData && chainData.age && chainData.age !== 'N/A' ? chainData.age : 'N/A') + '</span></div>' +
-      '</div>' +
-      '<button class="save-btn" onclick="getPdfReport()" style="margin-bottom:8px">📄 Get Full PDF Report</button>' +
-      '<button onclick="closeModal();loadDashboard()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Close</button>';
+    // Render full report in modal
+    document.getElementById('modal-title-txt').textContent = 'Результат сканування';
+    renderReportModal(report, sc, levelLabel, level);
 
-    // Refresh scan history
-    setTimeout(loadDashboard, 500);
-
+    setTimeout(loadDashboard, 600);
   } catch(e) {
     console.error(e);
-    document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red)">❌ Scan failed: ' + e.message + '</div>';
+    document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red)">❌ Помилка сканування: ' + e.message + '</div>';
   }
 }
 
@@ -734,6 +691,72 @@ async function buyPackage(pkgId) {
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
+function renderReportModal(r, sc, levelLabel) {
+  var fundsBar = '<div style="height:8px;border-radius:4px;display:flex;overflow:hidden;margin:.5rem 0">' +
+    '<div style="width:' + r.funds.cleanPercent + '%;background:#00D68F"></div>' +
+    '<div style="width:' + r.funds.dirtyPercent + '%;background:#FFB020"></div>' +
+    '<div style="width:' + r.funds.sanctionedPercent + '%;background:#FF3B3B"></div>' +
+    '</div>';
+
+  var flagsHtml = (r.riskFlags || []).map(function(f) {
+    return '<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
+      '<span style="color:#FF3B3B">⚠</span><span style="color:var(--tx2)">' + f.label + '</span>' +
+      '</div>';
+  }).join('') || '<div style="font-size:12px;color:var(--green)">✓ Серйозних загроз не виявлено</div>';
+
+  var checksHtml =
+    '<div class="mr-check"><span class="mr-check-name">OFAC / Санкції</span><span class="mr-check-val ' + (r.ofacMatch || r.sanctionedRisk > 0 ? 'found' : 'clear') + '">' + (r.ofacMatch || r.sanctionedRisk > 0 ? 'ЗНАЙДЕНО' : 'Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Міксери</span><span class="mr-check-val ' + (r.mixerInteractions > 0 ? 'found' : 'clear') + '">' + (r.mixerInteractions > 0 ? r.mixerInteractions + ' взаємодій' : 'Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Даркнет</span><span class="mr-check-val ' + (r.darknetInteractions > 0 ? 'found' : 'clear') + '">' + (r.darknetInteractions > 0 ? r.darknetInteractions + ' транзакцій' : 'Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (r.riskFlags && r.riskFlags.length > 0 ? 'found' : 'clear') + '">' + (r.riskFlags && r.riskFlags.length > 0 ? r.riskFlags.length + ' загроз' : 'Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Транзакцій</span><span class="mr-check-val clear">' + (r.activity?.txCount || 'N/A') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Перша активність</span><span class="mr-check-val clear">' + (r.activity?.firstActivity || 'N/A') + '</span></div>';
+
+  var exchangeHtml = (r.exchangeCompatibility || []).slice(0, 3).map(function(ex) {
+    var color = ex.status === 'ok' ? 'var(--green)' : ex.status === 'check' ? 'var(--amber)' : 'var(--red)';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
+      '<span style="color:var(--tx2)">' + ex.name + '</span>' +
+      '<span style="font-weight:600;color:' + color + '">' + ex.label + '</span>' +
+      '</div>';
+  }).join('');
+
+  document.getElementById('modal-body').innerHTML =
+    // Alert header
+    '<div class="mr-alert ' + level + '" style="margin-bottom:1rem">' +
+      '<div style="font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;color:' + sc + ';margin-bottom:3px">' + levelLabel + '</div>' +
+      '<div style="font-size:15px;font-weight:700">' + (r.reputation?.label || 'Аналіз завершено') + '</div>' +
+      '<div style="font-size:12px;color:var(--tx2);margin-top:3px">' + (r.reputation?.desc || '') + '</div>' +
+    '</div>' +
+    // Score + address
+    '<div class="mr-score" style="margin-bottom:.85rem">' +
+      '<div class="mr-ring" style="border-color:' + sc + ';box-shadow:0 0 14px ' + sc + '30"><div class="mr-num" style="color:' + sc + '">' + r.riskScore + '</div><div class="mr-max">/100</div></div>' +
+      '<div class="mr-info">' +
+        '<div class="mr-addr">' + r.address + '</div>' +
+        '<div class="mr-net" style="font-size:11px;margin-top:2px">' + r.network + ' · ID: <span style="color:var(--cyan);font-family:var(--mono)">' + (r.reportId || '') + '</span></div>' +
+        (r.balance ? '<div style="font-size:11px;color:var(--tx3);margin-top:3px">Баланс: ' + (r.balance.trx ? r.balance.trx + ' TRX' + (r.balance.usdt > 0 ? ' + ' + r.balance.usdt + ' USDT' : '') : r.balance.native || '') + '</div>' : '') +
+      '</div>' +
+    '</div>' +
+    // Funds structure
+    '<div style="margin-bottom:.85rem;background:var(--s2);border-radius:10px;padding:10px 12px">' +
+      '<div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.35rem;text-transform:uppercase">Структура коштів</div>' +
+      fundsBar +
+      '<div style="display:flex;gap:1rem;font-size:10px">' +
+        '<span style="color:var(--green)">● Чисті ' + r.funds.cleanPercent + '%</span>' +
+        '<span style="color:var(--amber)">● Ризикові ' + r.funds.dirtyPercent + '%</span>' +
+        '<span style="color:var(--red)">● Підсанкційні ' + r.funds.sanctionedPercent + '%</span>' +
+      '</div>' +
+    '</div>' +
+    // Checks
+    '<div class="mr-checks" style="margin-bottom:.85rem">' + checksHtml + '</div>' +
+    // GoPlus flags
+    (r.riskFlags && r.riskFlags.length > 0 ? '<div style="background:rgba(255,59,59,.06);border:1px solid rgba(255,59,59,.15);border-radius:10px;padding:10px 12px;margin-bottom:.85rem"><div style="font-size:10px;font-family:var(--mono);color:var(--red);margin-bottom:.35rem;text-transform:uppercase">Виявлені загрози</div>' + flagsHtml + '</div>' : '') +
+    // Exchange compat
+    (exchangeHtml ? '<div style="background:var(--s2);border-radius:10px;padding:10px 12px;margin-bottom:.85rem"><div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.35rem;text-transform:uppercase">Сумісність з біржами</div>' + exchangeHtml + '</div>' : '') +
+    // Buttons
+    '<button class="save-btn" onclick="getPdfReport()" style="margin-bottom:8px">📄 Зберегти PDF звіт</button>' +
+    '<button onclick="closeModal();loadDashboard()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Закрити</button>';
+}
+
 function getPdfReport() {
   // PDF generation coming soon
   // For now show toast and save scan ID for future PDF

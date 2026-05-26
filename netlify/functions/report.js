@@ -141,10 +141,13 @@ async function fetchTronReport(addr) {
 
   const riskLevel = riskScore >= 65 ? 'high' : riskScore >= 30 ? 'medium' : 'low';
 
-  // Funds structure estimate
-  const dirtyPercent = riskFlags.length > 0 ? Math.min(riskFlags.length * 5 + 3, 40) : 2;
-  const sanctionedPercent = sanctionedRisk > 0 ? 4.4 : 0.5;
-  const cleanPercent = 100 - dirtyPercent - sanctionedPercent;
+  // Funds structure: estimated based on GoPlus flags
+  // Real % requires Chainalysis/AMLBot API
+  // 0 flags = mostly clean, each flag adds ~5% dirty
+  // Estimated funds structure based on detected risks
+  const sanctionedPercent = ofacMatch || sanctionedRisk > 0 ? Math.min(sanctionedRisk / 2, 20) : 0;
+  const dirtyPercent = riskFlags.length > 0 ? Math.min(riskFlags.length * 4 + 2, 35) : mixerInteractions > 0 ? 15 : 0;
+  const cleanPercent = Math.max(0, 100 - dirtyPercent - sanctionedPercent);
 
   // Risk distribution
   const riskDistribution = [
@@ -266,9 +269,9 @@ async function fetchEvmReport(addr, chainId = '0x1') {
 
   const riskLevel = riskScore >= 65 ? 'high' : riskScore >= 30 ? 'medium' : 'low';
 
-  // Funds structure
-  const dirtyPercent = (mixerInteractions * 5 + riskFlags.length * 3);
-  const sanctionedPercent = ofacMatch ? 15 : 0.5;
+  // Estimated funds structure
+  const sanctionedPercent = ofacMatch ? 15 : 0;
+  const dirtyPercent = riskFlags.length > 0 ? Math.min(riskFlags.length * 4 + mixerInteractions * 8, 40) : mixerInteractions > 0 ? 20 : 0;
   const cleanPercent = Math.max(0, 100 - dirtyPercent - sanctionedPercent);
 
   // Notable tokens
@@ -304,44 +307,34 @@ async function fetchEvmReport(addr, chainId = '0x1') {
 
 // ── EXCHANGE COMPATIBILITY ───────────────────────────────────
 function calcExchangeCompatibility(riskScore, riskFlags, mixerInteractions, ofacMatch) {
-  const hasHighRisk = riskFlags.some(f => f.severity === 'critical' || f.severity === 'high');
-  
+  const hasCritical = riskFlags.some(f => f.severity === 'critical');
+  const hasHigh = riskFlags.some(f => f.severity === 'high');
+  const hasMixer = mixerInteractions > 0;
+
+  // Thresholds:
+  // ok (green)    = score < 30 AND no critical/high flags AND no mixer
+  // check (amber) = score 30-65 OR high flags OR mixer
+  // blocked (red) = score > 65 OR critical flags OR OFAC
+
+  function getStatus(extraCheck) {
+    if (ofacMatch || hasCritical) return 'blocked';
+    if (riskScore > 65 || (hasHigh && extraCheck) || hasMixer) return 'check';
+    if (riskScore > 40) return 'check';
+    return 'ok';
+  }
+
+  function getLabel(status) {
+    if (status === 'blocked') return 'Заблоковано';
+    if (status === 'check') return 'Потребує перевірки';
+    return 'Депозит можливий';
+  }
+
   return [
-    {
-      name: 'Binance',
-      icon: '◈',
-      status: ofacMatch ? 'blocked' : riskScore > 60 ? 'check' : riskScore > 30 ? 'check' : 'ok',
-      label: ofacMatch ? 'Заблоковано' : riskScore > 60 ? 'Потребує перевірки' : 'Можливо обмеження',
-      desc: ofacMatch ? 'Депозит заблоковано' : riskScore > 60 ? 'Можлива додаткова перевірка' : 'Обмеження можливі',
-    },
-    {
-      name: 'Bybit',
-      icon: '◈',
-      status: ofacMatch ? 'blocked' : riskScore > 70 ? 'check' : 'ok',
-      label: ofacMatch ? 'Заблоковано' : riskScore > 70 ? 'Потребує перевірки' : 'Низький ризик',
-      desc: ofacMatch ? 'Депозит заблоковано' : 'Депозит можливий',
-    },
-    {
-      name: 'OKX',
-      icon: '◈',
-      status: ofacMatch ? 'blocked' : riskScore > 50 ? 'check' : 'ok',
-      label: ofacMatch ? 'Заблоковано' : riskScore > 50 ? 'Середній ризик' : 'Низький ризик',
-      desc: ofacMatch ? 'Депозит заблоковано' : riskScore > 50 ? 'Можливі обмеження' : 'Депозит можливий',
-    },
-    {
-      name: 'Coinbase',
-      icon: '◈',
-      status: ofacMatch ? 'blocked' : hasHighRisk ? 'check' : 'ok',
-      label: ofacMatch ? 'Заблоковано' : hasHighRisk ? 'Потребує перевірки' : 'Низький ризик',
-      desc: ofacMatch ? 'Депозит заблоковано' : hasHighRisk ? 'Додаткова верифікація' : 'Депозит можливий',
-    },
-    {
-      name: 'KuCoin',
-      icon: '◈',
-      status: ofacMatch ? 'blocked' : riskScore > 70 ? 'check' : 'ok',
-      label: ofacMatch ? 'Заблоковано' : 'Низький ризик',
-      desc: ofacMatch ? 'Депозит заблоковано' : 'Депозит можливий',
-    },
+    { name: 'Binance',  icon: '◈', status: getStatus(true),  label: getLabel(getStatus(true)) },
+    { name: 'Bybit',    icon: '◈', status: getStatus(false), label: getLabel(getStatus(false)) },
+    { name: 'OKX',      icon: '◈', status: getStatus(true),  label: getLabel(getStatus(true)) },
+    { name: 'Coinbase', icon: '◈', status: getStatus(true),  label: getLabel(getStatus(true)) },
+    { name: 'KuCoin',   icon: '◈', status: getStatus(false), label: getLabel(getStatus(false)) },
   ];
 }
 

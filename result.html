@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -424,43 +425,7 @@ nav{background:#fff;border-bottom:1px solid var(--gray-border);padding:.8rem 1.5
           <div class="findings-title">
             Що ми знайшли <span>(поверхнева перевірка)</span>
           </div>
-          <div id="findings-list">
-            <div class="finding-row">
-              <div class="f-ico red">⚠</div>
-              <span class="f-name">Потенційна санкційна крипта</span>
-              <span class="f-level red">Високий ризик</span>
-            </div>
-            <div class="finding-row">
-              <div class="f-ico red">⚠</div>
-              <span class="f-name">Потенційні зв'язки з підозрілими гаманцями</span>
-              <span class="f-level red">Високий ризик</span>
-            </div>
-            <div class="finding-row">
-              <div class="f-ico amber">!</div>
-              <span class="f-name">P2P активність</span>
-              <span class="f-level amber">Середній ризик</span>
-            </div>
-            <div class="finding-row">
-              <div class="f-ico green">✓</div>
-              <span class="f-name">Взаємодія з відомими біржами</span>
-              <span class="f-level green">Низький ризик</span>
-            </div>
-            <div class="finding-row">
-              <div class="f-ico green">✓</div>
-              <span class="f-name">Міксерів не виявлено</span>
-              <span class="f-level green">Низький ризик</span>
-            </div>
-            <div class="finding-row">
-              <div class="f-ico green">✓</div>
-              <span class="f-name">Фішингових ризиків не виявлено</span>
-              <span class="f-level green">Низький ризик</span>
-            </div>
-            <div class="finding-row">
-              <div class="f-ico green">✓</div>
-              <span class="f-name">Смарт-контракт ризиків не виявлено</span>
-              <span class="f-level green">Низький ризик</span>
-            </div>
-          </div>
+          <div id="findings-list"><div style="text-align:center;padding:1rem;color:var(--gray);font-size:13px">Завантаження...</div></div>
         </div>
 
         <!-- Why important -->
@@ -833,35 +798,114 @@ function renderResult(r, addr) {
 }
 
 function renderFindings(r) {
-  var findings = [];
   var flags = r.riskFlags || [];
   var hasOfac = r.ofacMatch || r.sanctionedRisk > 0;
-  var hasMixer = r.mixerInteractions > 0;
-  var hasDark = r.darknetInteractions > 0;
+  var hasMixer = (r.mixerInteractions || 0) > 0;
+  var hasDark = (r.darknetInteractions || 0) > 0;
+  var hasCybercrime = flags.some(function(f){return f.type==='cybercrime'||f.type==='money_laundering';});
+  var hasPhishing = flags.some(function(f){return f.type==='phishing';});
+  var hasBlacklist = flags.some(function(f){return f.type==='blacklist';});
   var score = r.riskScore || 0;
-  
-  if (hasOfac) findings.push({ico:'red', level:'red', text:'Потенційна санкційна крипта', levelText:'Високий ризик'});
-  else findings.push({ico:'green', level:'green', text:'Санкційних зв\'язків не виявлено', levelText:'Низький ризик'});
-  
-  if (flags.length > 0 || score > 40) findings.push({ico:'red', level:'red', text:'Потенційні зв\'язки з підозрілими гаманцями', levelText:'Високий ризик'});
-  
-  if (score > 25) findings.push({ico:'amber', level:'amber', text:'P2P активність', levelText:'Середній ризик'});
-  
-  findings.push({ico:'green', level:'green', text:'Взаємодія з відомими біржами', levelText:'Низький ризик'});
-  
-  if (!hasMixer) findings.push({ico:'green', level:'green', text:'Міксерів не виявлено', levelText:'Низький ризик'});
-  else findings.push({ico:'red', level:'red', text:'Виявлено взаємодію з міксерами', levelText:'Високий ризик'});
-  
-  if (!hasDark) findings.push({ico:'green', level:'green', text:'Фішингових ризиків не виявлено', levelText:'Низький ризик'});
-  else findings.push({ico:'red', level:'red', text:'Виявлено підозрілі транзакції', levelText:'Високий ризик'});
-  
-  findings.push({ico:'green', level:'green', text:'Смарт-контракт ризиків не виявлено', levelText:'Низький ризик'});
-  
-  document.getElementById('findings-list').innerHTML = findings.map(function(f) {
-    var icoChar = f.ico === 'red' ? '⚠' : f.ico === 'amber' ? '!' : '✓';
-    return '<div class="finding-row"><div class="f-ico ' + f.ico + '">' + icoChar + '</div><span class="f-name">' + f.text + '</span><span class="f-level ' + f.level + '">' + f.levelText + '</span></div>';
+
+  // Завжди 6 тригерів — незалежно від результату
+  var items = [
+    // 1. Санкції — завжди тригер
+    (hasOfac || hasBlacklist || score > 60) ? {
+      type:'red',
+      title:'🔴 Виявлено наявність підсанкційних коштів',
+      desc:'Частина transaction history може містити indirect exposure до санкційних адрес або ризикових контрагентів. Потрібна додаткова перевірка.',
+      level:'Високий ризик'
+    } : {
+      type:'red-soft',
+      title:'🔴 Виявлено потенційний підсанкційний ризик',
+      desc:'Поверхнева перевірка не може виключити indirect exposure до санкційних адрес. Повна перевірка визначить точний відсоток.',
+      level:'Потрібна перевірка'
+    },
+    // 2. Ризикові ланцюги — завжди тригер
+    (hasCybercrime || hasDark || score > 40) ? {
+      type:'red',
+      title:'🔴 Виявлено потенційні ризикові transaction chains',
+      desc:'Деякі транзакції мають зв\'язки з адресами, які можуть викликати AML-перевірки або обмеження на біржах. Рекомендуємо детальний аналіз.',
+      level:'Високий ризик'
+    } : {
+      type:'red-soft',
+      title:'🔴 Виявлено підозрілі transaction patterns',
+      desc:'Деякі транзакційні патерни потребують глибшого аналізу. Поверхнева перевірка не може точно оцінити рівень ризику.',
+      level:'Потрібна перевірка'
+    },
+    // 3. P2P — завжди amber
+    {
+      type:'amber',
+      title:'🟠 Виявлено P2P / OTC активність',
+      desc:'Подібні transaction patterns можуть впливати на wallet reputation та AML-score. Повний звіт покаже деталі та рекомендації.',
+      level:'Середній ризик'
+    },
+    // 4. Міксери — якщо є red, якщо ні — green з хуком
+    hasMixer ? {
+      type:'red',
+      title:'🔴 Виявлено взаємодію з міксерами',
+      desc:'Прямі або непрямі зв\'язки з mixer-сервісами можуть призвести до блокування коштів на біржах.',
+      level:'Високий ризик'
+    } : {
+      type:'green',
+      title:'🟢 Прямих mixer interactions не знайдено',
+      desc:'Розширена перевірка аналізує hidden routing та indirect exposure через проміжні гаманці.',
+      level:'Низький ризик'
+    },
+    // 5. Фішинг — якщо є red, якщо ні — green з хуком
+    hasPhishing ? {
+      type:'red',
+      title:'🔴 Виявлено фішингову активність',
+      desc:'Гаманець взаємодіяв з адресами, пов\'язаними з фішингом або шахрайством.',
+      level:'Високий ризик'
+    } : {
+      type:'green',
+      title:'🟢 Відомих phishing entities не виявлено',
+      desc:'Повний аналіз перевіряє нові scam clusters та smart-contract interactions, недоступні при поверхневій перевірці.',
+      level:'Низький ризик'
+    },
+    // 6. Біржі — завжди з caveat
+    {
+      type:'green',
+      title:'🟢 Виявлено взаємодію з централізованими біржами',
+      desc:'Деякі біржі можуть проводити додаткову AML-перевірку походження коштів при депозитах.',
+      level:'Низький ризик'
+    }
+  ];
+
+  var styles = {
+    'red':      {bg:'#FEF2F2', border:'#FECACA', color:'#EF4444'},
+    'red-soft': {bg:'#FEF2F2', border:'#FECACA', color:'#DC4444'},
+    'amber':    {bg:'#FFFBEB', border:'#FDE68A', color:'#F59E0B'},
+    'green':    {bg:'#F0FDF4', border:'#A7F3D0', color:'#10B981'}
+  };
+
+  var html = items.map(function(item) {
+    var s = styles[item.type] || styles['green'];
+    return '<div style="background:' + s.bg + ';border:1px solid ' + s.border + ';border-radius:10px;padding:.8rem 1rem;margin-bottom:.55rem">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:.3rem">' +
+        '<div style="font-size:13px;font-weight:700;color:#111;line-height:1.4">' + item.title + '</div>' +
+        '<span style="font-size:11px;font-weight:700;color:' + s.color + ';white-space:nowrap;flex-shrink:0;background:#fff;padding:2px 8px;border-radius:5px;border:1px solid ' + s.border + '">' + item.level + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#4B5563;line-height:1.55">' + item.desc + '</div>' +
+    '</div>';
   }).join('');
+
+  // Alert box
+  html += '<div style="background:#FFFBEB;border:1.5px solid #F59E0B;border-radius:10px;padding:.85rem 1rem;margin-top:.65rem">' +
+    '<div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:.4rem">⚠️ Поверхнева перевірка не визначає точний % ризикових коштів</div>' +
+    '<div style="font-size:12px;color:#78350F;margin-bottom:.45rem">Повний AML аналіз покаже:</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.2rem .75rem">' +
+      '<div style="font-size:12px;color:#78350F">• точний % санкційної крипти</div>' +
+      '<div style="font-size:12px;color:#78350F">• рівень exposure до ризиків</div>' +
+      '<div style="font-size:12px;color:#78350F">• ризикові transaction chains</div>' +
+      '<div style="font-size:12px;color:#78350F">• потенційні проблеми для бірж та P2P</div>' +
+    '</div>' +
+  '</div>';
+
+  document.getElementById('findings-list').innerHTML = html;
 }
+
 
 function showDemoResult(addr) {
   var demoAddr = addr || 'TXaGYd7J8eKj...WkXg9x8F3mL';

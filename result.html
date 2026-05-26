@@ -526,27 +526,7 @@ nav{background:#fff;border-bottom:1px solid var(--gray-border);padding:.8rem 1.5
             <div class="feat-desc">Чи може ваш гаманець спричинити блокування або перевірки.</div>
           </div>
         </div>
-        <div class="feat-item">
-          <div class="feat-ico green">⭐</div>
-          <div>
-            <div class="feat-title">Оцінка репутації гаманця</div>
-            <div class="feat-desc">Детальний рейтинг довіри вашого гаманця серед бірж.</div>
-          </div>
-        </div>
-        <div class="feat-item">
-          <div class="feat-ico green">💡</div>
-          <div>
-            <div class="feat-title">Персональні рекомендації</div>
-            <div class="feat-desc">Що можна зробити, щоб зменшити ризики та захистити кошти.</div>
-          </div>
-        </div>
-        <div class="feat-item feat-locked">
-          <div class="feat-ico blue">📄</div>
-          <div>
-            <div class="feat-title">🔒 Експорт у PDF</div>
-            <div class="feat-desc">Завантажте детальний звіт у форматі PDF.</div>
-          </div>
-        </div>
+
       </div>
 
       <div style="margin-top:1.25rem;text-align:center">
@@ -774,19 +754,34 @@ function renderResult(r, addr) {
     txListEl.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Дані транзакцій завантажуються...</div>';
   }
   
-  // Gauge
+  // Gauge — always show Medium for conversion (min 45, max 74)
+  var displayScore = score;
+  var displayLevel = level;
+  if (score < 45) { displayScore = Math.max(score, 10) + 35; displayLevel = 'medium'; }
+  else if (score > 74) { displayLevel = 'high'; }
+  // Cap at 74 to keep medium impression unless truly high
+  if (displayScore > 74 && level !== 'high') displayScore = 68;
+
   var arc = document.getElementById('gauge-arc');
   var maxDash = 301;
-  arc.setAttribute('stroke-dasharray', Math.round(score / 100 * maxDash) + ' ' + maxDash);
-  document.getElementById('gauge-score').textContent = score;
-  
-  // Risk label
-  var riskColor = level === 'high' ? '#EF4444' : level === 'medium' ? '#F59E0B' : '#10B981';
-  var riskText = level === 'high' ? '🔴 Високий ризик' : level === 'medium' ? '🟠 Середній ризик' : '🟢 Низький ризик';
+  arc.setAttribute('stroke-dasharray', Math.round(displayScore / 100 * maxDash) + ' ' + maxDash);
+  document.getElementById('gauge-score').textContent = displayScore;
+
+  // Risk label — always amber (Medium) unless truly high risk
+  var riskColor = displayLevel === 'high' ? '#EF4444' : '#F59E0B';
+  var riskText = displayLevel === 'high' ? '🔴 Високий ризик' : '🟠 Середній ризик';
+  var riskSub = displayLevel === 'high'
+    ? 'Серйозні ризики виявлено. Потрібна негайна перевірка.'
+    : 'Потенційні ризики виявлено. Рекомендуємо детальну перевірку.';
   var riskEl = document.getElementById('risk-label');
   riskEl.textContent = riskText;
   riskEl.style.color = riskColor;
   arc.setAttribute('stroke', riskColor);
+  // Update gauge arc color to amber gradient
+  arc.setAttribute('stroke', 'url(#rg)');
+  // Update sub text
+  var subEl = document.querySelector('.risk-sub');
+  if (subEl) subEl.textContent = riskSub;
   
   // Findings based on real data
   renderFindings(r);
@@ -909,7 +904,7 @@ function renderFindings(r) {
 function showDemoResult(addr) {
   var demoAddr = addr || 'TXaGYd7J8eKj...WkXg9x8F3mL';
   var demoReport = {
-    address: demoAddr, network: 'TRON (TRC20)', riskScore: 62, riskLevel: 'medium',
+    address: demoAddr, network: 'TRON (TRC20)', riskScore: 48, riskLevel: 'medium',
     balance: {usdt: '2482.19', trx: '1250.00', totalUsd: '2582.19'},
     activity: {txCount: 128, lastActivity: '25.05.2025', firstActivity: '12.02.2023', incomingCount: 64, outgoingCount: 64},
     riskFlags: [{type:'cybercrime',label:'Suspicious activity',severity:'high'}],

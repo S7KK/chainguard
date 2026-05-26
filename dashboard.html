@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -180,7 +179,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="auth-sub">Sign in to your account</div>
       <div class="auth-err" id="login-err"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="you@email.com"></div>
-      <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="login-pass" placeholder="••••••••"></div>
+      <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="auth-btn" onclick="doLogin()" id="login-btn">Sign In →</button>
       <div class="auth-switch">Don't have an account? <a onclick="showForm('register')">Create one</a> &nbsp;·&nbsp; <a onclick="showForm('forgot')">Forgot password?</a></div>
     </div>
@@ -202,7 +201,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="auth-title">Reset password</div>
       <div class="auth-sub">We'll send you a reset link</div>
       <div class="auth-err" id="forgot-err"></div>
-      <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="forgot-email" placeholder="you@email.com"></div>
+      <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="forgot-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doForgot()"></div>
       <button class="auth-btn" onclick="doForgot()" id="forgot-btn">Send Reset Link →</button>
       <div class="auth-switch"><a onclick="showForm('login')">← Back to sign in</a></div>
     </div>
@@ -429,7 +428,11 @@ async function doLogin() {
   var err = document.getElementById('login-err');
   var btn = document.getElementById('login-btn');
   err.style.display = 'none';
-  btn.disabled = true; btn.textContent = 'Signing in...';
+  if (!email || !pass) {
+    err.textContent = '⚠ Введіть email та пароль';
+    err.style.display = 'block'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Вхід...';
 
   try {
     var res = await fetch(API + '/auth', {
@@ -438,14 +441,14 @@ async function doLogin() {
       body: JSON.stringify({ action: 'login', email: email, password: pass }),
     });
     var data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Login failed');
+    if (!res.ok || data.error) throw new Error(data.error || 'Невірний email або пароль');
     token = data.token;
     localStorage.setItem('cg_token', token);
     localStorage.setItem('cg_refresh', data.refresh_token);
     currentUser = data.user;
     await loadDashboard();
   } catch(e) {
-    err.textContent = e.message;
+    err.textContent = '❌ ' + e.message;
     err.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Sign In →';
@@ -455,14 +458,14 @@ async function doLogin() {
 async function doRegister() {
   var email = document.getElementById('reg-email').value.trim();
   var pass = document.getElementById('reg-pass').value;
-  var pass2 = document.getElementById('reg-pass2').value;
+  var pass2 = document.getElementById('reg-pass2') ? document.getElementById('reg-pass2').value : pass;
   var err = document.getElementById('reg-err');
   var btn = document.getElementById('reg-btn');
   err.style.display = 'none';
-  if (pass !== pass2) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
-  if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters'; err.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Creating account...';
-
+  if (!email) { err.textContent = '⚠ Введіть email адресу'; err.style.display = 'block'; return; }
+  if (!pass || pass.length < 6) { err.textContent = '⚠ Пароль мінімум 6 символів'; err.style.display = 'block'; return; }
+  if (pass2 && pass !== pass2) { err.textContent = '⚠ Паролі не співпадають'; err.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Реєстрація...';
   try {
     var res = await fetch(API + '/auth', {
       method: 'POST',
@@ -471,21 +474,19 @@ async function doRegister() {
     });
     var data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Registration failed');
-    showToast('✅ Account created! Check your email to confirm.', 'success');
+    showToast('✅ Перевірте email для підтвердження акаунту', 'success');
     showForm('login');
-    document.getElementById('login-email').value = email;
   } catch(e) {
-    err.textContent = e.message;
+    err.textContent = '❌ ' + e.message;
     err.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Create Account →';
   }
 }
-
 async function doForgot() {
   var email = document.getElementById('forgot-email').value.trim();
   var btn = document.getElementById('forgot-btn');
-  btn.disabled = true; btn.textContent = 'Sending...';
+  btn.disabled = true; btn.textContent = 'Надсилаємо...';
   try {
     await fetch(API + '/auth', {
       method: 'POST',
@@ -849,7 +850,7 @@ async function redeemPromo() {
     msg.style.background = 'var(--red-dim)';
     msg.style.color = 'var(--red)';
     msg.style.border = '1px solid rgba(255,59,59,.2)';
-    msg.textContent = '❌ Помилка з'єднання';
+    msg.textContent = '❌ Помилка підключення';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Активувати';

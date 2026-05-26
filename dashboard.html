@@ -227,6 +227,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="cb-val" id="sidebar-credits">0</div>
         <div class="cb-sub">wallet scans remaining</div>
       </div>
+      <button class="nav-item" id="nav-promo" onclick="showPage('promo')"><span class="nav-icon">🎁</span>Промокод</button>
       <button class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span>Sign Out</button>
     </div>
   </div>
@@ -354,6 +355,44 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
   </div>
+      <!-- PROMO PAGE -->
+      <div id="page-promo" style="display:none">
+        <div class="page-title">Промокод</div>
+        <div class="page-sub">Введіть промокод щоб отримати безкоштовні кредити</div>
+
+        <div style="max-width:480px">
+          <div class="scan-card" style="margin-bottom:1.5rem">
+            <div class="sc-title" style="font-size:14px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px">🎁 Активувати промокод</div>
+
+            <div id="promo-msg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:1rem"></div>
+
+            <div style="display:flex;gap:8px">
+              <input type="text" id="promo-input" placeholder="Введіть промокод..."
+                style="flex:1;background:var(--s2);border:1.5px solid var(--b2);border-radius:10px;padding:11px 14px;font-family:var(--mono);font-size:14px;color:var(--tx);outline:none;text-transform:uppercase"
+                oninput="this.value=this.value.toUpperCase()"
+                onkeydown="if(event.key==='Enter')redeemPromo()">
+              <button onclick="redeemPromo()" id="promo-btn"
+                style="background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:11px 20px;font-family:var(--head);font-size:14px;font-weight:700;color:#07090C;cursor:pointer;white-space:nowrap;transition:opacity .15s">
+                Активувати
+              </button>
+            </div>
+
+            <div style="margin-top:.75rem;font-size:12px;color:var(--tx3)">
+              🔒 Кожен промокод можна використати лише один раз для одного акаунту
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="section-title">Використані промокоди</div>
+          <div id="promo-history-wrap">
+            <div class="empty" id="promo-empty">
+              <div class="empty-icon">🎁</div>
+              <div class="empty-text">Ви ще не використовували промокодів</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
 </div>
 
 <!-- Scan Modal -->
@@ -520,11 +559,12 @@ function updateCreditsUI(credits) {
 
 // ── PAGES ─────────────────────────────────────────────────────
 function showPage(page) {
-  ['overview','scan','history','packages'].forEach(function(p) {
+  ['overview','scan','history','packages','promo'].forEach(function(p) {
     document.getElementById('page-' + p).style.display = p === page ? '' : 'none';
     var nav = document.getElementById('nav-' + p);
     if (nav) { nav.className = 'nav-item' + (p === page ? ' active' : ''); }
   });
+  if (page === 'promo') loadPromoHistory();
 }
 
 // ── SCAN ──────────────────────────────────────────────────────
@@ -756,6 +796,70 @@ function renderReportModal(r, sc, levelLabel, level) {
     // Buttons
     '<button class="save-btn" onclick="getPdfReport()" style="margin-bottom:8px">📄 Зберегти PDF звіт</button>' +
     '<button onclick="closeModal();loadDashboard()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Закрити</button>';
+}
+
+async function redeemPromo() {
+  var code = document.getElementById('promo-input').value.trim();
+  var msg = document.getElementById('promo-msg');
+  var btn = document.getElementById('promo-btn');
+
+  if (!code) {
+    msg.style.display = 'block';
+    msg.style.background = 'var(--red-dim)';
+    msg.style.color = 'var(--red)';
+    msg.style.border = '1px solid rgba(255,59,59,.2)';
+    msg.textContent = '⚠ Введіть промокод';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '...';
+  msg.style.display = 'none';
+
+  try {
+    var res = await fetch(API + '/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ action: 'promo', code: code }),
+    });
+    var data = await res.json();
+
+    msg.style.display = 'block';
+
+    if (data.success) {
+      msg.style.background = 'rgba(0,214,143,.08)';
+      msg.style.color = 'var(--green)';
+      msg.style.border = '1px solid rgba(0,214,143,.2)';
+      msg.textContent = data.message;
+      document.getElementById('promo-input').value = '';
+      // Update credits
+      if (data.new_balance !== undefined) {
+        profileData.profile.credits = data.new_balance;
+        updateCreditsUI(data.new_balance);
+      }
+      loadPromoHistory();
+    } else {
+      msg.style.background = 'var(--red-dim)';
+      msg.style.color = 'var(--red)';
+      msg.style.border = '1px solid rgba(255,59,59,.2)';
+      msg.textContent = '❌ ' + (data.error || 'Помилка активації');
+    }
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.style.background = 'var(--red-dim)';
+    msg.style.color = 'var(--red)';
+    msg.style.border = '1px solid rgba(255,59,59,.2)';
+    msg.textContent = '❌ Помилка з'єднання';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Активувати';
+  }
+}
+
+async function loadPromoHistory() {
+  // Load from Supabase via profile endpoint (promo_uses)
+  // For now show placeholder - TODO: add to profile endpoint
+  document.getElementById('promo-empty').style.display = '';
 }
 
 function getPdfReport() {

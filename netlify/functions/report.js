@@ -158,6 +158,8 @@ async function fetchTronReport(addr) {
     { category: 'Інші ризики', percentage: 1.0, color: '#9CA3AF' },
   ].filter(r => r.percentage > 0);
 
+  const ofacMatch = sanctionedRisk > 0;
+
   return {
     network: 'TRON (TRC20)',
     address: addr,
@@ -166,6 +168,7 @@ async function fetchTronReport(addr) {
     riskScore,
     riskLevel,
     riskFlags,
+    ofacMatch,
     darknetInteractions,
     mixerInteractions: 0,
     sanctionedRisk,
@@ -384,7 +387,7 @@ exports.handler = async (event) => {
           incomingCount: info.unspent_output_count || 0,
           outgoingCount: (info.transaction_count || 0) - (info.unspent_output_count || 0),
         },
-        riskScore: 15, riskLevel: 'low', riskFlags: [], darknetInteractions: 0, mixerInteractions: 0, sanctionedRisk: 0, suspiciousTxCount: 0,
+        riskScore: 15, riskLevel: 'low', riskFlags: [], ofacMatch: false, darknetInteractions: 0, mixerInteractions: 0, sanctionedRisk: 0, suspiciousTxCount: 0,
         funds: { cleanPercent: '98.0', dirtyPercent: '1.5', sanctionedPercent: '0.5' },
         riskDistribution: [], topCounterparties: [],
       };

@@ -1,408 +1,510 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChainGuard — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>Crypto Scanner — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#07090C;--s1:#0D1117;--s2:#131B24;--b1:#1C2733;--b2:#243040;
-  --tx:#EEF2F7;--tx2:#7B8FA6;--tx3:#38505F;
+  --bg:#07091A;--s1:#0D1028;--s2:#131630;--b1:#1C2245;--b2:#232B55;
+  --tx:#EEF2FF;--tx2:#7B8DB8;--tx3:#3A4A75;
   --red:#FF3B3B;--red-dim:rgba(255,59,59,.1);
   --amber:#FFB020;--amber-dim:rgba(255,176,32,.1);
-  --green:#00D68F;--green-dim:rgba(0,214,143,.08);
+  --green:#00D68F;--green-dim:rgba(0,214,143,.1);
   --cyan:#00C8FF;--cyan2:#0077AA;
-  --head:'Syne',sans-serif;--body:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+  --blue:#4F6EF7;--purple:#7C3AED;
+  --head:'Inter',sans-serif;--body:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--tx);font-family:var(--body);min-height:100vh}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.02) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hidden;line-height:1.5}
 
-/* Layout */
-.layout{display:flex;min-height:100vh;position:relative;z-index:1}
+/* ── AUTH ── */
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:radial-gradient(ellipse at 50% 30%,rgba(79,110,247,.12),transparent 60%),var(--bg)}
+.auth-box{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:2.5rem;width:100%;max-width:400px}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:2rem}
+.auth-logo-ico{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px}
+.auth-logo-name{font-size:20px;font-weight:800;color:var(--tx)}
+.auth-title{font-size:22px;font-weight:800;text-align:center;margin-bottom:.35rem}
+.auth-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:1.75rem}
+.auth-tabs{display:flex;background:var(--s2);border-radius:10px;padding:3px;margin-bottom:1.5rem}
+.auth-tab{flex:1;text-align:center;padding:8px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s;color:var(--tx2)}
+.auth-tab.active{background:var(--b1);color:var(--tx)}
+.auth-panel{display:none}.auth-panel.active{display:block}
+.auth-err{background:var(--red-dim);border:1px solid rgba(255,59,59,.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:1rem;display:none}
+.auth-field{margin-bottom:1rem}
+.auth-label{font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:.35rem;display:block}
+.auth-input{width:100%;background:var(--s2);border:1.5px solid var(--b1);border-radius:10px;padding:11px 14px;font-family:var(--body);font-size:14px;color:var(--tx);outline:none;transition:border-color .2s}
+.auth-input:focus{border-color:var(--blue)}
+.auth-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:13px;font-family:var(--head);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s}
+.auth-btn:hover{opacity:.88}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-footer{text-align:center;font-size:12px;color:var(--tx3);margin-top:1rem}
+.auth-footer a{color:var(--cyan);cursor:pointer;text-decoration:none}
 
-/* Sidebar */
-.sidebar{width:240px;background:var(--s1);border-right:1px solid var(--b1);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:.25rem;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:10}
-.logo{display:flex;align-items:center;gap:9px;padding:.5rem .75rem;margin-bottom:1.25rem}
-.logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));display:flex;align-items:center;justify-content:center;font-size:15px}
-.logo-name{font-family:var(--head);font-size:18px;font-weight:700}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--tx2);transition:all .15s;border:none;background:none;width:100%;text-align:left}
+/* ── APP LAYOUT ── */
+#app{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;z-index:50;overflow-y:auto}
+.sb-logo{display:flex;align-items:center;gap:9px;padding:1.25rem 1.25rem 1rem;border-bottom:1px solid var(--b1)}
+.sb-logo-ico{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:15px}
+.sb-logo-name{font-size:15px;font-weight:800;color:var(--tx)}
+.sb-nav{flex:1;padding:.75rem 0}
+.nav-item{width:100%;background:none;border:none;display:flex;align-items:center;gap:9px;padding:.65rem 1.25rem;font-family:var(--body);font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .15s;text-align:left;border-radius:0}
 .nav-item:hover{background:var(--s2);color:var(--tx)}
-.nav-item.active{background:rgba(0,200,255,.08);color:var(--cyan);border:1px solid rgba(0,200,255,.15)}
-.nav-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
-.sidebar-bottom{margin-top:auto;padding-top:1rem;border-top:1px solid var(--b1)}
-.credits-badge{background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:10px;padding:10px 12px;margin-bottom:.75rem}
-.cb-label{font-size:10px;color:var(--tx3);font-family:var(--mono);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
-.cb-val{font-family:var(--head);font-size:22px;font-weight:700;color:var(--cyan)}
-.cb-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.nav-item.active{background:rgba(79,110,247,.12);color:var(--blue);font-weight:600}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-sep{height:1px;background:var(--b1);margin:.4rem .75rem}
+.credits-badge{margin:.75rem;background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:12px;padding:.85rem 1rem}
+.cb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:.2rem}
+.cb-val{font-size:26px;font-weight:900;color:var(--cyan);line-height:1}
+.cb-sub{font-size:10px;color:var(--tx3);margin-top:.15rem}
 
-/* Main */
-.main{margin-left:240px;flex:1;padding:2rem;max-width:calc(100vw - 240px)}
-.page-title{font-family:var(--head);font-size:24px;font-weight:700;margin-bottom:.25rem}
-.page-sub{font-size:13px;color:var(--tx2);margin-bottom:2rem}
+/* ── MAIN ── */
+.main{margin-left:220px;padding:2rem;min-height:100vh}
+.page-title{font-size:24px;font-weight:800;letter-spacing:-.3px;margin-bottom:.25rem}
+.page-sub{font-size:13px;color:var(--tx2);margin-bottom:1.75rem}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:.75rem}
 
-/* Cards grid */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem}
-.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px 18px}
-.sc-icon{font-size:20px;margin-bottom:8px}
-.sc-val{font-family:var(--head);font-size:28px;font-weight:700;margin-bottom:2px}
-.sc-label{font-size:12px;color:var(--tx3)}
+/* Cards */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:1.25rem}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:center;gap:.85rem}
+.stat-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.stat-ico.blue{background:rgba(79,110,247,.1)}.stat-ico.green{background:var(--green-dim)}.stat-ico.amber{background:var(--amber-dim)}.stat-ico.red{background:var(--red-dim)}
+.stat-val{font-size:22px;font-weight:800;line-height:1}
+.stat-lbl{font-size:11px;color:var(--tx3);margin-top:2px}
 
-/* New scan card */
-.scan-card{background:linear-gradient(135deg,#0D1520,#0B1015);border:1.5px solid rgba(0,200,255,.2);border-radius:16px;padding:20px;margin-bottom:2rem}
-.sc-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.scan-input-row{display:flex;gap:8px}
-.scan-inp{flex:1;background:var(--s2);border:1.5px solid var(--b2);border-radius:10px;padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--tx);outline:none;transition:border-color .2s}
-.scan-inp:focus{border-color:var(--cyan)}
-.scan-inp::placeholder{color:var(--tx3)}
-.scan-go{background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:11px 20px;font-family:var(--head);font-size:15px;font-weight:700;color:#07090C;cursor:pointer;white-space:nowrap;transition:opacity .15s}
-.scan-go:hover{opacity:.88}
-.scan-go:disabled{opacity:.4;cursor:not-allowed}
-.scan-note{font-size:11px;color:var(--tx3);margin-top:8px;font-family:var(--mono)}
+/* Quick scan */
+.scan-card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem}
+.sc-title{font-size:13px;font-weight:600;color:var(--tx2);margin-bottom:.85rem;display:flex;align-items:center;gap:6px}
+.sc-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.scan-row{display:flex;gap:8px}
+.scan-input{flex:1;background:var(--s2);border:1.5px solid var(--b1);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:13px;color:var(--tx);outline:none;transition:border-color .2s}
+.scan-input:focus{border-color:var(--blue)}
+.scan-input::placeholder{color:var(--tx3)}
+.scan-btn{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:10px 18px;font-family:var(--head);font-size:13px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.scan-btn:hover{opacity:.88}
+.scan-note{font-size:11px;color:var(--tx3);margin-top:.5rem}
 
 /* History table */
-.section-title{font-size:11px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.section-title::after{content:'';flex:1;height:1px;background:var(--b1)}
-.history-table{width:100%;border-collapse:collapse;margin-bottom:2rem}
-.history-table th{text-align:left;font-size:11px;color:var(--tx3);font-family:var(--mono);padding:8px 12px;border-bottom:1px solid var(--b1);text-transform:uppercase;letter-spacing:.05em}
-.history-table td{padding:12px;border-bottom:1px solid var(--b1);font-size:13px;color:var(--tx2);vertical-align:middle}
+.history-table{width:100%;border-collapse:collapse}
+.history-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);padding:.6rem .85rem;text-align:left;border-bottom:1px solid var(--b1)}
+.history-table td{padding:.7rem .85rem;border-bottom:1px solid rgba(28,34,69,.5);font-size:13px;vertical-align:middle}
 .history-table tr:last-child td{border-bottom:none}
-.history-table tr:hover td{background:var(--s2)}
-.addr-cell{font-family:var(--mono);font-size:12px;color:var(--tx)}
-.risk-chip{font-size:10px;font-family:var(--mono);font-weight:600;padding:3px 8px;border-radius:6px}
-.risk-chip.high{background:var(--red-dim);color:var(--red)}
-.risk-chip.medium{background:var(--amber-dim);color:var(--amber)}
-.risk-chip.low{background:var(--green-dim);color:var(--green)}
-.report-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--b2);background:none;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--mono)}
-.report-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.addr-cell{font-family:var(--mono);font-size:12px;cursor:pointer;color:var(--tx2)}
+.addr-cell:hover{color:var(--tx)}
+.risk-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;text-transform:uppercase}
+.risk-chip.high{background:var(--red-dim);color:var(--red)}.risk-chip.medium{background:var(--amber-dim);color:var(--amber)}.risk-chip.low{background:var(--green-dim);color:var(--green)}.risk-chip.unknown{background:var(--s2);color:var(--tx3)}
 
 /* Packages */
-.packages-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:2rem}
-.pkg-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px;cursor:pointer;transition:all .15s;position:relative}
+.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
+.pkg-card{background:var(--s1);border:1.5px solid var(--b1);border-radius:14px;padding:1.25rem;text-align:center;position:relative;transition:border-color .2s}
 .pkg-card:hover{border-color:var(--b2)}
-.pkg-card.popular{border-color:rgba(0,200,255,.3);background:rgba(0,200,255,.03)}
-.pkg-popular{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:9px;font-family:var(--mono);font-weight:600;color:var(--cyan);background:var(--s1);border:1px solid rgba(0,200,255,.3);padding:2px 8px;border-radius:20px;white-space:nowrap}
-.pkg-name{font-size:12px;color:var(--tx3);margin-bottom:6px;font-family:var(--mono)}
-.pkg-credits{font-family:var(--head);font-size:22px;font-weight:700;color:var(--tx);margin-bottom:2px}
-.pkg-price{font-size:13px;color:var(--cyan);font-weight:600}
-.pkg-per{font-size:10px;color:var(--tx3);margin-top:2px}
-.pkg-buy{width:100%;margin-top:10px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:8px;padding:8px;font-family:var(--head);font-size:13px;font-weight:700;color:#07090C;cursor:pointer;transition:opacity .15s}
-.pkg-buy:hover{opacity:.88}
-
-/* Empty state */
-.empty{text-align:center;padding:3rem;color:var(--tx3)}
-.empty-icon{font-size:40px;margin-bottom:1rem;opacity:.5}
-.empty-text{font-size:14px}
+.pkg-card.popular{border-color:rgba(0,200,255,.3)}
+.pkg-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;background:var(--s1);border:1px solid rgba(0,200,255,.3);color:var(--cyan);padding:2px 10px;border-radius:10px;white-space:nowrap}
+.pkg-name{font-size:11px;font-family:var(--mono);color:var(--tx3);margin-bottom:.5rem;text-transform:uppercase}
+.pkg-price{font-size:28px;font-weight:900;margin-bottom:.15rem}
+.pkg-credits{font-size:11px;color:var(--tx3);margin-bottom:1rem}
+.pkg-btn{width:100%;border:none;border-radius:9px;padding:9px;font-family:var(--head);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.pkg-btn.primary{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#07091A}
+.pkg-btn.secondary{background:var(--s2);color:var(--tx);border:1px solid var(--b2)}
+.pkg-btn:hover{opacity:.88}
 
 /* Toast */
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--tx);z-index:1000;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.success{border-color:rgba(0,214,143,.3)}
-.toast.error{border-color:rgba(255,59,59,.3)}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:.75rem 1.1rem;font-size:13px;font-weight:600;z-index:999;transform:translateY(100px);transition:transform .3s;max-width:320px}
+.toast.show{transform:translateY(0)}
+.toast.success{border-color:rgba(0,214,143,.3);color:var(--green)}
+.toast.error{border-color:rgba(255,59,59,.3);color:var(--red)}
 
-/* Auth screens */
-#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center}
-.auth-box{background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:2.5rem;width:100%;max-width:400px;position:relative;z-index:1}
-.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:2rem}
-.auth-title{font-family:var(--head);font-size:22px;font-weight:700;text-align:center;margin-bottom:.5rem}
-.auth-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:1.5rem}
-.auth-field{margin-bottom:12px}
-.auth-label{font-size:12px;color:var(--tx3);margin-bottom:5px;display:block;font-family:var(--mono)}
-.auth-input{width:100%;background:var(--s2);border:1.5px solid var(--b2);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:14px;color:var(--tx);outline:none;transition:border-color .2s}
-.auth-input:focus{border-color:var(--cyan)}
-.auth-input::placeholder{color:var(--tx3)}
-.auth-btn{width:100%;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:13px;font-family:var(--head);font-size:16px;font-weight:700;color:#07090C;cursor:pointer;margin-top:4px;transition:opacity .15s}
-.auth-btn:hover{opacity:.88}
-.auth-btn:disabled{opacity:.4;cursor:not-allowed}
-.auth-switch{text-align:center;margin-top:1rem;font-size:13px;color:var(--tx3)}
-.auth-switch a{color:var(--cyan);cursor:pointer;text-decoration:none}
-.auth-err{background:var(--red-dim);border:1px solid rgba(255,59,59,.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none}
-
-/* Scan result modal */
-#scan-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
-.modal-box{background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:2rem;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
-.modal-title{font-family:var(--head);font-size:20px;font-weight:700;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center}
-.modal-close{font-size:20px;cursor:pointer;color:var(--tx3);background:none;border:none;padding:4px}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--s1);border:1px solid var(--b1);border-radius:18px;width:100%;max-width:520px;margin:auto;position:relative}
+.modal-header{padding:1.1rem 1.25rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--tx3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;transition:color .15s}
 .modal-close:hover{color:var(--tx)}
-
-/* Scanning animation in modal */
-.modal-scanning{text-align:center;padding:2rem}
-.mini-spinner{width:48px;height:48px;border:2px solid var(--b2);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem}
+.modal-body{padding:1.25rem}
+.modal-scanning{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:2rem;text-align:center}
+.mini-spinner{width:36px;height:36px;border:3px solid var(--b2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Result in modal */
-.modal-result{}
-.mr-alert{border-radius:12px;padding:14px 16px;margin-bottom:1rem;border:1px solid}
-.mr-alert.high{background:#130606;border-color:#3A1010}
-.mr-alert.medium{background:#130F04;border-color:#372705}
-.mr-alert.low{background:#031410;border-color:#0A3528}
-.mr-score{display:flex;align-items:center;gap:16px;background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:14px;margin-bottom:1rem}
-.mr-ring{width:64px;height:64px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0}
-.mr-num{font-family:var(--head);font-size:22px;font-weight:700;line-height:1}
-.mr-max{font-size:10px;color:var(--tx3);font-family:var(--mono)}
-.mr-info{}
-.mr-addr{font-family:var(--mono);font-size:11px;color:var(--tx3);margin-bottom:4px;word-break:break-all}
-.mr-net{font-size:12px;color:var(--tx2)}
-.mr-checks{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
-.mr-check{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--s2);border-radius:8px;font-size:12px}
+/* Result modal elements */
+.mr-alert{border-radius:12px;padding:.85rem 1.1rem;margin-bottom:.85rem;border:1px solid}
+.mr-alert.high{background:var(--red-dim);border-color:rgba(255,59,59,.2)}
+.mr-alert.medium{background:var(--amber-dim);border-color:rgba(255,176,32,.2)}
+.mr-alert.low{background:var(--green-dim);border-color:rgba(0,214,143,.2)}
+.mr-score{display:flex;align-items:center;gap:.85rem;margin-bottom:.85rem}
+.mr-ring{width:58px;height:58px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.mr-num{font-size:18px;font-weight:900;line-height:1}
+.mr-max{font-size:9px;color:var(--tx3)}
+.mr-info{flex:1}
+.mr-addr{font-family:var(--mono);font-size:11px;color:var(--tx2);word-break:break-all}
+.mr-net{font-size:11px;color:var(--tx3);margin-top:3px}
+.mr-checks{display:flex;flex-direction:column;gap:4px}
+.mr-check{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--s2);border-radius:8px;font-size:12px}
 .mr-check-name{color:var(--tx2)}
-.mr-check-val{font-family:var(--mono);font-weight:600;font-size:11px}
-.mr-check-val.clear{color:var(--green)}
-.mr-check-val.found{color:var(--red)}
-.mr-check-val.partial{color:var(--amber)}
-.save-btn{width:100%;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:12px;font-family:var(--head);font-size:15px;font-weight:700;color:#07090C;cursor:pointer;transition:opacity .15s}
+.mr-check-val.clear{color:var(--green);font-weight:600}
+.mr-check-val.found{color:var(--red);font-weight:600}
+.mr-check-val.partial{color:var(--amber);font-weight:600}
+.save-btn{width:100%;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:11px;font-family:var(--head);font-size:13px;font-weight:700;color:#07091A;cursor:pointer;margin-bottom:6px;transition:opacity .15s}
 .save-btn:hover{opacity:.88}
 
-@media(max-width:768px){
-  .sidebar{display:none}
-  .main{margin-left:0;max-width:100%;padding:1rem}
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .packages-grid{grid-template-columns:1fr 1fr}
+/* ── RISK BREAKDOWN ── */
+.rb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;background:var(--s2);margin-bottom:5px}
+.rb-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.rb-label{font-size:12px;flex:1}
+.rb-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px}
+
+/* ── WATCHLIST ── */
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem}
+.wl-card{background:var(--s1);border:1.5px solid var(--b1);border-radius:14px;padding:1.1rem;transition:border-color .2s}
+.wl-card:hover{border-color:var(--b2)}
+.wl-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.wl-name{font-size:13px;font-weight:700}
+.wl-network{font-size:10px;color:var(--tx3);background:var(--s2);padding:2px 8px;border-radius:5px}
+.wl-addr{font-family:var(--mono);font-size:11px;color:var(--tx2);margin-bottom:.6rem;word-break:break-all}
+.wl-score-row{display:flex;align-items:center;justify-content:space-between}
+.wl-score{font-size:18px;font-weight:800}
+.wl-last{font-size:10px;color:var(--tx3)}
+.wl-actions{display:flex;gap:5px;margin-top:.75rem}
+.wl-btn{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:5px 8px;font-size:11px;font-weight:600;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--body)}
+.wl-btn:hover{color:var(--tx);border-color:var(--b2)}
+.wl-btn.danger:hover{color:var(--red);border-color:rgba(255,59,59,.3)}
+.add-wl-btn{background:none;border:1.5px dashed var(--b2);border-radius:14px;padding:1.5rem;width:100%;color:var(--tx3);font-size:13px;cursor:pointer;transition:all .2s;font-family:var(--body)}
+.add-wl-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ── FULL REPORT MODAL ── */
+.fr-modal{position:fixed;inset:0;z-index:600;display:none;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto;background:rgba(0,0,0,.8);backdrop-filter:blur(6px)}
+.fr-modal.open{display:flex}
+.fr-box{background:#0A0D22;border:1px solid rgba(79,110,247,.2);border-radius:20px;width:100%;max-width:920px;margin:auto}
+.fr-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.fr-header-left{display:flex;align-items:center;gap:.75rem}
+.fr-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.5)}
+.fr-meta{display:flex;align-items:center;gap:1.25rem}
+.fr-date{font-size:11px;color:rgba(255,255,255,.3)}
+.fr-id{font-size:11px;color:var(--blue);font-family:var(--mono)}
+.fr-close{background:rgba(255,255,255,.08);border:none;border-radius:7px;width:28px;height:28px;color:rgba(255,255,255,.6);cursor:pointer;font-size:14px}
+.fr-body{padding:1.25rem 1.5rem;overflow-y:auto;max-height:82vh}
+
+/* Report grid blocks */
+.fr-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:.85rem}
+.fr-block{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.9rem 1rem}
+.fr-block-full{grid-column:1/-1}
+.fr-block-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.65rem}
+/* Gauge */
+.fr-gauge-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.fr-gauge{position:relative;width:76px;height:76px;flex-shrink:0}
+.fr-gc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.fr-g-num{font-size:22px;font-weight:900;color:#fff;line-height:1}
+.fr-g-den{font-size:9px;color:rgba(255,255,255,.35)}
+.fr-risk-name{font-size:14px;font-weight:800}
+.fr-risk-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.4;margin-top:2px}
+.fr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.6rem}
+.fr-stat{background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .55rem;text-align:center}
+.fr-stat-val{font-size:12px;font-weight:700;color:#fff}
+.fr-stat-lbl{font-size:9px;color:rgba(255,255,255,.35)}
+/* Tags */
+.fr-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem}
+.fr-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px}
+.fr-tag.red{background:rgba(239,68,68,.15);color:#EF4444;border:1px solid rgba(239,68,68,.2)}
+.fr-tag.gray{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08)}
+.fr-tag.green{background:rgba(0,214,143,.1);color:var(--green);border:1px solid rgba(0,214,143,.2)}
+/* Metrics */
+.fr-metrics{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.fr-metric{display:flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.03);border-radius:8px;padding:.45rem .65rem}
+.fr-m-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.fr-m-ico.r{background:rgba(239,68,68,.15)}.fr-m-ico.a{background:rgba(245,158,11,.12)}.fr-m-ico.b{background:rgba(79,110,247,.12)}.fr-m-ico.g{background:rgba(16,185,129,.1)}
+.fr-m-lbl{font-size:10px;color:rgba(255,255,255,.4);margin-bottom:1px}
+.fr-m-val{font-size:12px;font-weight:700;color:#fff}
+.fr-m-val.red{color:#EF4444}.fr-m-val.amber{color:#F59E0B}
+/* Funds bar */
+.fr-funds-bar{height:10px;border-radius:5px;display:flex;overflow:hidden;margin-bottom:.55rem;background:rgba(255,255,255,.05)}
+.fr-funds-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.45rem}
+.fr-funds-item{display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)}
+.fr-funds-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fr-funds-pct{font-weight:700;color:#fff;margin-left:.15rem}
+/* Risk bars */
+.fr-risk-row{display:flex;align-items:center;gap:.55rem;margin-bottom:.35rem}
+.fr-risk-lbl{font-size:11px;color:rgba(255,255,255,.5);width:150px;flex-shrink:0}
+.fr-risk-bar{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.fr-risk-fill{height:100%;border-radius:3px}
+.fr-risk-pct{font-size:11px;color:rgba(255,255,255,.45);width:34px;text-align:right}
+/* Breakdown */
+.fr-breakdown{display:flex;flex-direction:column;gap:.35rem}
+.fr-bd-item{display:flex;align-items:center;gap:.6rem;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:8px}
+.fr-bd-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.fr-bd-label{font-size:12px;color:rgba(255,255,255,.7);flex:1}
+.fr-bd-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.fr-bd-badge.red{background:rgba(239,68,68,.15);color:#EF4444}
+.fr-bd-badge.amber{background:rgba(245,158,11,.12);color:#F59E0B}
+.fr-bd-badge.green{background:rgba(16,185,129,.1);color:#10B981}
+/* Exchange */
+.fr-exc-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.fr-exc-row:last-child{border-bottom:none}
+.fr-exc-name{color:rgba(255,255,255,.65)}
+.fr-exc-val{font-weight:700}
+.fr-exc-val.ok{color:#10B981}.fr-exc-val.check{color:#F59E0B}.fr-exc-val.blocked{color:#EF4444}
+/* CP */
+.fr-cp-row{display:flex;align-items:center;gap:.5rem;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.fr-cp-row:last-child{border-bottom:none}
+.fr-cp-ico{width:22px;height:22px;border-radius:50%;background:rgba(79,110,247,.15);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;color:rgba(255,255,255,.5)}
+.fr-cp-addr{flex:1;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.55)}
+.fr-cp-txs{font-size:10px;color:rgba(255,255,255,.35)}
+.fr-cp-pct{font-weight:700;color:#fff;width:34px;text-align:right;font-size:11px}
+/* TX analysis */
+.fr-tx-row{display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.fr-tx-row:last-child{border-bottom:none}
+.fr-tx-lbl{color:rgba(255,255,255,.45)}
+.fr-tx-val{font-weight:700;color:#fff}
+/* Rep */
+.fr-rep{display:flex;align-items:center;gap:.6rem;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:.6rem .75rem}
+.fr-rep-ico{font-size:20px}
+.fr-rep-label{font-size:13px;font-weight:700}
+.fr-rep-desc{font-size:10px;color:rgba(255,255,255,.4)}
+/* Footer */
+.fr-footer{padding:.85rem 1.5rem;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.01)}
+.fr-footer-note{font-size:10px;color:rgba(255,255,255,.25)}
+
+/* Empty states */
+.empty{text-align:center;padding:3rem 1rem;color:var(--tx3)}
+.empty-icon{font-size:36px;margin-bottom:.75rem;opacity:.5}
+.empty-text{font-size:14px}
+
+/* Mobile */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:1.25rem}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .fr-grid{grid-template-columns:1fr}
+  .fr-block-full{grid-column:1}
+  .wl-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<!-- Auth Screen -->
-<div id="auth-screen">
-  <div style="position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.02) 1px,transparent 1px);background-size:52px 52px"></div>
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">
-      <div class="logo-mark">🛡️</div>
-      <span style="font-family:var(--head);font-size:20px;font-weight:700">ChainGuard</span>
+      <div class="auth-logo-ico">🛡️</div>
+      <span class="auth-logo-name">Crypto Scanner</span>
     </div>
-    
-    <!-- Login form -->
-    <div id="form-login">
-      <div class="auth-title">Welcome back</div>
-      <div class="auth-sub">Sign in to your account</div>
-      <div class="auth-err" id="login-err"></div>
-      <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="you@email.com"></div>
-      <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button class="auth-btn" onclick="doLogin()" id="login-btn">Sign In →</button>
-      <div class="auth-switch">Don't have an account? <a onclick="showForm('register')">Create one</a> &nbsp;·&nbsp; <a onclick="showForm('forgot')">Forgot password?</a></div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="showForm('login')">Увійти</div>
+      <div class="auth-tab" onclick="showForm('register')">Реєстрація</div>
     </div>
 
-    <!-- Register form -->
-    <div id="form-register" style="display:none">
-      <div class="auth-title">Create account</div>
-      <div class="auth-sub">Start protecting your crypto assets</div>
+    <!-- LOGIN -->
+    <div class="auth-panel active" id="panel-login">
+      <div class="auth-err" id="login-err"></div>
+      <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="auth-field"><label class="auth-label">Пароль</label><input type="password" class="auth-input" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+      <div class="auth-footer"><a onclick="showForm('forgot')">Забули пароль?</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-panel" id="panel-register">
       <div class="auth-err" id="reg-err"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="reg-email" placeholder="you@email.com"></div>
-      <div class="auth-field"><label class="auth-label">Password</label><input type="password" class="auth-input" id="reg-pass" placeholder="Min 8 characters"></div>
-      <div class="auth-field"><label class="auth-label">Confirm Password</label><input type="password" class="auth-input" id="reg-pass2" placeholder="Repeat password"></div>
-      <button class="auth-btn" onclick="doRegister()" id="reg-btn">Create Account →</button>
-      <div class="auth-switch">Already have an account? <a onclick="showForm('login')">Sign in</a></div>
+      <div class="auth-field"><label class="auth-label">Пароль</label><input type="password" class="auth-input" id="reg-pass" placeholder="Мін. 6 символів"></div>
+      <div class="auth-field"><label class="auth-label">Підтвердити пароль</label><input type="password" class="auth-input" id="reg-pass2" placeholder="Повторіть пароль" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <button class="auth-btn" id="reg-btn" onclick="doRegister()">Create Account →</button>
     </div>
 
-    <!-- Forgot password -->
-    <div id="form-forgot" style="display:none">
-      <div class="auth-title">Reset password</div>
-      <div class="auth-sub">We'll send you a reset link</div>
+    <!-- FORGOT -->
+    <div class="auth-panel" id="panel-forgot">
       <div class="auth-err" id="forgot-err"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="forgot-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doForgot()"></div>
-      <button class="auth-btn" onclick="doForgot()" id="forgot-btn">Send Reset Link →</button>
-      <div class="auth-switch"><a onclick="showForm('login')">← Back to sign in</a></div>
+      <button class="auth-btn" id="forgot-btn" onclick="doForgot()">Надіслати посилання →</button>
+      <div class="auth-footer"><a onclick="showForm('login')">← Назад до входу</a></div>
     </div>
   </div>
 </div>
 
-<!-- Dashboard -->
-<div class="layout" id="dashboard" style="display:none">
+<!-- APP -->
+<div id="app">
   <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="logo">
-      <div class="logo-mark">🛡️</div>
-      <span class="logo-name">ChainGuard</span>
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-ico">🛡️</div>
+      <span class="sb-logo-name">Crypto Scanner</span>
     </div>
-    <button class="nav-item active" id="nav-overview" onclick="showPage('overview')"><span class="nav-icon">📊</span>Overview</button>
-    <button class="nav-item" id="nav-scan" onclick="showPage('scan')"><span class="nav-icon">🔍</span>New Scan</button>
-    <button class="nav-item" id="nav-history" onclick="showPage('history')"><span class="nav-icon">📋</span>Scan History</button>
-    <button class="nav-item" id="nav-packages" onclick="showPage('packages')"><span class="nav-icon">💎</span>Buy Credits</button>
-    <div class="sidebar-bottom">
-      <div class="credits-badge">
-        <div class="cb-label">Available Credits</div>
-        <div class="cb-val" id="sidebar-credits">0</div>
-        <div class="cb-sub">wallet scans remaining</div>
-      </div>
+    <div class="sb-nav">
+      <button class="nav-item active" id="nav-overview" onclick="showPage('overview')"><span class="nav-icon">📊</span>Overview</button>
+      <button class="nav-item" id="nav-scan" onclick="showPage('scan')"><span class="nav-icon">🔍</span>New Scan</button>
+      <button class="nav-item" id="nav-history" onclick="showPage('history')"><span class="nav-icon">📋</span>Scan History</button>
+      <button class="nav-item" id="nav-watchlist" onclick="showPage('watchlist')"><span class="nav-icon">👁️</span>Watchlist</button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" id="nav-packages" onclick="showPage('packages')"><span class="nav-icon">💎</span>Buy Credits</button>
       <button class="nav-item" id="nav-promo" onclick="showPage('promo')"><span class="nav-icon">🎁</span>Промокод</button>
-      <button class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span>Sign Out</button>
     </div>
+    <div class="credits-badge">
+      <div class="cb-label">Available Credits</div>
+      <div class="cb-val" id="sidebar-credits">0</div>
+      <div class="cb-sub">wallet scans remaining</div>
+    </div>
+    <button class="nav-item" onclick="logout()" style="margin:.5rem"><span class="nav-icon">🚪</span>Sign Out</button>
   </div>
 
-  <!-- Main content -->
+  <!-- Main -->
   <div class="main">
-    <!-- OVERVIEW PAGE -->
+
+    <!-- OVERVIEW -->
     <div id="page-overview">
       <div class="page-title">Dashboard</div>
-      <div class="page-sub" id="dash-greeting">Welcome back</div>
-
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="sc-icon">💎</div>
-          <div class="sc-val" id="stat-credits" style="color:var(--cyan)">0</div>
-          <div class="sc-label">Credits remaining</div>
-        </div>
-        <div class="stat-card">
-          <div class="sc-icon">🔍</div>
-          <div class="sc-val" id="stat-scans">0</div>
-          <div class="sc-label">Total scans done</div>
-        </div>
-        <div class="stat-card">
-          <div class="sc-icon">⚠️</div>
-          <div class="sc-val" id="stat-risks" style="color:var(--amber)">0</div>
-          <div class="sc-label">Risks detected</div>
-        </div>
+      <div class="page-sub" id="welcome-sub">Welcome back</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-ico blue">💎</div><div><div class="stat-val" id="credits-val">0</div><div class="stat-lbl">Credits remaining</div></div></div>
+        <div class="stat-card"><div class="stat-ico green">🔍</div><div><div class="stat-val" id="scans-val">0</div><div class="stat-lbl">Total scans done</div></div></div>
+        <div class="stat-card"><div class="stat-ico amber">⚠️</div><div><div class="stat-val" id="risks-val">0</div><div class="stat-lbl">Risks detected</div></div></div>
       </div>
 
       <!-- Quick scan -->
       <div class="scan-card">
-        <div class="sc-title">🔍 Quick Scan</div>
-        <div class="scan-input-row">
-          <input type="text" class="scan-inp" id="quick-addr" placeholder="Paste wallet address (ETH, BTC, TRON, SOL...)">
-          <button class="scan-go" onclick="quickScan()" id="quick-scan-btn">Scan →</button>
+        <div class="sc-title"><span class="sc-dot"></span>Quick Scan</div>
+        <div class="scan-row">
+          <input type="text" class="scan-input" id="quick-inp" placeholder="Paste wallet address (BTC, ETH, TRX, SOL...)" onkeydown="if(event.key==='Enter')quickScan()">
+          <button class="scan-btn" onclick="quickScan()">Scan →</button>
         </div>
-        <div class="scan-note" id="quick-note">1 credit per scan · You have <span id="quick-credits">0</span> credits</div>
+        <div class="scan-note">1 credit per scan · You have <span id="credits-note">0</span> credits remaining</div>
       </div>
 
       <!-- Recent scans -->
       <div class="section-title">Recent Scans</div>
-      <div id="recent-scans-wrap">
-        <table class="history-table" id="recent-table" style="display:none">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="empty" id="overview-empty"><div class="empty-icon">🔍</div><div class="empty-text">No scans yet. Run your first scan above.</div></div>
+        <table class="history-table" id="overview-table" style="display:none">
           <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Date</th><th>Report</th></tr></thead>
-          <tbody id="recent-tbody"></tbody>
+          <tbody id="overview-tbody"></tbody>
         </table>
-        <div class="empty" id="recent-empty">
-          <div class="empty-icon">🔍</div>
-          <div class="empty-text">No scans yet. Run your first scan above.</div>
-        </div>
       </div>
     </div>
 
     <!-- SCAN PAGE -->
     <div id="page-scan" style="display:none">
       <div class="page-title">New Scan</div>
-      <div class="page-sub">Check up to 3 wallet addresses at once</div>
+      <div class="page-sub">Scan any wallet for AML risks and security threats</div>
       <div class="scan-card">
-        <div id="multi-slots"></div>
-        <div style="margin-bottom:10px">
-          <button onclick="addScanSlot()" id="add-slot-btn" style="width:100%;background:none;border:1px dashed var(--b2);border-radius:10px;padding:9px;font-size:13px;color:var(--tx3);cursor:pointer;transition:all .15s">+ Add another address (up to 3)</button>
+        <div class="scan-row">
+          <input type="text" class="scan-input" id="scan-inp" placeholder="Paste wallet address (BTC, ETH, TRX, SOL...)" onkeydown="if(event.key==='Enter')runScan(this.value.trim())">
+          <button class="scan-btn" onclick="runScan(document.getElementById('scan-inp').value.trim())">Scan →</button>
         </div>
-        <button class="scan-go" style="width:100%;padding:13px;font-size:16px" onclick="runMultiScan()">Scan All →</button>
-        <div class="scan-note">1 credit used per scan · <span id="scan-page-credits">0</span> credits available</div>
+        <div class="scan-note">1 credit per scan · <span id="scan-credits-note">0</span> credits remaining</div>
       </div>
     </div>
 
-    <!-- HISTORY PAGE -->
+    <!-- HISTORY -->
     <div id="page-history" style="display:none">
       <div class="page-title">Scan History</div>
       <div class="page-sub">All your previous wallet scans</div>
       <div class="section-title">All Scans</div>
-      <table class="history-table" id="history-table" style="display:none">
-        <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Risk Level</th><th>Date</th><th>Report</th></tr></thead>
-        <tbody id="history-tbody"></tbody>
-      </table>
-      <div class="empty" id="history-empty">
-        <div class="empty-icon">📋</div>
-        <div class="empty-text">No scan history yet.</div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="empty" id="history-empty"><div class="empty-icon">📋</div><div class="empty-text">No scan history yet.</div></div>
+        <table class="history-table" id="history-table" style="display:none">
+          <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Risk Level</th><th>Date</th><th>Report</th></tr></thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
       </div>
     </div>
 
-    <!-- PACKAGES PAGE -->
+    <!-- WATCHLIST -->
+    <div id="page-watchlist" style="display:none">
+      <div class="page-title">Watchlist</div>
+      <div class="page-sub">Monitor your wallets and track risk changes</div>
+      <div id="wl-grid-wrap" class="wl-grid"></div>
+      <button class="add-wl-btn" onclick="openAddWatchlist()">+ Додати гаманець до Watchlist</button>
+    </div>
+
+    <!-- PACKAGES -->
     <div id="page-packages" style="display:none">
       <div class="page-title">Buy Credits</div>
-      <div class="page-sub">Each credit = 1 full wallet scan with PDF report</div>
-      <div class="section-title">Available Packages</div>
-      <div class="packages-grid">
-        <div class="pkg-card" onclick="buyPackage('single')">
-          <div class="pkg-name">Single Report</div>
-          <div class="pkg-credits">1 <span style="font-size:14px;color:var(--tx3)">credit</span></div>
-          <div class="pkg-price">$19.99</div>
-          <div class="pkg-per">$19.99 per scan</div>
-          <button class="pkg-buy">Buy →</button>
+      <div class="page-sub">Each credit = 1 full wallet scan with AML report</div>
+      <div class="pkg-grid">
+        <div class="pkg-card"><div class="pkg-name">Single</div><div class="pkg-price">$19.99</div><div class="pkg-credits">1 credit</div><button class="pkg-btn secondary" onclick="buyPackage('single',19.99,1)">Buy →</button></div>
+        <div class="pkg-card"><div class="pkg-name">Starter</div><div class="pkg-price">$9.99</div><div class="pkg-credits">3 credits · $3.33/scan</div><button class="pkg-btn secondary" onclick="buyPackage('starter',9.99,3)">Buy →</button></div>
+        <div class="pkg-card popular"><div class="pkg-badge">⭐ Popular</div><div class="pkg-name">Basic</div><div class="pkg-price" style="color:var(--cyan)">$24.99</div><div class="pkg-credits">10 credits · $2.50/scan</div><button class="pkg-btn primary" onclick="buyPackage('basic',24.99,10)">Buy →</button></div>
+        <div class="pkg-card"><div class="pkg-name">Pro</div><div class="pkg-price">$49.99</div><div class="pkg-credits">30 credits · $1.67/scan</div><button class="pkg-btn secondary" onclick="buyPackage('pro',49.99,30)">Buy →</button></div>
+        <div class="pkg-card"><div class="pkg-name">Business</div><div class="pkg-price">$99.99</div><div class="pkg-credits">100 credits · $1.00/scan</div><button class="pkg-btn secondary" onclick="buyPackage('business',99.99,100)">Buy →</button></div>
+      </div>
+    </div>
+
+    <!-- PROMO -->
+    <div id="page-promo" style="display:none">
+      <div class="page-title">Промокод</div>
+      <div class="page-sub">Введіть промокод щоб отримати безкоштовні кредити</div>
+      <div style="max-width:480px">
+        <div class="card" style="margin-bottom:1.5rem">
+          <div style="font-size:14px;font-weight:600;margin-bottom:1rem">🎁 Активувати промокод</div>
+          <div class="auth-err" id="promo-msg" style="display:none"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="scan-input" id="promo-input" placeholder="Введіть промокод..." style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')redeemPromo()">
+            <button class="scan-btn" onclick="redeemPromo()" id="promo-btn">Активувати</button>
+          </div>
+          <div style="margin-top:.75rem;font-size:11px;color:var(--tx3)">🔒 Кожен промокод можна використати лише один раз</div>
         </div>
-        <div class="pkg-card" onclick="buyPackage('starter')">
-          <div class="pkg-name">Starter Pack</div>
-          <div class="pkg-credits">3 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
-          <div class="pkg-price">$9.99</div>
-          <div class="pkg-per">$3.33 per scan</div>
-          <button class="pkg-buy">Buy →</button>
-        </div>
-        <div class="pkg-card popular" onclick="buyPackage('basic')">
-          <div class="pkg-popular">⭐ Most Popular</div>
-          <div class="pkg-name">Basic Pack</div>
-          <div class="pkg-credits">10 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
-          <div class="pkg-price">$24.99</div>
-          <div class="pkg-per">$2.50 per scan</div>
-          <button class="pkg-buy">Buy →</button>
-        </div>
-        <div class="pkg-card" onclick="buyPackage('pro')">
-          <div class="pkg-name">Pro Pack</div>
-          <div class="pkg-credits">30 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
-          <div class="pkg-price">$49.99</div>
-          <div class="pkg-per">$1.67 per scan</div>
-          <button class="pkg-buy">Buy →</button>
-        </div>
-        <div class="pkg-card" onclick="buyPackage('business')">
-          <div class="pkg-name">Business Pack</div>
-          <div class="pkg-credits">100 <span style="font-size:14px;color:var(--tx3)">credits</span></div>
-          <div class="pkg-price">$99.99</div>
-          <div class="pkg-per">$1.00 per scan</div>
-          <button class="pkg-buy">Buy →</button>
-        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- SCAN RESULT MODAL -->
+<div class="modal-overlay" id="scan-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title-txt">Scanning...</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <div class="modal-scanning"><div class="mini-spinner"></div><div>Analyzing...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- WATCHLIST ADD MODAL -->
+<div class="modal-overlay" id="wl-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Додати до Watchlist</span>
+      <button class="modal-close" onclick="closeWlModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="auth-field"><label class="auth-label">Назва гаманця</label><input type="text" class="auth-input" id="wl-name-inp" placeholder="Наприклад: Мій основний гаманець"></div>
+      <div class="auth-field"><label class="auth-label">Адреса гаманця</label><input type="text" class="auth-input" id="wl-addr-inp" placeholder="0x... або TRX... або bc1..."></div>
+      <div style="display:flex;gap:8px;margin-top:.5rem">
+        <button onclick="closeWlModal()" style="flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:11px;color:var(--tx2);cursor:pointer;font-family:var(--body);font-size:13px">Скасувати</button>
+        <button onclick="addToWatchlist()" style="flex:1;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:11px;color:#fff;cursor:pointer;font-family:var(--head);font-size:13px;font-weight:700">Додати</button>
       </div>
     </div>
   </div>
-      <!-- PROMO PAGE -->
-      <div id="page-promo" style="display:none">
-        <div class="page-title">Промокод</div>
-        <div class="page-sub">Введіть промокод щоб отримати безкоштовні кредити</div>
-
-        <div style="max-width:480px">
-          <div class="scan-card" style="margin-bottom:1.5rem">
-            <div class="sc-title" style="font-size:14px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px">🎁 Активувати промокод</div>
-
-            <div id="promo-msg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:1rem"></div>
-
-            <div style="display:flex;gap:8px">
-              <input type="text" id="promo-input" placeholder="Введіть промокод..."
-                style="flex:1;background:var(--s2);border:1.5px solid var(--b2);border-radius:10px;padding:11px 14px;font-family:var(--mono);font-size:14px;color:var(--tx);outline:none;text-transform:uppercase"
-                oninput="this.value=this.value.toUpperCase()"
-                onkeydown="if(event.key==='Enter')redeemPromo()">
-              <button onclick="redeemPromo()" id="promo-btn"
-                style="background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:11px 20px;font-family:var(--head);font-size:14px;font-weight:700;color:#07090C;cursor:pointer;white-space:nowrap;transition:opacity .15s">
-                Активувати
-              </button>
-            </div>
-
-            <div style="margin-top:.75rem;font-size:12px;color:var(--tx3)">
-              🔒 Кожен промокод можна використати лише один раз для одного акаунту
-            </div>
-          </div>
-
-          <!-- History -->
-          <div class="section-title">Використані промокоди</div>
-          <div id="promo-history-wrap">
-            <div class="empty" id="promo-empty">
-              <div class="empty-icon">🎁</div>
-              <div class="empty-text">Ви ще не використовували промокодів</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
 </div>
 
-<!-- Scan Modal -->
-<div id="scan-modal">
-  <div class="modal-box">
-    <div class="modal-title">
-      <span id="modal-title-txt">Scanning...</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+<!-- FULL REPORT MODAL -->
+<div class="fr-modal" id="fr-modal">
+  <div class="fr-box">
+    <div class="fr-header">
+      <div class="fr-header-left">
+        <div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:13px">🛡️</div>
+        <span class="fr-title">Детальний звіт — Crypto Scanner</span>
+      </div>
+      <div class="fr-meta">
+        <span class="fr-date" id="fr-date"></span>
+        <span class="fr-id" id="fr-id"></span>
+        <button class="fr-close" onclick="closeFR()">✕</button>
+      </div>
     </div>
-    <div id="modal-body"></div>
+    <div class="fr-body" id="fr-body"></div>
+    <div class="fr-footer">
+      <div class="fr-footer-note">ⓘ Не є фінансовою порадою. Лише для ознайомлення.</div>
+      <div class="fr-footer-note" id="fr-page">Сторінка 1 з 1</div>
+    </div>
   </div>
 </div>
 
@@ -412,14 +514,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <script>
 var API = '/.netlify/functions';
 var token = localStorage.getItem('cg_token');
-var currentUser = null;
 var profileData = null;
-var scanSlots = 1;
+var watchlist = JSON.parse(localStorage.getItem('wl_items') || '[]');
 
-// ── AUTH ──────────────────────────────────────────────────────
-function showForm(f) {
-  ['login','register','forgot'].forEach(function(n) {
-    document.getElementById('form-' + n).style.display = n === f ? '' : 'none';
+// ── AUTH ─────────────────────────────────────────────────────
+function showForm(form) {
+  ['login','register','forgot'].forEach(function(f) {
+    document.getElementById('panel-' + f).classList.toggle('active', f === form);
+  });
+  document.querySelectorAll('.auth-tab').forEach(function(t, i) {
+    t.classList.toggle('active', (i===0&&form==='login')||(i===1&&form==='register'));
   });
 }
 
@@ -429,670 +533,573 @@ async function doLogin() {
   var err = document.getElementById('login-err');
   var btn = document.getElementById('login-btn');
   err.style.display = 'none';
-  if (!email || !pass) {
-    err.textContent = '⚠ Введіть email та пароль';
-    err.style.display = 'block'; return;
-  }
-  btn.disabled = true; btn.textContent = 'Вхід...';
-
+  if (!email || !pass) { err.textContent='⚠ Введіть email та пароль'; err.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Входимо...';
   try {
-    var res = await fetch(API + '/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login', email: email, password: pass }),
-    });
+    var res = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'login',email,password:pass}) });
     var data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Невірний email або пароль');
     token = data.token;
     localStorage.setItem('cg_token', token);
-    localStorage.setItem('cg_refresh', data.refresh_token);
-    currentUser = data.user;
-    await loadDashboard();
+    localStorage.setItem('cg_refresh', data.refresh_token || '');
+    await loadApp();
   } catch(e) {
-    err.textContent = '❌ ' + e.message;
-    err.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Sign In →';
-  }
+    err.textContent = '❌ ' + e.message; err.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = 'Sign In →'; }
 }
 
 async function doRegister() {
   var email = document.getElementById('reg-email').value.trim();
   var pass = document.getElementById('reg-pass').value;
-  var pass2 = document.getElementById('reg-pass2') ? document.getElementById('reg-pass2').value : pass;
+  var pass2 = document.getElementById('reg-pass2').value;
   var err = document.getElementById('reg-err');
   var btn = document.getElementById('reg-btn');
   err.style.display = 'none';
-  if (!email) { err.textContent = '⚠ Введіть email адресу'; err.style.display = 'block'; return; }
-  if (!pass || pass.length < 6) { err.textContent = '⚠ Пароль мінімум 6 символів'; err.style.display = 'block'; return; }
-  if (pass2 && pass !== pass2) { err.textContent = '⚠ Паролі не співпадають'; err.style.display = 'block'; return; }
+  if (!email) { err.textContent='⚠ Введіть email'; err.style.display='block'; return; }
+  if (!pass || pass.length < 6) { err.textContent='⚠ Пароль мінімум 6 символів'; err.style.display='block'; return; }
+  if (pass !== pass2) { err.textContent='⚠ Паролі не співпадають'; err.style.display='block'; return; }
   btn.disabled = true; btn.textContent = 'Реєстрація...';
   try {
-    var res = await fetch(API + '/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'register', email: email, password: pass }),
-    });
+    var res = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'register',email,password:pass}) });
     var data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Registration failed');
     showToast('✅ Перевірте email для підтвердження акаунту', 'success');
     showForm('login');
   } catch(e) {
-    err.textContent = '❌ ' + e.message;
-    err.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Create Account →';
-  }
+    err.textContent = '❌ ' + e.message; err.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = 'Create Account →'; }
 }
+
 async function doForgot() {
   var email = document.getElementById('forgot-email').value.trim();
+  var err = document.getElementById('forgot-err');
   var btn = document.getElementById('forgot-btn');
+  err.style.display = 'none';
+  if (!email) { err.textContent='⚠ Введіть email'; err.style.display='block'; return; }
   btn.disabled = true; btn.textContent = 'Надсилаємо...';
   try {
-    await fetch(API + '/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'forgot', email: email }),
-    });
-    showToast('✅ Reset link sent to ' + email, 'success');
+    await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'forgot',email}) });
+    showToast('✅ Посилання надіслано на ' + email, 'success');
     showForm('login');
   } catch(e) {
-    showToast('Error: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Send Reset Link →';
-  }
+    err.textContent = '❌ ' + e.message; err.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = 'Надіслати посилання →'; }
 }
 
 function logout() {
   localStorage.removeItem('cg_token');
   localStorage.removeItem('cg_refresh');
-  token = null; currentUser = null; profileData = null;
-  document.getElementById('dashboard').style.display = 'none';
+  token = null; profileData = null;
   document.getElementById('auth-screen').style.display = 'flex';
-  showForm('login');
+  document.getElementById('app').style.display = 'none';
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────
-async function loadDashboard() {
-  if (!token) { document.getElementById('auth-screen').style.display = 'flex'; return; }
-
+// ── APP ───────────────────────────────────────────────────────
+async function loadApp() {
+  if (!token) return;
   try {
-    var res = await fetch(API + '/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ action: 'profile' }),
-    });
-    if (res.status === 401) { logout(); return; }
-    profileData = await res.json();
-    currentUser = profileData.user;
-
+    var res = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer ' + token}, body:JSON.stringify({action:'profile'}) });
+    var data = await res.json();
+    if (!res.ok || data.error) { logout(); return; }
+    profileData = data;
     document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
+    document.getElementById('app').style.display = 'block';
+    renderApp();
+  } catch(e) { showToast('Connection error', 'error'); }
+}
 
-    updateCreditsUI(profileData.profile.credits);
-    document.getElementById('dash-greeting').textContent = 'Welcome back, ' + currentUser.email;
-    document.getElementById('stat-scans').textContent = profileData.profile.total_scans || 0;
+function renderApp() {
+  if (!profileData) return;
+  var p = profileData.profile || {};
+  var scans = profileData.scans || [];
+  var email = profileData.user && profileData.user.email || '';
 
-    var risks = (profileData.scans || []).filter(function(s) { return s.risk_level === 'high'; }).length;
-    document.getElementById('stat-risks').textContent = risks;
+  document.getElementById('welcome-sub').textContent = 'Welcome back, ' + email;
+  updateCreditsUI(p.credits || 0);
+  document.getElementById('scans-val').textContent = p.total_scans || 0;
 
-    renderRecentScans(profileData.scans || []);
-    renderHistory(profileData.scans || []);
-    initScanSlots();
+  var risks = scans.filter(function(s) { return s.risk_level === 'high' || s.risk_level === 'medium'; }).length;
+  document.getElementById('risks-val').textContent = risks;
 
-    // Check payment success
-    if (location.search.includes('payment=success')) {
-      showToast('✅ Payment confirmed! Credits added to your account.', 'success');
-      history.replaceState({}, '', '/dashboard');
-      setTimeout(loadDashboard, 3000);
-    }
-  } catch(e) {
-    console.error(e);
-    logout();
+  // Overview recent scans
+  var obody = document.getElementById('overview-tbody');
+  var otable = document.getElementById('overview-table');
+  var oempty = document.getElementById('overview-empty');
+  if (scans.length === 0) { otable.style.display='none'; oempty.style.display=''; }
+  else {
+    otable.style.display=''; oempty.style.display='none';
+    obody.innerHTML = scans.slice(0,5).map(function(s) { return scanRow(s, false); }).join('');
   }
+
+  // History
+  renderHistory(scans);
+
+  // Watchlist
+  renderWatchlist();
 }
 
-function updateCreditsUI(credits) {
-  document.getElementById('stat-credits').textContent = credits;
-  document.getElementById('sidebar-credits').textContent = credits;
-  document.getElementById('quick-credits').textContent = credits;
-  document.getElementById('scan-page-credits').textContent = credits;
+function updateCreditsUI(n) {
+  document.getElementById('sidebar-credits').textContent = n;
+  document.getElementById('credits-val').textContent = n;
+  document.getElementById('credits-note').textContent = n;
+  var sn = document.getElementById('scan-credits-note');
+  if (sn) sn.textContent = n;
 }
 
-// ── PAGES ─────────────────────────────────────────────────────
 function showPage(page) {
-  ['overview','scan','history','packages','promo'].forEach(function(p) {
-    document.getElementById('page-' + p).style.display = p === page ? '' : 'none';
+  ['overview','scan','history','watchlist','packages','promo'].forEach(function(p) {
+    var el = document.getElementById('page-' + p);
+    if (el) el.style.display = p === page ? '' : 'none';
     var nav = document.getElementById('nav-' + p);
-    if (nav) { nav.className = 'nav-item' + (p === page ? ' active' : ''); }
+    if (nav) nav.className = 'nav-item' + (p === page ? ' active' : '');
   });
-  if (page === 'promo') loadPromoHistory();
+  if (page === 'watchlist') renderWatchlist();
 }
 
-// ── SCAN ──────────────────────────────────────────────────────
-function initScanSlots() {
-  scanSlots = 1;
-  var wrap = document.getElementById('multi-slots');
-  wrap.innerHTML = makeSlotHTML(0);
-  document.getElementById('add-slot-btn').style.display = '';
-}
-
-function makeSlotHTML(idx) {
-  return '<div class="scan-input-row" style="margin-bottom:8px" id="slot-row-' + idx + '">' +
-    '<input type="text" class="scan-inp" id="slot-' + idx + '" placeholder="Wallet address #' + (idx+1) + '...">' +
-    (idx > 0 ? '<button onclick="removeSlot(' + idx + ')" style="background:none;border:1px solid var(--b2);border-radius:8px;padding:8px 12px;color:var(--tx3);cursor:pointer;flex-shrink:0">✕</button>' : '') +
-    '</div>';
-}
-
-function addScanSlot() {
-  if (scanSlots >= 3) return;
-  document.getElementById('multi-slots').insertAdjacentHTML('beforeend', makeSlotHTML(scanSlots));
-  scanSlots++;
-  if (scanSlots >= 3) document.getElementById('add-slot-btn').style.display = 'none';
-}
-
-function removeSlot(idx) {
-  var row = document.getElementById('slot-row-' + idx);
-  if (row) row.remove();
-  scanSlots--;
-  document.getElementById('add-slot-btn').style.display = '';
-}
-
-async function quickScan() {
-  var addr = document.getElementById('quick-addr').value.trim();
-  if (!addr) return;
-  await runScan(addr);
-}
-
-async function runMultiScan() {
-  var addrs = [];
-  for (var i = 0; i < 3; i++) {
-    var inp = document.getElementById('slot-' + i);
-    if (inp && inp.value.trim()) addrs.push(inp.value.trim());
-  }
-  if (addrs.length === 0) return;
-  await runScan(addrs[0]);
-}
-
-async function runScan(addr) {
-  if (!profileData || profileData.profile.credits < 1) {
-    showToast('⚠ No credits remaining. Buy a package to continue.', 'error');
-    showPage('packages');
-    return;
-  }
-
-  openModal('Сканування ' + addr.slice(0,10) + '...');
-  document.getElementById('modal-body').innerHTML = '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Аналізуємо блокчейн дані...</div></div>';
-
-  try {
-    // Use unified report.js function
-    var reportRes = await fetch(API + '/report?addr=' + encodeURIComponent(addr));
-    var report = await reportRes.json();
-    if (report.error) throw new Error(report.error);
-
-    var score = report.riskScore || 15;
-    var level = report.riskLevel || 'medium';
-    var sc = level === 'high' ? '#FF3B3B' : level === 'medium' ? '#FFB020' : '#00D68F';
-    var levelLabel = level === 'high' ? 'ВИСОКИЙ РИЗИК' : level === 'medium' ? 'ПОТЕНЦІЙНИЙ РИЗИК' : 'НИЗЬКИЙ РИЗИК';
-
-    // Deduct credit and save scan
-    var deductRes = await fetch(API + '/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        action: 'deduct',
-        scanData: {
-          address: addr,
-          network: report.network || 'Unknown',
-          risk_score: score,
-          risk_level: level,
-          risk_flags: report.riskFlags || [],
-        }
-      }),
-    });
-    var deductData = await deductRes.json();
-    if (deductData.credits !== undefined) {
-      profileData.profile.credits = deductData.credits;
-      updateCreditsUI(deductData.credits);
-    }
-
-    // Render full report in modal
-    document.getElementById('modal-title-txt').textContent = 'Результат сканування';
-    renderReportModal(report, sc, levelLabel, level);
-
-    setTimeout(loadDashboard, 600);
-  } catch(e) {
-    console.error(e);
-    document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red)">❌ Помилка сканування: ' + e.message + '</div>';
-  }
-}
-
-function detectNet(addr) {
-  if (/^0x[0-9a-fA-F]{40}$/.test(addr)) return { name: 'Ethereum / EVM', chainId: '0x1' };
-  if (/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,59}$/.test(addr)) return { name: 'Bitcoin', chainId: null };
-  if (/^T[a-zA-Z0-9]{33}$/.test(addr)) return { name: 'TRON', chainId: 'tron' };
-  if (addr.length >= 32 && addr.length <= 44) return { name: 'Solana', chainId: 'solana' };
-  return { name: 'Unknown', chainId: '0x1' };
-}
-
-// ── RENDER ─────────────────────────────────────────────────────
-function renderRecentScans(scans) {
-  var tbody = document.getElementById('recent-tbody');
-  var table = document.getElementById('recent-table');
-  var empty = document.getElementById('recent-empty');
-  var recent = scans.slice(0, 5);
-  if (recent.length === 0) { table.style.display = 'none'; empty.style.display = ''; return; }
-  table.style.display = ''; empty.style.display = 'none';
-  tbody.innerHTML = recent.map(function(s) { return scanRow(s); }).join('');
-}
-
-function renderHistory(scans) {
-  var tbody = document.getElementById('history-tbody');
-  var table = document.getElementById('history-table');
-  var empty = document.getElementById('history-empty');
-  if (scans.length === 0) { table.style.display = 'none'; empty.style.display = ''; return; }
-  table.style.display = ''; empty.style.display = 'none';
-  tbody.innerHTML = scans.map(function(s) { return scanRow(s, true); }).join('');
-}
-
+// ── SCAN ROW ─────────────────────────────────────────────────
 function scanRow(s, showLevel) {
   var addr = s.address || '';
   var short = addr.length > 20 ? addr.slice(0,10) + '...' + addr.slice(-8) : addr;
   var sc = s.risk_score || 0;
   var level = s.risk_level || 'unknown';
-  var color = level === 'high' ? 'var(--red)' : level === 'medium' ? 'var(--amber)' : 'var(--green)';
+  var color = level==='high'?'var(--red)':level==='medium'?'var(--amber)':'var(--green)';
   var date = s.created_at ? new Date(s.created_at).toLocaleDateString('uk-UA') : '-';
-  var scanId = s.id || '';
+  var sEnc = encodeURIComponent(JSON.stringify(s));
   return '<tr>' +
-    '<td class="addr-cell" title="' + addr + '">' + short + '</td>' +
-    '<td>' + (s.network || '-') + '</td>' +
-    '<td><span style="font-family:var(--mono);font-weight:600;color:' + color + '">' + sc + '/100</span></td>' +
-    (showLevel ? '<td><span class="risk-chip ' + level + '">' + level.toUpperCase() + '</span></td>' : '') +
-    '<td style="color:var(--tx3);font-size:12px">' + date + '</td>' +
-    '<td><button onclick="viewHistoryReport(' + JSON.stringify(s).replace(/"/g, '&quot;') + ')" style="background:none;border:1px solid var(--b2);border-radius:7px;padding:4px 10px;font-size:11px;color:var(--cyan);cursor:pointer;transition:all .15s;font-family:var(--body)" onmouseover="this.style.background=\'var(--s2)\'" onmouseout="this.style.background=\'none\'">Переглянути</button></td>' +
+    '<td class="addr-cell" title="'+addr+'">'+short+'</td>' +
+    '<td style="color:var(--tx2);font-size:12px">'+(s.network||'-')+'</td>' +
+    '<td><span style="font-family:var(--mono);font-weight:700;color:'+color+'">'+sc+'/100</span></td>' +
+    (showLevel ? '<td><span class="risk-chip '+level+'">'+level.toUpperCase()+'</span></td>' : '') +
+    '<td style="color:var(--tx3);font-size:12px">'+date+'</td>' +
+    '<td><button onclick="viewHistoryReport(decodeAndParse(this.dataset.s))" data-s="'+sEnc+'" style="background:none;border:1px solid var(--b1);border-radius:7px;padding:4px 10px;font-size:11px;color:var(--cyan);cursor:pointer;font-family:var(--body)">Переглянути</button></td>' +
     '</tr>';
 }
 
-// ── PACKAGES ──────────────────────────────────────────────────
-async function buyPackage(pkgId) {
-  if (!currentUser) return;
+function decodeAndParse(s) { try { return JSON.parse(decodeURIComponent(s)); } catch(e) { return {}; } }
+
+function renderHistory(scans) {
+  var tbody = document.getElementById('history-tbody');
+  var table = document.getElementById('history-table');
+  var empty = document.getElementById('history-empty');
+  if (!scans || scans.length === 0) { table.style.display='none'; empty.style.display=''; return; }
+  table.style.display=''; empty.style.display='none';
+  tbody.innerHTML = scans.map(function(s) { return scanRow(s, true); }).join('');
+}
+
+// ── QUICK SCAN ───────────────────────────────────────────────
+function quickScan() { var a = document.getElementById('quick-inp').value.trim(); if(a) runScan(a); }
+
+async function runScan(addr) {
+  if (!addr || addr.length < 8) { showToast('⚠ Введіть адресу гаманця', 'error'); return; }
+  if (!profileData || (profileData.profile && profileData.profile.credits < 1)) {
+    showToast('⚠ Немає кредитів. Поповніть баланс.', 'error'); showPage('packages'); return;
+  }
+  openModal('Сканування ' + addr.slice(0,10) + '...');
+  document.getElementById('modal-body').innerHTML =
+    '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Аналізуємо блокчейн...</div></div>';
   try {
-    var res = await fetch(API + '/purchase', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ packageId: pkgId, userId: currentUser.id }),
-    });
-    var data = await res.json();
-    if (data.invoice_url) {
-      window.open(data.invoice_url, '_blank');
-      showToast('💳 Payment page opened in new tab', 'success');
-    } else {
-      throw new Error(data.error || 'Failed to create invoice');
-    }
+    var res = await fetch(API + '/report?addr=' + encodeURIComponent(addr));
+    var report = await res.json();
+    if (report.error) throw new Error(report.error);
+
+    // Deduct credit
+    var dr = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({action:'deduct', scanData:{address:addr, network:report.network||'Unknown', risk_score:report.riskScore||0, risk_level:report.riskLevel||'low', risk_flags:report.riskFlags||[]}}) });
+    var dd = await dr.json();
+    if (dd.credits !== undefined) { profileData.profile.credits = dd.credits; updateCreditsUI(dd.credits); }
+
+    window._lastReport = report;
+    var sc = report.riskLevel==='high'?'var(--red)':report.riskLevel==='medium'?'var(--amber)':'var(--green)';
+    var ll = report.riskLevel==='high'?'ВИСОКИЙ РИЗИК':report.riskLevel==='medium'?'ПОТЕНЦІЙНИЙ РИЗИК':'НИЗЬКИЙ РИЗИК';
+    document.getElementById('modal-title-txt').textContent = 'Результат сканування';
+    renderScanResult(report, sc, ll, report.riskLevel);
+
+    // Refresh history
+    setTimeout(loadApp, 700);
   } catch(e) {
-    showToast('Error: ' + e.message, 'error');
+    document.getElementById('modal-body').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:var(--red)">❌ Помилка сканування: ' + e.message + '</div>';
   }
 }
 
-// ── MODAL ─────────────────────────────────────────────────────
-function renderReportModal(r, sc, levelLabel, level) {
-  // Store report globally for full view
-  window._lastReport = r;
+// ── SCAN RESULT (compact) ────────────────────────────────────
+function renderScanResult(r, sc, ll, level) {
+  var fundsBar = '<div style="height:7px;border-radius:3px;display:flex;overflow:hidden;margin:.4rem 0;background:var(--b1)"><div style="width:'+r.funds.cleanPercent+'%;background:var(--green)"></div><div style="width:'+r.funds.dirtyPercent+'%;background:var(--amber)"></div><div style="width:'+r.funds.sanctionedPercent+'%;background:var(--red)"></div></div><div style="display:flex;gap:.75rem;font-size:10px"><span style="color:var(--green)">● '+r.funds.cleanPercent+'% чисті</span><span style="color:var(--amber)">● '+r.funds.dirtyPercent+'% ризикові</span><span style="color:var(--red)">● '+r.funds.sanctionedPercent+'% підсанкційні</span></div>';
 
-  var fundsBar =
-    '<div style="height:8px;border-radius:4px;display:flex;overflow:hidden;margin:.5rem 0;background:var(--b2)">' +
-    '<div style="width:' + r.funds.cleanPercent + '%;background:var(--green);border-radius:4px 0 0 4px"></div>' +
-    '<div style="width:' + r.funds.dirtyPercent + '%;background:var(--amber)"></div>' +
-    '<div style="width:' + r.funds.sanctionedPercent + '%;background:var(--red);border-radius:0 4px 4px 0"></div>' +
-    '</div>' +
-    '<div style="display:flex;gap:1rem;font-size:11px;flex-wrap:wrap">' +
-    '<span style="color:var(--green)">● Чисті ' + r.funds.cleanPercent + '%</span>' +
-    '<span style="color:var(--amber)">● Ризикові ' + r.funds.dirtyPercent + '%</span>' +
-    '<span style="color:var(--red)">● Підсанкційні ' + r.funds.sanctionedPercent + '%</span>' +
-    '</div>' +
-    '<div style="font-size:10px;color:var(--tx3);margin-top:4px">* Оціночні дані на основі виявлених ризиків</div>';
+  // Risk breakdown
+  var breakdown = buildBreakdown(r);
+  var breakdownHtml = breakdown.slice(0,5).map(function(b) {
+    return '<div class="rb-item"><div class="rb-dot" style="background:'+b.color+'"></div><span class="rb-label">'+b.label+'</span><span class="rb-status" style="background:'+b.bgColor+';color:'+b.color+'">'+b.status+'</span></div>';
+  }).join('');
 
-  var flagsHtml = (r.riskFlags || []).map(function(f) {
-    return '<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
-      '<span style="color:var(--red)">⚠</span><span style="color:var(--tx2)">' + f.label + '</span>' +
-      '<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,59,59,.1);color:var(--red)">' + f.severity + '</span>' +
-      '</div>';
-  }).join('') || '<div style="font-size:12px;color:var(--green)">✓ Серйозних загроз не виявлено</div>';
-
-  var checksHtml =
-    '<div class="mr-check"><span class="mr-check-name">OFAC / Санкції</span><span class="mr-check-val ' + (r.ofacMatch || r.sanctionedRisk > 0 ? 'found' : 'clear') + '">' + (r.ofacMatch || r.sanctionedRisk > 0 ? '⚠ ЗНАЙДЕНО' : '✓ Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Міксери</span><span class="mr-check-val ' + (r.mixerInteractions > 0 ? 'found' : 'clear') + '">' + (r.mixerInteractions > 0 ? '⚠ ' + r.mixerInteractions + ' взаємодій' : '✓ Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Даркнет</span><span class="mr-check-val ' + (r.darknetInteractions > 0 ? 'found' : 'clear') + '">' + (r.darknetInteractions > 0 ? '⚠ ' + r.darknetInteractions + ' транзакцій' : '✓ Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (r.riskFlags && r.riskFlags.length > 0 ? 'found' : 'clear') + '">' + (r.riskFlags && r.riskFlags.length > 0 ? '⚠ ' + r.riskFlags.length + ' загроз' : '✓ Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Транзакцій</span><span class="mr-check-val clear">' + (r.activity && r.activity.txCount || 'N/A') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Перша активність</span><span class="mr-check-val clear">' + (r.activity && r.activity.firstActivity || 'N/A') + '</span></div>';
-
-  var excColors = { ok: 'var(--green)', check: 'var(--amber)', blocked: 'var(--red)' };
-  var exchangeHtml = (r.exchangeCompatibility || []).map(function(ex) {
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
-      '<span style="color:var(--tx2)">' + ex.name + '</span>' +
-      '<span style="font-weight:600;color:' + (excColors[ex.status] || 'var(--tx2)') + '">' + ex.label + '</span>' +
-      '</div>';
+  var excColors = {ok:'var(--green)',check:'var(--amber)',blocked:'var(--red)'};
+  var excHtml = (r.exchangeCompatibility||[]).slice(0,3).map(function(ex) {
+    return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:var(--tx2)">'+ex.name+'</span><span style="font-weight:600;color:'+(excColors[ex.status]||'var(--tx)')+'">'+ex.label+'</span></div>';
   }).join('');
 
   document.getElementById('modal-body').innerHTML =
     // Alert
-    '<div class="mr-alert ' + level + '" style="margin-bottom:.85rem">' +
-      '<div style="font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;color:' + sc + ';margin-bottom:3px">' + levelLabel + '</div>' +
-      '<div style="font-size:15px;font-weight:700">' + (r.reputation && r.reputation.label || 'Аналіз завершено') + '</div>' +
-      '<div style="font-size:12px;color:var(--tx2);margin-top:2px">' + (r.reputation && r.reputation.desc || '') + '</div>' +
-    '</div>' +
-    // Score + address
-    '<div class="mr-score" style="margin-bottom:.75rem">' +
-      '<div class="mr-ring" style="border-color:' + sc + ';box-shadow:0 0 14px ' + sc + '20">' +
-        '<div class="mr-num" style="color:' + sc + '">' + r.riskScore + '</div>' +
-        '<div class="mr-max">/100</div>' +
-      '</div>' +
-      '<div class="mr-info">' +
-        '<div class="mr-addr" style="word-break:break-all">' + r.address + '</div>' +
-        '<div style="font-size:11px;color:var(--tx3);margin-top:3px">' + r.network + ' · ID: <span style="color:var(--cyan);font-family:var(--mono)">' + (r.reportId || '') + '</span></div>' +
-        (r.balance ? '<div style="font-size:11px;color:var(--tx3);margin-top:2px">Баланс: ' +
-          (r.balance.trx !== undefined ? r.balance.trx + ' TRX' + (parseFloat(r.balance.usdt) > 0 ? ' + ' + r.balance.usdt + ' USDT' : '') :
-           r.balance.native || '') + '</div>' : '') +
-      '</div>' +
-    '</div>' +
+    '<div class="mr-alert '+level+'" style="margin-bottom:.75rem"><div style="font-size:10px;font-family:var(--mono);font-weight:700;letter-spacing:.07em;color:'+sc+';margin-bottom:2px">'+ll+'</div><div style="font-size:14px;font-weight:700">'+(r.reputation&&r.reputation.label||'Аналіз завершено')+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">'+(r.reputation&&r.reputation.desc||'')+'</div></div>' +
+    // Score row
+    '<div class="mr-score" style="margin-bottom:.75rem"><div class="mr-ring" style="border-color:'+sc+'"><div class="mr-num" style="color:'+sc+'">'+r.riskScore+'</div><div class="mr-max">/100</div></div><div class="mr-info"><div class="mr-addr">'+r.address+'</div><div class="mr-net">'+r.network+' · <span style="color:var(--cyan);font-family:var(--mono);font-size:10px">'+(r.reportId||'')+'</span></div>'+(r.balance?'<div style="font-size:10px;color:var(--tx3);margin-top:2px">'+((r.balance.trx!==undefined)?r.balance.trx+' TRX'+(parseFloat(r.balance.usdt)>0?' + '+r.balance.usdt+' USDT':''):(r.balance.native||''))+'</div>':'')+'</div></div>' +
     // Funds
-    '<div style="margin-bottom:.75rem;background:var(--s2);border-radius:10px;padding:10px 12px">' +
-      '<div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em">Структура коштів</div>' +
-      fundsBar +
-    '</div>' +
+    '<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.75rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">Структура коштів</div>'+fundsBar+'<div style="font-size:9px;color:var(--tx3);margin-top:.3rem">* Оціночно на основі GoPlus флагів</div></div>' +
     // Checks
-    '<div class="mr-checks" style="margin-bottom:.75rem">' + checksHtml + '</div>' +
-    // Flags
-    (r.riskFlags && r.riskFlags.length > 0 ?
-      '<div style="background:rgba(255,59,59,.05);border:1px solid rgba(255,59,59,.15);border-radius:10px;padding:10px 12px;margin-bottom:.75rem">' +
-      '<div style="font-size:10px;font-family:var(--mono);color:var(--red);margin-bottom:.4rem;text-transform:uppercase">Виявлені загрози</div>' +
-      flagsHtml + '</div>' : '') +
-    // Exchange
-    (exchangeHtml ?
-      '<div style="background:var(--s2);border-radius:10px;padding:10px 12px;margin-bottom:.75rem">' +
-      '<div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.4rem;text-transform:uppercase">Сумісність з біржами</div>' +
-      exchangeHtml + '</div>' : '') +
+    '<div class="mr-checks" style="margin-bottom:.75rem">' +
+      '<div class="mr-check"><span class="mr-check-name">OFAC / Санкції</span><span class="mr-check-val '+(r.ofacMatch?'found':'clear')+'">'+(r.ofacMatch?'⚠ ЗНАЙДЕНО':'✓ Чисто')+'</span></div>' +
+      '<div class="mr-check"><span class="mr-check-name">Міксери</span><span class="mr-check-val '+(r.mixerInteractions>0?'found':'clear')+'">'+(r.mixerInteractions>0?'⚠ '+r.mixerInteractions+' взаємодій':'✓ Чисто')+'</span></div>' +
+      '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val '+(r.riskFlags&&r.riskFlags.length>0?'found':'clear')+'">'+(r.riskFlags&&r.riskFlags.length>0?'⚠ '+r.riskFlags.length+' загроз':'✓ Чисто')+'</span></div>' +
+      '<div class="mr-check"><span class="mr-check-name">Транзакцій</span><span class="mr-check-val clear">'+(r.activity&&r.activity.txCount||'—')+'</span></div>' +
+    '</div>' +
+    // Risk breakdown
+    '<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.75rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">🔍 Why this score?</div>'+breakdownHtml+'</div>' +
+    // Exchanges
+    (excHtml?'<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.75rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Сумісність з біржами</div>'+excHtml+'</div>':'') +
     // Buttons
-    '<button onclick="openFullReportDash()" style="width:100%;background:var(--s2);border:1.5px solid var(--cyan2);border-radius:10px;padding:11px;color:var(--cyan);font-family:var(--head);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">📋 Дивитись повний звіт</button>' +
-      '📋 Дивитись повний звіт' +
-    '</button>' +
-    '<button onclick="closeModal()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Закрити</button>';
+    '<button onclick="openFR()" style="width:100%;background:var(--s2);border:1.5px solid var(--cyan2);border-radius:10px;padding:10px;color:var(--cyan);font-family:var(--head);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px">📋 Повний звіт</button>' +
+    '<button onclick="closeModal()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:9px;color:var(--tx3);cursor:pointer;font-size:12px">Закрити</button>';
 }
-function viewHistoryReport(s) {
-  // Build a mock report object from saved scan data and re-fetch from API
-  // Show loading modal first
-  openModal('Завантаження звіту...');
-  document.getElementById('modal-body').innerHTML =
-    '<div class="modal-scanning"><div class="mini-spinner"></div>' +
-    '<div style="font-size:14px;color:var(--tx2)">Завантажуємо дані звіту...</div></div>';
 
-  // Re-fetch the report for this address
-  fetch(API + '/report?addr=' + encodeURIComponent(s.address)).then(function(r) {
-    return r.json();
-  }).then(function(report) {
-    if (report.error) {
-      // If can't re-fetch, show basic info from saved scan
-      report = buildBasicReport(s);
-    }
-    // Override with saved values for consistency
+// ── RISK BREAKDOWN BUILDER ───────────────────────────────────
+function buildBreakdown(r) {
+  var items = [];
+  var addItem = function(label, isRisk, isWarning) {
+    var color = isRisk ? 'var(--red)' : isWarning ? 'var(--amber)' : 'var(--green)';
+    var bgColor = isRisk ? 'var(--red-dim)' : isWarning ? 'var(--amber-dim)' : 'var(--green-dim)';
+    var status = isRisk ? 'Ризик' : isWarning ? 'Увага' : 'Чисто';
+    items.push({label, color, bgColor, status});
+  };
+
+  var score = r.riskScore || 0;
+  var flags = r.riskFlags || [];
+  var mixer = r.mixerInteractions || 0;
+  var dark = r.darknetInteractions || 0;
+  var ofac = r.ofacMatch || false;
+  var txCount = (r.activity && r.activity.txCount) || 0;
+  var hasPhishing = flags.some(function(f){return f.type==='phishing';});
+  var hasCybercrime = flags.some(function(f){return f.type==='cybercrime';});
+  var hasMl = flags.some(function(f){return f.type==='money_laundering';});
+
+  if (ofac) addItem('OFAC санкційний список — знайдено', true, false);
+  else addItem('OFAC санкційний список', false, false);
+
+  if (mixer > 0) addItem('Взаємодія з міксерами ('+mixer+')', true, false);
+  else addItem('Міксери/Tornado Cash — не виявлено', false, false);
+
+  if (dark > 0) addItem('Даркнет транзакції ('+dark+')', true, false);
+  else addItem('Даркнет активність — не виявлено', false, false);
+
+  if (hasPhishing) addItem('Фішинг активність виявлено', true, false);
+  else addItem('Фішинг — не виявлено', false, false);
+
+  if (hasCybercrime || hasMl) addItem('Підозрілі транзакційні патерни', false, true);
+  else if (score > 40) addItem('P2P exposure — помірний рівень', false, true);
+  else addItem('Чисті транзакційні патерни', false, false);
+
+  if (txCount > 500) addItem('Висока активність гаманця ('+txCount+' tx)', false, true);
+  else if (txCount > 0) addItem('Нормальна активність гаманця ('+txCount+' tx)', false, false);
+
+  return items;
+}
+
+// ── HISTORY REPORT VIEW ──────────────────────────────────────
+async function viewHistoryReport(s) {
+  openModal('Завантаження...');
+  document.getElementById('modal-body').innerHTML =
+    '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Завантажуємо дані...</div></div>';
+  try {
+    var res = await fetch(API + '/report?addr=' + encodeURIComponent(s.address));
+    var report = await res.json();
+    if (report.error) report = buildBasicReport(s);
     report.riskScore = s.risk_score || report.riskScore;
     report.riskLevel = s.risk_level || report.riskLevel;
     report.address = s.address;
     report.network = s.network || report.network;
-
     window._lastReport = report;
-    var sc = report.riskLevel === 'high' ? '#FF3B3B' : report.riskLevel === 'medium' ? '#FFB020' : '#00D68F';
-    var levelLabel = report.riskLevel === 'high' ? 'ВИСОКИЙ РИЗИК' : report.riskLevel === 'medium' ? 'ПОТЕНЦІЙНИЙ РИЗИК' : 'НИЗЬКИЙ РИЗИК';
-    document.getElementById('modal-title-txt').textContent = 'Звіт: ' + s.address.slice(0,10) + '...';
-    renderReportModal(report, sc, levelLabel, report.riskLevel);
-  }).catch(function(e) {
+    var sc = report.riskLevel==='high'?'var(--red)':report.riskLevel==='medium'?'var(--amber)':'var(--green)';
+    var ll = report.riskLevel==='high'?'ВИСОКИЙ РИЗИК':report.riskLevel==='medium'?'ПОТЕНЦІЙНИЙ РИЗИК':'НИЗЬКИЙ РИЗИК';
+    document.getElementById('modal-title-txt').textContent = 'Звіт · ' + s.address.slice(0,10) + '...';
+    renderScanResult(report, sc, ll, report.riskLevel);
+  } catch(e) {
     var report = buildBasicReport(s);
     window._lastReport = report;
-    var sc = report.riskLevel === 'high' ? '#FF3B3B' : report.riskLevel === 'medium' ? '#FFB020' : '#00D68F';
-    var levelLabel = report.riskLevel === 'high' ? 'ВИСОКИЙ РИЗИК' : report.riskLevel === 'medium' ? 'ПОТЕНЦІЙНИЙ РИЗИК' : 'НИЗЬКИЙ РИЗИК';
-    document.getElementById('modal-title-txt').textContent = 'Звіт: ' + s.address.slice(0,10) + '...';
-    renderReportModal(report, sc, levelLabel, report.riskLevel);
-  });
+    renderScanResult(report, 'var(--green)', 'НИЗЬКИЙ РИЗИК', 'low');
+  }
 }
 
 function buildBasicReport(s) {
-  // Build minimal report from saved scan data when API unavailable
   return {
-    address: s.address,
-    network: s.network || 'Unknown',
-    riskScore: s.risk_score || 0,
-    riskLevel: s.risk_level || 'low',
-    reportId: 'CS-SAVED',
-    riskFlags: s.risk_flags || [],
-    ofacMatch: false,
-    mixerInteractions: 0,
-    darknetInteractions: 0,
-    sanctionedRisk: 0,
-    suspiciousTxCount: 0,
-    funds: { cleanPercent: '98.0', dirtyPercent: '1.5', sanctionedPercent: '0.5' },
-    activity: { txCount: '—', firstActivity: '—', lastActivity: new Date(s.created_at).toLocaleDateString('uk-UA'), incomingCount: '—', outgoingCount: '—' },
-    balance: null,
-    topCounterparties: [],
-    exchangeCompatibility: [
-      { name: 'Binance', status: 'ok', label: 'Депозит можливий' },
-      { name: 'Bybit', status: 'ok', label: 'Депозит можливий' },
-      { name: 'OKX', status: 'ok', label: 'Депозит можливий' },
-    ],
-    reputation: {
-      label: s.risk_level === 'high' ? 'Висока загроза' : s.risk_level === 'medium' ? 'Помірна експозиція' : 'Чистий гаманець',
-      desc: s.risk_level === 'high' ? 'Виявлено серйозні ризики.' : s.risk_level === 'medium' ? 'Виявлено потенційні ризики.' : 'Серйозних ризиків не виявлено.',
-    },
+    address:s.address, network:s.network||'Unknown',
+    riskScore:s.risk_score||0, riskLevel:s.risk_level||'low',
+    reportId:'CS-SAVED', riskFlags:s.risk_flags||[],
+    ofacMatch:false, mixerInteractions:0, darknetInteractions:0, sanctionedRisk:0, suspiciousTxCount:0,
+    funds:{cleanPercent:'98.0',dirtyPercent:'1.5',sanctionedPercent:'0.5'},
+    activity:{txCount:'—',firstActivity:'—',lastActivity:'—',incomingCount:'—',outgoingCount:'—'},
+    balance:null, topCounterparties:[],
+    exchangeCompatibility:[{name:'Binance',status:'ok',label:'Депозит можливий'},{name:'Bybit',status:'ok',label:'Депозит можливий'},{name:'OKX',status:'ok',label:'Депозит можливий'}],
+    reputation:{label:s.risk_level==='high'?'Висока загроза':s.risk_level==='medium'?'Помірна експозиція':'Чистий гаманець', desc:s.risk_level==='high'?'Серйозні ризики.':s.risk_level==='medium'?'Потенційні ризики.':'Серйозних ризиків не виявлено.'},
   };
 }
 
-function openFullReportDash() {
+// ── FULL REPORT MODAL ────────────────────────────────────────
+function openFR() {
   var r = window._lastReport;
   if (!r) return;
   closeModal();
-  renderFullReportModal(r);
-}
+  document.getElementById('fr-date').textContent = new Date().toLocaleDateString('uk-UA', {day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('fr-id').textContent = 'ID: ' + (r.reportId||'N/A');
 
-function renderFullReportModal(r) {
-  // Check if full report modal exists, create if not
-  var modal = document.getElementById('full-report-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'full-report-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;background:rgba(0,0,0,.8);backdrop-filter:blur(6px)';
-    modal.onclick = function(e) { if(e.target===modal) closeFull(); };
-    document.body.appendChild(modal);
-  }
+  var sc = r.riskLevel==='high'?'#FF3B3B':r.riskLevel==='medium'?'#FFB020':'#00D68F';
+  var riskName = r.riskLevel==='high'?'Високий':r.riskLevel==='medium'?'Середній':'Низький';
+  var excColors = {ok:'#00D68F',check:'#F59E0B',blocked:'#FF3B3B'};
+  var breakdown = buildBreakdown(r);
 
-  var sc = r.riskLevel === 'high' ? '#FF3B3B' : r.riskLevel === 'medium' ? '#FFB020' : '#00D68F';
-  var riskName = r.riskLevel === 'high' ? 'Високий' : r.riskLevel === 'medium' ? 'Середній' : 'Низький';
-  var excColors = { ok: '#00D68F', check: '#FFB020', blocked: '#FF3B3B' };
-
-  // Build findings grid
-  var findingsItems = [
-    { icon: '🕷️', color: 'rgba(255,59,59,.15)', name: 'Даркнет', val: (r.darknetInteractions > 0 ? r.darknetInteractions + ' транзакцій' : '0') },
-    { icon: '🚫', color: 'rgba(249,115,22,.15)', name: 'Санкційний список', val: (r.ofacMatch ? 'ЗНАЙДЕНО' : '0 збігів') },
-    { icon: '👁️', color: 'rgba(79,110,247,.12)', name: 'Підозрілий обмінник', val: (r.suspiciousTxCount > 0 ? r.suspiciousTxCount + ' взаємодій' : '0') },
-    { icon: '🔄', color: 'rgba(16,185,129,.1)', name: 'Міксер / Тумблер', val: (r.mixerInteractions > 0 ? r.mixerInteractions + ' взаємодій' : '0') },
-    { icon: '📊', color: 'rgba(16,185,129,.1)', name: 'GoPlus перевірка', val: (r.riskFlags && r.riskFlags.length > 0 ? r.riskFlags.length + ' загроз' : 'Чисто') },
-    { icon: '✅', color: 'rgba(16,185,129,.1)', name: 'Фішинг', val: (r.riskFlags && r.riskFlags.find(function(f){return f.type==='phishing';}) ? 'Знайдено' : 'Не виявлено') },
-  ];
-
-  var findingsHtml = findingsItems.map(function(f) {
-    return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:9px">' +
-      '<div style="width:28px;height:28px;border-radius:8px;background:' + f.color + ';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">' + f.icon + '</div>' +
-      '<div><div style="font-size:11px;color:rgba(255,255,255,.45)">' + f.name + '</div>' +
-      '<div style="font-size:13px;font-weight:700;color:#fff">' + f.val + '</div></div>' +
-      '</div>';
+  var breakdownHtml = breakdown.map(function(b) {
+    return '<div class="fr-bd-item"><div class="fr-bd-dot" style="background:'+b.color+'"></div><span class="fr-bd-label">'+b.label+'</span><span class="fr-bd-badge '+
+      (b.status==='Ризик'?'red':b.status==='Увага'?'amber':'green')+'">'+b.status+'</span></div>';
   }).join('');
 
-  var excHtml = (r.exchangeCompatibility || []).map(function(ex) {
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
-      '<span style="color:rgba(255,255,255,.65)">' + ex.name + '</span>' +
-      '<span style="font-weight:700;color:' + (excColors[ex.status] || '#fff') + '">' + ex.label + '</span>' +
-      '</div>';
+  var findingsHtml = [
+    {ico:'🕷️',c:'rgba(239,68,68,.15)',n:'Даркнет', v:(r.darknetInteractions>0?r.darknetInteractions+' транзакцій':'0')},
+    {ico:'🚫',c:'rgba(249,115,22,.15)',n:'Санкційний список', v:(r.ofacMatch?'ЗНАЙДЕНО':'0 збігів')},
+    {ico:'🔄',c:'rgba(79,110,247,.12)',n:'Міксер / Тумблер', v:(r.mixerInteractions>0?r.mixerInteractions+' взаємодій':'0')},
+    {ico:'✅',c:'rgba(16,185,129,.1)',n:'GoPlus Security', v:(r.riskFlags&&r.riskFlags.length>0?r.riskFlags.length+' загроз':'Чисто')},
+    {ico:'👁️',c:'rgba(79,110,247,.12)',n:'Підозріла активність', v:(r.suspiciousTxCount>0?r.suspiciousTxCount:'Немає')},
+    {ico:'🛡️',c:'rgba(16,185,129,.1)',n:'Фішинг', v:(r.riskFlags&&r.riskFlags.some(function(f){return f.type==='phishing';}))?'Знайдено':'Не виявлено'},
+  ].map(function(f) {
+    return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:8px 10px;display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:7px;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+f.ico+'</div><div><div style="font-size:10px;color:rgba(255,255,255,.4)">'+f.n+'</div><div style="font-size:12px;font-weight:700;color:#fff">'+f.v+'</div></div></div>';
   }).join('');
 
-  var cpHtml = (r.topCounterparties || []).map(function(cp) {
-    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
-      '<div style="width:22px;height:22px;border-radius:50%;background:rgba(79,110,247,.15);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">?</div>' +
-      '<span style="flex:1;color:rgba(255,255,255,.65);font-family:var(--mono)">' + cp.address + '</span>' +
-      '<span style="color:rgba(255,255,255,.4)">' + cp.count + ' tx</span>' +
-      '<span style="font-weight:700;color:#fff;width:36px;text-align:right">' + cp.percentage + '%</span>' +
-      '</div>';
-  }).join('') || '<div style="font-size:12px;color:rgba(255,255,255,.35)">Немає даних</div>';
+  var cpHtml = (r.topCounterparties||[]).map(function(cp) {
+    return '<div class="fr-cp-row"><div class="fr-cp-ico">?</div><span class="fr-cp-addr">'+cp.address+'</span><span class="fr-cp-txs">'+cp.count+' tx</span><span class="fr-cp-pct">'+cp.percentage+'%</span></div>';
+  }).join('') || '<div style="font-size:12px;color:rgba(255,255,255,.3)">Немає даних</div>';
 
-  modal.innerHTML =
-    '<div style="background:#0D1028;border:1px solid rgba(79,110,247,.2);border-radius:20px;width:100%;max-width:840px;position:relative;overflow:hidden;margin:auto">' +
-      // Header
-      '<div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)">' +
-        '<div style="display:flex;align-items:center;gap:.75rem">' +
-          '<div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#4F6EF7,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:13px">🛡️</div>' +
-          '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.5)">Детальний звіт — Crypto Scanner</span>' +
+  var excHtml = (r.exchangeCompatibility||[]).map(function(ex) {
+    return '<div class="fr-exc-row"><span class="fr-exc-name">'+ex.name+'</span><span class="fr-exc-val '+(ex.status||'ok')+'">'+ex.label+'</span></div>';
+  }).join('');
+
+  document.getElementById('fr-body').innerHTML =
+    '<div class="fr-grid">' +
+      // Block 1: Wallet overview
+      '<div class="fr-block">' +
+        '<div class="fr-block-title">1. Огляд гаманця</div>' +
+        '<div style="font-size:9px;color:rgba(255,255,255,.35);margin-bottom:.2rem">Адреса</div>' +
+        '<div style="font-family:monospace;font-size:12px;font-weight:700;color:#fff;margin-bottom:.45rem;word-break:break-all">'+r.address+'</div>' +
+        '<div class="fr-tags"><span class="fr-tag '+(r.riskLevel==='high'?'red':r.riskLevel==='medium'?'':'green')+'">'+(r.riskLevel==='high'?'High Risk':r.riskLevel==='medium'?'Medium Risk':'Low Risk')+'</span><span class="fr-tag gray">'+r.network+'</span></div>' +
+        '<div class="fr-gauge-row">' +
+          '<div class="fr-gauge"><svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="38" cy="38" r="30" fill="none" stroke="'+sc+'" stroke-width="6" stroke-dasharray="'+Math.round(r.riskScore*1.885)+' 188" stroke-dashoffset="47" stroke-linecap="round"/></svg><div class="fr-gc"><div class="fr-g-num" style="color:'+sc+'">'+r.riskScore+'</div><div class="fr-g-den">/100</div></div></div>' +
+          '<div><div class="fr-risk-name" style="color:'+sc+'">'+riskName+'</div><div class="fr-risk-desc">'+(r.reputation&&r.reputation.desc||'')+'</div></div>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:1rem">' +
-          '<span style="font-size:11px;color:rgba(255,255,255,.35)">ID: <span style="color:#4F6EF7;font-family:monospace">' + (r.reportId||'N/A') + '</span></span>' +
-          '<button onclick="closeFull()" style="background:rgba(255,255,255,.08);border:none;border-radius:7px;width:28px;height:28px;color:rgba(255,255,255,.6);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✕</button>' +
-        '</div>' +
-      '</div>' +
-      // Body
-      '<div style="padding:1.25rem 1.5rem;overflow-y:auto;max-height:80vh">' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">' +
-          // Block 1: Wallet overview
-          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
-            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">1. Огляд гаманця</div>' +
-            '<div style="font-size:10px;color:rgba(255,255,255,.35);margin-bottom:.2rem">Адреса</div>' +
-            '<div style="font-family:monospace;font-size:12px;font-weight:700;color:#fff;margin-bottom:.5rem;word-break:break-all">' + r.address + '</div>' +
-            '<div style="display:flex;gap:.35rem;margin-bottom:.75rem;flex-wrap:wrap">' +
-              '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;background:rgba(255,59,59,.15);color:#EF4444;border:1px solid rgba(255,59,59,.2)">' + (r.riskLevel === 'high' ? 'High Risk' : r.riskLevel === 'medium' ? 'Medium Risk' : 'Low Risk') + '</span>' +
-              '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08)">' + r.network + '</span>' +
-            '</div>' +
-            '<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">' +
-              '<div style="position:relative;width:72px;height:72px;flex-shrink:0">' +
-                '<svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="28" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="36" cy="36" r="28" fill="none" stroke="' + sc + '" stroke-width="6" stroke-dasharray="' + Math.round(r.riskScore * 1.76) + ' 176" stroke-dashoffset="44" stroke-linecap="round"/></svg>' +
-                '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">' +
-                  '<span style="font-size:20px;font-weight:900;color:#fff;line-height:1">' + r.riskScore + '</span>' +
-                  '<span style="font-size:9px;color:rgba(255,255,255,.35)">/100</span>' +
-                '</div>' +
-              '</div>' +
-              '<div>' +
-                '<div style="font-size:14px;font-weight:800;color:' + sc + '">' + riskName + '</div>' +
-                '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.4">' + (r.reputation && r.reputation.desc || '') + '</div>' +
-              '</div>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem">' +
-              '<div style="background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .6rem;text-align:center">' +
-                '<div style="font-size:12px;font-weight:700;color:#fff">' + (r.activity && r.activity.txCount || '—') + '</div>' +
-                '<div style="font-size:9px;color:rgba(255,255,255,.35)">Транзакцій</div>' +
-              '</div>' +
-              '<div style="background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .6rem;text-align:center">' +
-                '<div style="font-size:11px;font-weight:700;color:#fff">' + (r.activity && r.activity.firstActivity || '—') + '</div>' +
-                '<div style="font-size:9px;color:rgba(255,255,255,.35)">1-а активність</div>' +
-              '</div>' +
-              '<div style="background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .6rem;text-align:center">' +
-                '<div style="font-size:12px;font-weight:700;color:#fff">' + r.network.split(' ')[0] + '</div>' +
-                '<div style="font-size:9px;color:rgba(255,255,255,.35)">Мережа</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-          // Block 2: Findings
-          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
-            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">Деталізовані знахідки</div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem">' + findingsHtml + '</div>' +
-          '</div>' +
-          // Block 3: Funds
-          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
-            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">2. Структура коштів <span style="color:rgba(255,255,255,.2);font-weight:400">(оцінка)</span></div>' +
-            '<div style="height:10px;border-radius:5px;display:flex;overflow:hidden;margin-bottom:.5rem;background:rgba(255,255,255,.05)">' +
-              '<div style="width:' + r.funds.cleanPercent + '%;background:#00D68F"></div>' +
-              '<div style="width:' + r.funds.dirtyPercent + '%;background:#FFB020"></div>' +
-              '<div style="width:' + r.funds.sanctionedPercent + '%;background:#FF3B3B"></div>' +
-            '</div>' +
-            '<div style="display:flex;gap:1rem;margin-bottom:.5rem;flex-wrap:wrap">' +
-              '<div style="display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)"><span style="width:8px;height:8px;border-radius:50%;background:#00D68F;flex-shrink:0"></span>Чисті <span style="font-weight:700;color:#fff">' + r.funds.cleanPercent + '%</span></div>' +
-              '<div style="display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)"><span style="width:8px;height:8px;border-radius:50%;background:#FFB020;flex-shrink:0"></span>Ризикові <span style="font-weight:700;color:#fff">' + r.funds.dirtyPercent + '%</span></div>' +
-              '<div style="display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)"><span style="width:8px;height:8px;border-radius:50%;background:#FF3B3B;flex-shrink:0"></span>Підсанкційні <span style="font-weight:700;color:#fff">' + r.funds.sanctionedPercent + '%</span></div>' +
-            '</div>' +
-            '<div style="font-size:10px;color:rgba(255,255,255,.25);padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px;line-height:1.5">* Оціночні дані на основі виявлених GoPlus флагів. Точний % потребує Chainalysis API.</div>' +
-          '</div>' +
-          // Block 4: Exchanges
-          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
-            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">7. Сумісність з біржами</div>' +
-            excHtml +
-            '<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:.5rem;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px;line-height:1.5">* Оцінка на основі ризик-скору. Фактичне рішення залежить від внутрішньої AML системи біржі.</div>' +
-          '</div>' +
-        '</div>' +
-        // Block 5: Counterparties full width
-        (r.topCounterparties && r.topCounterparties.length > 0 ?
-          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem;margin-bottom:1rem">' +
-          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">6. Основні контрагенти</div>' +
-          cpHtml +
-          '</div>' : '') +
-        // Block 6: TX analysis
-        '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem;margin-bottom:1rem">' +
-          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">5. Аналіз транзакцій</div>' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">' +
-            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:rgba(255,255,255,.5)">Загальна кількість</span><span style="font-weight:700">' + (r.activity && r.activity.txCount || '—') + '</span></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:rgba(255,255,255,.5)">Вхідних</span><span style="font-weight:700">' + (r.activity && r.activity.incomingCount || '—') + '</span></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:rgba(255,255,255,.5)">Вихідних</span><span style="font-weight:700">' + (r.activity && r.activity.outgoingCount || '—') + '</span></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0"><span style="color:rgba(255,255,255,.5)">Остання активність</span><span style="font-weight:700">' + (r.activity && r.activity.lastActivity || '—') + '</span></div>' +
-          '</div>' +
+        '<div class="fr-stats">' +
+          '<div class="fr-stat"><div class="fr-stat-val">'+(r.activity&&r.activity.txCount||'—')+'</div><div class="fr-stat-lbl">Транзакцій</div></div>' +
+          '<div class="fr-stat"><div class="fr-stat-val" style="font-size:10px">'+(r.activity&&r.activity.firstActivity||'—')+'</div><div class="fr-stat-lbl">1-а активність</div></div>' +
+          '<div class="fr-stat"><div class="fr-stat-val">'+r.network.split(' ')[0]+'</div><div class="fr-stat-lbl">Мережа</div></div>' +
         '</div>' +
       '</div>' +
-      // Footer
-      '<div style="padding:.85rem 1.5rem;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.01)">' +
-        '<div style="font-size:10px;color:rgba(255,255,255,.25)">ⓘ Не є фінансовою порадою. Тільки для ознайомлення.</div>' +
-        '<div style="font-size:10px;color:rgba(255,255,255,.25)">' + new Date().toLocaleDateString('uk-UA') + '</div>' +
+      // Block 2: Findings grid
+      '<div class="fr-block">' +
+        '<div class="fr-block-title">Деталізовані знахідки</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">'+findingsHtml+'</div>' +
       '</div>' +
+      // Block 3: Risk breakdown (why this score?)
+      '<div class="fr-block">' +
+        '<div class="fr-block-title">🔍 Risk Breakdown — Why this score?</div>' +
+        '<div class="fr-breakdown">'+breakdownHtml+'</div>' +
+      '</div>' +
+      // Block 4: Funds structure
+      '<div class="fr-block">' +
+        '<div class="fr-block-title">2. Структура коштів <span style="color:rgba(255,255,255,.2);font-weight:400">(оцінка)</span></div>' +
+        '<div class="fr-funds-bar"><div style="width:'+r.funds.cleanPercent+'%;background:#00D68F"></div><div style="width:'+r.funds.dirtyPercent+'%;background:#FFB020"></div><div style="width:'+r.funds.sanctionedPercent+'%;background:#FF3B3B"></div></div>' +
+        '<div class="fr-funds-legend"><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#00D68F"></span>Чисті<span class="fr-funds-pct">'+r.funds.cleanPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FFB020"></span>Ризикові<span class="fr-funds-pct">'+r.funds.dirtyPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FF3B3B"></span>Підсанкційні<span class="fr-funds-pct">'+r.funds.sanctionedPercent+'%</span></div></div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.25);padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px">* Оціночно на основі GoPlus флагів. Точний % потребує Chainalysis API.</div>' +
+      '</div>' +
+      // Block 5: TX analysis
+      '<div class="fr-block">' +
+        '<div class="fr-block-title">5. Аналіз транзакцій</div>' +
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Загальна кількість</span><span class="fr-tx-val">'+(r.activity&&r.activity.txCount||'—')+'</span></div>' +
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Вхідних</span><span class="fr-tx-val">'+(r.activity&&r.activity.incomingCount||'—')+'</span></div>' +
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Вихідних</span><span class="fr-tx-val">'+(r.activity&&r.activity.outgoingCount||'—')+'</span></div>' +
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Перша активність</span><span class="fr-tx-val">'+(r.activity&&r.activity.firstActivity||'—')+'</span></div>' +
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Остання активність</span><span class="fr-tx-val">'+(r.activity&&r.activity.lastActivity||'—')+'</span></div>' +
+      '</div>' +
+      // Block 6: Exchange compat
+      '<div class="fr-block">' +
+        '<div class="fr-block-title">7. Сумісність з біржами</div>' +
+        excHtml +
+        '<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:.5rem">* Оцінка на основі ризик-скору. Рішення біржі може відрізнятись.</div>' +
+      '</div>' +
+      // Block 7: Counterparties (full width)
+      (r.topCounterparties&&r.topCounterparties.length>0?
+        '<div class="fr-block fr-block-full"><div class="fr-block-title">6. Основні контрагенти</div>'+cpHtml+'</div>'
+      : '') +
     '</div>';
 
-  modal.style.display = 'flex';
+  document.getElementById('fr-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeFull() {
-  var modal = document.getElementById('full-report-modal');
-  if (modal) modal.style.display = 'none';
+function openFRFromHistory() { openFR(); }
+
+function closeFR() {
+  document.getElementById('fr-modal').classList.remove('open');
   document.body.style.overflow = '';
 }
 
-function getPdfReport() {
-  // PDF generation coming soon
-  // For now show toast and save scan ID for future PDF
-  showToast('📄 PDF report will be sent to ' + currentUser.email + ' within 2 minutes.', 'success');
-  closeModal();
-  loadDashboard();
+document.getElementById('fr-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeFR();
+});
+
+// ── WATCHLIST ─────────────────────────────────────────────────
+function renderWatchlist() {
+  var wrap = document.getElementById('wl-grid-wrap');
+  if (!watchlist.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = watchlist.map(function(w, i) {
+    var sc = w.riskScore || null;
+    var level = w.riskLevel || null;
+    var color = !sc ? 'var(--tx3)' : level==='high'?'var(--red)':level==='medium'?'var(--amber)':'var(--green)';
+    return '<div class="wl-card">' +
+      '<div class="wl-card-top"><span class="wl-name">'+w.name+'</span><span class="wl-network">'+(w.network||'Unknown')+'</span></div>' +
+      '<div class="wl-addr">'+w.address+'</div>' +
+      '<div class="wl-score-row"><span class="wl-score" style="color:'+color+'">'+(sc?sc+'/100':'—')+'</span><span class="wl-last">'+(w.lastChecked?'Оновлено: '+w.lastChecked:'Не перевірено')+'</span></div>' +
+      '<div class="wl-actions">' +
+        '<button class="wl-btn" onclick="refreshWatchlistItem('+i+')">🔄 Оновити</button>' +
+        '<button class="wl-btn" onclick="viewWatchlistItem('+i+')">📋 Звіт</button>' +
+        '<button class="wl-btn danger" onclick="removeWatchlistItem('+i+')">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
+function openAddWatchlist() {
+  document.getElementById('wl-name-inp').value = '';
+  document.getElementById('wl-addr-inp').value = '';
+  document.getElementById('wl-modal').classList.add('open');
+}
+
+function closeWlModal() { document.getElementById('wl-modal').classList.remove('open'); }
+
+function addToWatchlist() {
+  var name = document.getElementById('wl-name-inp').value.trim();
+  var addr = document.getElementById('wl-addr-inp').value.trim();
+  if (!name || !addr) { showToast('⚠ Заповніть всі поля', 'error'); return; }
+  watchlist.push({name, address:addr, network:'Unknown', riskScore:null, riskLevel:null, lastChecked:null});
+  localStorage.setItem('wl_items', JSON.stringify(watchlist));
+  closeWlModal();
+  renderWatchlist();
+  showToast('✅ Додано до Watchlist', 'success');
+}
+
+function removeWatchlistItem(i) {
+  watchlist.splice(i, 1);
+  localStorage.setItem('wl_items', JSON.stringify(watchlist));
+  renderWatchlist();
+}
+
+async function refreshWatchlistItem(i) {
+  var item = watchlist[i];
+  if (!profileData || profileData.profile.credits < 1) { showToast('⚠ Немає кредитів', 'error'); return; }
+  showToast('🔄 Сканування ' + item.name + '...', 'success');
+  try {
+    var res = await fetch(API + '/report?addr=' + encodeURIComponent(item.address));
+    var report = await res.json();
+    if (report.error) throw new Error(report.error);
+
+    // Deduct
+    var dr = await fetch(API + '/auth', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({action:'deduct', scanData:{address:item.address, network:report.network||'Unknown', risk_score:report.riskScore||0, risk_level:report.riskLevel||'low', risk_flags:report.riskFlags||[]}})});
+    var dd = await dr.json();
+    if (dd.credits !== undefined) { profileData.profile.credits = dd.credits; updateCreditsUI(dd.credits); }
+
+    watchlist[i].riskScore = report.riskScore;
+    watchlist[i].riskLevel = report.riskLevel;
+    watchlist[i].network = report.network || item.network;
+    watchlist[i].lastChecked = new Date().toLocaleDateString('uk-UA');
+    watchlist[i]._report = report;
+    localStorage.setItem('wl_items', JSON.stringify(watchlist));
+    renderWatchlist();
+    showToast('✅ ' + item.name + ' оновлено', 'success');
+  } catch(e) { showToast('❌ ' + e.message, 'error'); }
+}
+
+async function viewWatchlistItem(i) {
+  var item = watchlist[i];
+  if (item._report) {
+    window._lastReport = item._report;
+    openFR();
+  } else {
+    // Fetch without deducting (just view)
+    showToast('🔍 Завантажуємо звіт...', 'success');
+    try {
+      var res = await fetch(API + '/report?addr=' + encodeURIComponent(item.address));
+      var report = await res.json();
+      if (!report.error) { window._lastReport = report; openFR(); }
+    } catch(e) { showToast('❌ ' + e.message, 'error'); }
+  }
+}
+
+// ── PACKAGES ─────────────────────────────────────────────────
+async function buyPackage(name, price, credits) {
+  showToast('⏳ Creating payment...', 'success');
+  try {
+    var res = await fetch(API + '/purchase', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({package_name:name, amount_usd:price, credits})});
+    var data = await res.json();
+    if (data.invoice_url) window.open(data.invoice_url, '_blank');
+    else showToast('❌ ' + (data.error||'Payment error'), 'error');
+  } catch(e) { showToast('❌ ' + e.message, 'error'); }
+}
+
+// ── PROMO ─────────────────────────────────────────────────────
+async function redeemPromo() {
+  var code = document.getElementById('promo-input').value.trim();
+  var msg = document.getElementById('promo-msg');
+  var btn = document.getElementById('promo-btn');
+  if (!code) { msg.style.display='block'; msg.style.background='var(--red-dim)'; msg.style.border='1px solid rgba(255,59,59,.2)'; msg.style.color='var(--red)'; msg.textContent='⚠ Введіть промокод'; return; }
+  btn.disabled=true; btn.textContent='...'; msg.style.display='none';
+  try {
+    var res = await fetch(API + '/auth', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({action:'promo', code})});
+    var data = await res.json();
+    msg.style.display = 'block';
+    if (data.success) {
+      msg.style.background='var(--green-dim)'; msg.style.border='1px solid rgba(0,214,143,.2)'; msg.style.color='var(--green)'; msg.textContent=data.message;
+      document.getElementById('promo-input').value='';
+      if (data.new_balance!==undefined) { profileData.profile.credits=data.new_balance; updateCreditsUI(data.new_balance); }
+    } else {
+      msg.style.background='var(--red-dim)'; msg.style.border='1px solid rgba(255,59,59,.2)'; msg.style.color='var(--red)'; msg.textContent='❌ '+(data.error||'Помилка');
+    }
+  } catch(e) { msg.style.display='block'; msg.textContent='❌ Помилка підключення'; }
+  finally { btn.disabled=false; btn.textContent='Активувати'; }
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────
 function openModal(title) {
   document.getElementById('modal-title-txt').textContent = title;
-  document.getElementById('scan-modal').style.display = 'flex';
+  document.getElementById('scan-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 function closeModal() {
-  document.getElementById('scan-modal').style.display = 'none';
+  document.getElementById('scan-modal').classList.remove('open');
+  document.body.style.overflow = '';
 }
+document.getElementById('scan-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key==='Escape') { closeModal(); closeFR(); closeWlModal(); }
+});
 
 // ── TOAST ─────────────────────────────────────────────────────
 function showToast(msg, type) {
   var t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast show' + (type ? ' ' + type : '');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(function() { t.className = 'toast'; }, 4000);
+  t.className = 'toast ' + (type||'');
+  setTimeout(function(){t.classList.add('show')}, 10);
+  setTimeout(function(){t.classList.remove('show')}, 3200);
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-window.addEventListener('load', function() {
-  if (token) {
-    loadDashboard();
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-  }
-  // Enter key on login
-  document.getElementById('login-pass').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doLogin();
-  });
-});
+if (token) {
+  loadApp();
+} else {
+  document.getElementById('auth-screen').style.display = 'flex';
+}
 </script>
 </body>
 </html>

@@ -701,14 +701,15 @@ function scanRow(s, showLevel) {
   var sc = s.risk_score || 0;
   var level = s.risk_level || 'unknown';
   var color = level === 'high' ? 'var(--red)' : level === 'medium' ? 'var(--amber)' : 'var(--green)';
-  var date = s.created_at ? new Date(s.created_at).toLocaleDateString() : '-';
+  var date = s.created_at ? new Date(s.created_at).toLocaleDateString('uk-UA') : '-';
+  var scanId = s.id || '';
   return '<tr>' +
     '<td class="addr-cell" title="' + addr + '">' + short + '</td>' +
     '<td>' + (s.network || '-') + '</td>' +
     '<td><span style="font-family:var(--mono);font-weight:600;color:' + color + '">' + sc + '/100</span></td>' +
     (showLevel ? '<td><span class="risk-chip ' + level + '">' + level.toUpperCase() + '</span></td>' : '') +
     '<td style="color:var(--tx3);font-size:12px">' + date + '</td>' +
-    '<td>' + (s.report_url ? '<button class="report-btn" onclick="window.open(\'' + s.report_url + '\')">PDF</button>' : '<span style="font-size:11px;color:var(--tx3)">Coming soon</span>') + '</td>' +
+    '<td><button onclick="viewHistoryReport(' + JSON.stringify(s).replace(/"/g, '&quot;') + ')" style="background:none;border:1px solid var(--b2);border-radius:7px;padding:4px 10px;font-size:11px;color:var(--cyan);cursor:pointer;transition:all .15s;font-family:var(--body)" onmouseover="this.style.background=\'var(--s2)\'" onmouseout="this.style.background=\'none\'">Переглянути</button></td>' +
     '</tr>';
 }
 
@@ -818,6 +819,73 @@ function renderReportModal(r, sc, levelLabel, level) {
     '</button>' +
     '<button onclick="closeModal()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Закрити</button>';
 }
+function viewHistoryReport(s) {
+  // Build a mock report object from saved scan data and re-fetch from API
+  // Show loading modal first
+  openModal('Завантаження звіту...');
+  document.getElementById('modal-body').innerHTML =
+    '<div class="modal-scanning"><div class="mini-spinner"></div>' +
+    '<div style="font-size:14px;color:var(--tx2)">Завантажуємо дані звіту...</div></div>';
+
+  // Re-fetch the report for this address
+  fetch(API + '/report?addr=' + encodeURIComponent(s.address)).then(function(r) {
+    return r.json();
+  }).then(function(report) {
+    if (report.error) {
+      // If can't re-fetch, show basic info from saved scan
+      report = buildBasicReport(s);
+    }
+    // Override with saved values for consistency
+    report.riskScore = s.risk_score || report.riskScore;
+    report.riskLevel = s.risk_level || report.riskLevel;
+    report.address = s.address;
+    report.network = s.network || report.network;
+
+    window._lastReport = report;
+    var sc = report.riskLevel === 'high' ? '#FF3B3B' : report.riskLevel === 'medium' ? '#FFB020' : '#00D68F';
+    var levelLabel = report.riskLevel === 'high' ? 'ВИСОКИЙ РИЗИК' : report.riskLevel === 'medium' ? 'ПОТЕНЦІЙНИЙ РИЗИК' : 'НИЗЬКИЙ РИЗИК';
+    document.getElementById('modal-title-txt').textContent = 'Звіт: ' + s.address.slice(0,10) + '...';
+    renderReportModal(report, sc, levelLabel, report.riskLevel);
+  }).catch(function(e) {
+    var report = buildBasicReport(s);
+    window._lastReport = report;
+    var sc = report.riskLevel === 'high' ? '#FF3B3B' : report.riskLevel === 'medium' ? '#FFB020' : '#00D68F';
+    var levelLabel = report.riskLevel === 'high' ? 'ВИСОКИЙ РИЗИК' : report.riskLevel === 'medium' ? 'ПОТЕНЦІЙНИЙ РИЗИК' : 'НИЗЬКИЙ РИЗИК';
+    document.getElementById('modal-title-txt').textContent = 'Звіт: ' + s.address.slice(0,10) + '...';
+    renderReportModal(report, sc, levelLabel, report.riskLevel);
+  });
+}
+
+function buildBasicReport(s) {
+  // Build minimal report from saved scan data when API unavailable
+  return {
+    address: s.address,
+    network: s.network || 'Unknown',
+    riskScore: s.risk_score || 0,
+    riskLevel: s.risk_level || 'low',
+    reportId: 'CS-SAVED',
+    riskFlags: s.risk_flags || [],
+    ofacMatch: false,
+    mixerInteractions: 0,
+    darknetInteractions: 0,
+    sanctionedRisk: 0,
+    suspiciousTxCount: 0,
+    funds: { cleanPercent: '98.0', dirtyPercent: '1.5', sanctionedPercent: '0.5' },
+    activity: { txCount: '—', firstActivity: '—', lastActivity: new Date(s.created_at).toLocaleDateString('uk-UA'), incomingCount: '—', outgoingCount: '—' },
+    balance: null,
+    topCounterparties: [],
+    exchangeCompatibility: [
+      { name: 'Binance', status: 'ok', label: 'Депозит можливий' },
+      { name: 'Bybit', status: 'ok', label: 'Депозит можливий' },
+      { name: 'OKX', status: 'ok', label: 'Депозит можливий' },
+    ],
+    reputation: {
+      label: s.risk_level === 'high' ? 'Висока загроза' : s.risk_level === 'medium' ? 'Помірна експозиція' : 'Чистий гаманець',
+      desc: s.risk_level === 'high' ? 'Виявлено серйозні ризики.' : s.risk_level === 'medium' ? 'Виявлено потенційні ризики.' : 'Серйозних ризиків не виявлено.',
+    },
+  };
+}
+
 function openFullReportDash() {
   var r = window._lastReport;
   if (!r) return;

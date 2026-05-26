@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -691,7 +692,7 @@ async function buyPackage(pkgId) {
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
-function renderReportModal(r, sc, levelLabel) {
+function renderReportModal(r, sc, levelLabel, level) {
   var fundsBar = '<div style="height:8px;border-radius:4px;display:flex;overflow:hidden;margin:.5rem 0">' +
     '<div style="width:' + r.funds.cleanPercent + '%;background:#00D68F"></div>' +
     '<div style="width:' + r.funds.dirtyPercent + '%;background:#FFB020"></div>' +

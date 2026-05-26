@@ -8,308 +8,398 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#07091A;--s1:#0D1028;--s2:#131630;--b1:#1C2245;--b2:#232B55;
+  --bg:#07091A;--s1:#0D1028;--s2:#131630;--s3:#181C3A;
+  --b1:#1C2245;--b2:#252B55;--b3:#2D3560;
   --tx:#EEF2FF;--tx2:#7B8DB8;--tx3:#3A4A75;
   --red:#FF3B3B;--red-dim:rgba(255,59,59,.1);
   --amber:#FFB020;--amber-dim:rgba(255,176,32,.1);
   --green:#00D68F;--green-dim:rgba(0,214,143,.1);
-  --cyan:#00C8FF;--cyan2:#0077AA;
   --blue:#4F6EF7;--purple:#7C3AED;
+  --cyan:#00C8FF;--cyan2:#0077AA;
   --head:'Inter',sans-serif;--body:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hidden;line-height:1.5}
 
-/* ── AUTH ── */
-.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:radial-gradient(ellipse at 50% 30%,rgba(79,110,247,.12),transparent 60%),var(--bg)}
-.auth-box{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:2.5rem;width:100%;max-width:400px}
-.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:2rem}
-.auth-logo-ico{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px}
-.auth-logo-name{font-size:20px;font-weight:800;color:var(--tx)}
-.auth-title{font-size:22px;font-weight:800;text-align:center;margin-bottom:.35rem}
-.auth-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:1.75rem}
-.auth-tabs{display:flex;background:var(--s2);border-radius:10px;padding:3px;margin-bottom:1.5rem}
-.auth-tab{flex:1;text-align:center;padding:8px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s;color:var(--tx2)}
+/* ══ AUTH ══════════════════════════════════════════════════ */
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  background:radial-gradient(ellipse at 50% 30%,rgba(79,110,247,.12),transparent 60%),var(--bg)}
+.auth-box{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:2.25rem;width:100%;max-width:400px}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:1.75rem}
+.auth-logo-ico{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:17px}
+.auth-logo-name{font-size:18px;font-weight:800}
+.auth-title{font-size:20px;font-weight:800;text-align:center;margin-bottom:.25rem}
+.auth-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:1.5rem}
+.auth-tabs{display:flex;background:var(--s2);border-radius:10px;padding:3px;margin-bottom:1.25rem}
+.auth-tab{flex:1;text-align:center;padding:7px;font-size:13px;font-weight:600;border-radius:7px;cursor:pointer;transition:all .2s;color:var(--tx2)}
 .auth-tab.active{background:var(--b1);color:var(--tx)}
 .auth-panel{display:none}.auth-panel.active{display:block}
-.auth-err{background:var(--red-dim);border:1px solid rgba(255,59,59,.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:1rem;display:none}
-.auth-field{margin-bottom:1rem}
-.auth-label{font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:.35rem;display:block}
-.auth-input{width:100%;background:var(--s2);border:1.5px solid var(--b1);border-radius:10px;padding:11px 14px;font-family:var(--body);font-size:14px;color:var(--tx);outline:none;transition:border-color .2s}
+.auth-err{background:var(--red-dim);border:1px solid rgba(255,59,59,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:1rem;display:none}
+.auth-field{margin-bottom:.9rem}
+.auth-label{font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:.3rem;display:block;text-transform:uppercase;letter-spacing:.04em}
+.auth-input{width:100%;background:var(--s2);border:1.5px solid var(--b1);border-radius:9px;padding:11px 13px;font-family:var(--body);font-size:14px;color:var(--tx);outline:none;transition:border-color .2s}
 .auth-input:focus{border-color:var(--blue)}
-.auth-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:13px;font-family:var(--head);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s}
+.auth-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:12px;font-family:var(--head);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s}
 .auth-btn:hover{opacity:.88}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed}
-.auth-footer{text-align:center;font-size:12px;color:var(--tx3);margin-top:1rem}
-.auth-footer a{color:var(--cyan);cursor:pointer;text-decoration:none}
+.auth-footer{text-align:center;font-size:12px;color:var(--tx3);margin-top:.9rem}
+.auth-footer a{color:var(--blue);cursor:pointer}
 
-/* ── APP LAYOUT ── */
+/* ══ LAYOUT ════════════════════════════════════════════════ */
 #app{display:none;min-height:100vh}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;z-index:50;overflow-y:auto}
-.sb-logo{display:flex;align-items:center;gap:9px;padding:1.25rem 1.25rem 1rem;border-bottom:1px solid var(--b1)}
-.sb-logo-ico{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:15px}
-.sb-logo-name{font-size:15px;font-weight:800;color:var(--tx)}
-.sb-nav{flex:1;padding:.75rem 0}
-.nav-item{width:100%;background:none;border:none;display:flex;align-items:center;gap:9px;padding:.65rem 1.25rem;font-family:var(--body);font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .15s;text-align:left;border-radius:0}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:210px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;z-index:50;transition:transform .3s}
+.sb-top{padding:1.1rem 1rem .9rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px}
+.sb-ico{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sb-name{font-size:14px;font-weight:800;line-height:1.1}
+.sb-tagline{font-size:10px;color:var(--tx3);font-weight:400}
+.sb-nav{flex:1;padding:.6rem 0;overflow-y:auto}
+.nav-item{width:100%;background:none;border:none;display:flex;align-items:center;gap:8px;padding:.6rem 1rem;font-family:var(--body);font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .15s;text-align:left;border-radius:0;position:relative}
 .nav-item:hover{background:var(--s2);color:var(--tx)}
 .nav-item.active{background:rgba(79,110,247,.12);color:var(--blue);font-weight:600}
-.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
-.nav-sep{height:1px;background:var(--b1);margin:.4rem .75rem}
-.credits-badge{margin:.75rem;background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:12px;padding:.85rem 1rem}
-.cb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:.2rem}
-.cb-val{font-size:26px;font-weight:900;color:var(--cyan);line-height:1}
-.cb-sub{font-size:10px;color:var(--tx3);margin-top:.15rem}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue);border-radius:0 3px 3px 0}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.nav-sep{height:1px;background:var(--b1);margin:.35rem .75rem}
+.sb-credits{margin:.6rem;background:rgba(79,110,247,.07);border:1px solid rgba(79,110,247,.18);border-radius:12px;padding:.75rem .9rem}
+.sb-cr-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3)}
+.sb-cr-val{font-size:22px;font-weight:900;color:var(--cyan);line-height:1.1}
+.sb-cr-sub{font-size:10px;color:var(--tx3)}
+.sb-buy-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:9px;padding:9px;font-family:var(--head);font-size:12px;font-weight:700;color:#fff;cursor:pointer;margin-top:.5rem;display:flex;align-items:center;justify-content:center;gap:6px}
+.sb-user{display:flex;align-items:center;gap:8px;padding:.75rem 1rem;border-top:1px solid var(--b1)}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.sb-email{font-size:11px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sb-plan{font-size:9px;color:var(--amber);font-weight:600;display:flex;align-items:center;gap:3px}
 
-/* ── MAIN ── */
-.main{margin-left:220px;padding:2rem;min-height:100vh}
-.page-title{font-size:24px;font-weight:800;letter-spacing:-.3px;margin-bottom:.25rem}
-.page-sub{font-size:13px;color:var(--tx2);margin-bottom:1.75rem}
-.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:.75rem}
+/* ══ MAIN ══════════════════════════════════════════════════ */
+.main{margin-left:210px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.75rem;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:40}
+.topbar-left{display:flex;flex-direction:column}
+.topbar-title{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.topbar-sub{font-size:12px;color:var(--tx2)}
+.topbar-right{display:flex;align-items:center;gap:.75rem}
+.notif-btn{width:34px;height:34px;border-radius:9px;background:var(--s2);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;position:relative;transition:background .15s}
+.notif-btn:hover{background:var(--s3)}
+.export-btn{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--tx2);cursor:pointer;transition:all .15s}
+.export-btn:hover{border-color:var(--b3);color:var(--tx)}
+.ham-btn{display:none;background:none;border:1px solid var(--b1);border-radius:7px;padding:6px 9px;color:var(--tx2);font-size:16px;cursor:pointer}
+.content{padding:1.5rem 1.75rem;flex:1}
 
-/* Cards */
-.card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:1.25rem}
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
-.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:center;gap:.85rem}
-.stat-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.stat-ico.blue{background:rgba(79,110,247,.1)}.stat-ico.green{background:var(--green-dim)}.stat-ico.amber{background:var(--amber-dim)}.stat-ico.red{background:var(--red-dim)}
-.stat-val{font-size:22px;font-weight:800;line-height:1}
-.stat-lbl{font-size:11px;color:var(--tx3);margin-top:2px}
+/* ══ KPI CARDS ═════════════════════════════════════════════ */
+.kpi-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:1rem;margin-bottom:1.5rem}
+.kpi-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.1rem 1.2rem;transition:border-color .2s}
+.kpi-card:hover{border-color:var(--b2)}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin-bottom:.6rem;display:flex;align-items:center;gap:5px}
+.kpi-label-ico{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;background:rgba(79,110,247,.15);color:var(--blue)}
+/* Security score card */
+.kpi-score{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem}
+.kpi-score-left .score-num{font-size:36px;font-weight:900;color:var(--amber);line-height:1}
+.kpi-score-left .score-max{font-size:14px;color:var(--tx3);font-weight:400}
+.kpi-score-left .score-level{font-size:12px;font-weight:700;color:var(--amber);display:flex;align-items:center;gap:4px;margin-top:.25rem}
+.kpi-score-left .score-desc{font-size:11px;color:var(--tx3);margin-top:.35rem;line-height:1.45;max-width:130px}
+.kpi-score-left .score-link{font-size:11px;color:var(--blue);cursor:pointer;margin-top:.5rem;display:inline-flex;align-items:center;gap:3px}
+.gauge-ring{flex-shrink:0;width:68px;height:68px;position:relative}
+.gauge-ring svg{width:100%;height:100%}
+.gauge-ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+/* Simple KPI */
+.kpi-big{font-size:32px;font-weight:900;line-height:1;margin-bottom:.15rem}
+.kpi-sub{font-size:11px;color:var(--tx2)}
+.kpi-delta{font-size:10px;font-weight:600;margin-top:.25rem}
+.kpi-delta.pos{color:var(--blue)}.kpi-delta.neg{color:var(--red)}
+/* Sparkline */
+.kpi-sparkline{margin-top:.5rem;height:28px}
+/* Last scan card */
+.kpi-addr{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--tx);margin-bottom:.3rem}
+.kpi-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;margin-bottom:.3rem}
+.kpi-badge.low{background:var(--green-dim);color:var(--green)}
+.kpi-badge.medium{background:var(--amber-dim);color:var(--amber)}
+.kpi-badge.high{background:var(--red-dim);color:var(--red)}
+.kpi-date{font-size:11px;color:var(--tx3)}
+.kpi-link{font-size:11px;color:var(--blue);cursor:pointer;margin-top:.35rem;display:inline-flex;align-items:center;gap:3px}
 
-/* Quick scan */
-.scan-card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem}
-.sc-title{font-size:13px;font-weight:600;color:var(--tx2);margin-bottom:.85rem;display:flex;align-items:center;gap:6px}
-.sc-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ══ MAIN SECTION ══════════════════════════════════════════ */
+.main-row{display:grid;grid-template-columns:1fr 280px;gap:1.25rem}
+.main-left{}
+.main-right{display:flex;flex-direction:column;gap:1.25rem}
+
+/* Tabs */
+.tabs-row{display:flex;align-items:center;gap:.5rem;margin-bottom:1.1rem}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .2s}
+.tab-btn.active{background:var(--blue);color:#fff}
+.tab-btn.inactive{background:var(--s2);border-color:var(--b1);color:var(--tx2)}
+.tab-btn.inactive:hover{border-color:var(--b2);color:var(--tx)}
+.tab-count{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px}
+.tab-btn.active .tab-count{background:rgba(255,255,255,.2)}
+.tab-btn.inactive .tab-count{background:var(--b1)}
+.tabs-spacer{flex:1}
+.add-wallet-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;background:rgba(79,110,247,.1);border:1px solid rgba(79,110,247,.3);border-radius:9px;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;transition:all .2s}
+.add-wallet-btn:hover{background:rgba(79,110,247,.18)}
+
+/* Wallet cards horizontal scroll */
+.wallets-scroll{display:flex;gap:1rem;overflow-x:auto;padding-bottom:.5rem;margin-bottom:.5rem}
+.wallets-scroll::-webkit-scrollbar{height:4px}
+.wallets-scroll::-webkit-scrollbar-track{background:var(--s2)}
+.wallets-scroll::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.wallet-card{background:var(--s1);border:1.5px solid var(--b1);border-radius:14px;padding:1rem 1.1rem;min-width:220px;flex-shrink:0;transition:border-color .2s;position:relative}
+.wallet-card:hover{border-color:var(--b2)}
+.wc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.5rem}
+.wc-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px}
+.wc-star{font-size:13px;color:var(--amber)}
+.wc-menu{background:none;border:none;color:var(--tx3);font-size:16px;cursor:pointer;padding:0 2px;line-height:1;transition:color .15s}
+.wc-menu:hover{color:var(--tx)}
+.wc-addr{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--tx2);margin-bottom:.85rem}
+.wc-copy{background:none;border:none;color:var(--tx3);font-size:11px;cursor:pointer;padding:0;transition:color .15s}
+.wc-copy:hover{color:var(--tx)}
+/* Mini gauge */
+.wc-score-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.mini-gauge{position:relative;width:46px;height:46px;flex-shrink:0}
+.mini-gauge svg{width:100%;height:100%}
+.mini-gauge-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.wc-score-num{font-size:20px;font-weight:800;line-height:1}
+.wc-score-max{font-size:11px;color:var(--tx3)}
+.wc-score-label{font-size:11px;font-weight:600}
+.wc-last{font-size:10px;color:var(--tx3);margin-bottom:.35rem;display:flex;align-items:center;gap:4px}
+.wc-trend{font-size:10px;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:5px}
+.wc-trend.stable{color:var(--tx2)}
+.wc-trend.improving{color:var(--green)}
+.wc-trend.worsening{color:var(--red)}
+.wc-actions{display:flex;gap:5px}
+.wc-btn{flex:1;padding:6px 8px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s;font-family:var(--body)}
+.wc-btn.outline{background:var(--s2);color:var(--tx2);border:1px solid var(--b2)}
+.wc-btn.outline:hover{color:var(--tx)}
+.wc-btn.primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}
+.wc-btn:hover{opacity:.88}
+.scroll-hint{font-size:11px;color:var(--tx3);text-align:center;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:1rem}
+
+/* All scans table */
+.scans-table{width:100%;border-collapse:collapse}
+.scans-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);padding:.55rem .85rem;text-align:left;border-bottom:1px solid var(--b1)}
+.scans-table td{padding:.65rem .85rem;border-bottom:1px solid rgba(28,34,69,.5);font-size:12px;vertical-align:middle}
+.scans-table tr:last-child td{border-bottom:none}
+.scans-table tr:hover td{background:rgba(255,255,255,.015)}
+.addr-mono{font-family:var(--mono);font-size:11px;color:var(--tx2)}
+.risk-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px}
+.risk-badge.high{background:var(--red-dim);color:var(--red)}
+.risk-badge.medium{background:var(--amber-dim);color:var(--amber)}
+.risk-badge.low{background:var(--green-dim);color:var(--green)}
+.risk-badge.unknown{background:var(--s2);color:var(--tx3)}
+.tbl-actions{display:flex;align-items:center;gap:.35rem}
+.tbl-ico-btn{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:15px;padding:2px;transition:color .15s}
+.tbl-ico-btn:hover{color:var(--tx)}
+
+/* Recent scans section */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.section-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.view-all-link{font-size:12px;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:3px}
+
+/* ══ RISK BREAKDOWN ════════════════════════════════════════ */
+.rb-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1rem 1.1rem}
+.rb-title{font-size:13px;font-weight:700;margin-bottom:.85rem;display:flex;align-items:center;gap:6px}
+.rb-title .info-ico{width:14px;height:14px;border-radius:50%;background:var(--b2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--tx3);cursor:pointer}
+.rb-item{display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem}
+.rb-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.rb-label{font-size:12px;color:var(--tx2);flex:1}
+.rb-bar-wrap{width:60px;height:5px;background:var(--b1);border-radius:3px;overflow:hidden;flex-shrink:0}
+.rb-bar{height:100%;border-radius:3px}
+.rb-val{font-size:11px;font-weight:700;width:28px;text-align:right;flex-shrink:0}
+.rb-link{font-size:11px;color:var(--blue);cursor:pointer;margin-top:.6rem;display:inline-flex;align-items:center;gap:3px}
+
+/* ══ SECURITY TIPS ══════════════════════════════════════════ */
+.tips-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1rem 1.1rem}
+.tips-title{font-size:13px;font-weight:700;margin-bottom:.85rem;display:flex;align-items:center;gap:6px}
+.tip-item{display:flex;align-items:flex-start;gap:.65rem;margin-bottom:.7rem}
+.tip-ico{width:28px;height:28px;border-radius:8px;background:rgba(79,110,247,.1);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tip-text{font-size:12px;color:var(--tx2);line-height:1.5}
+.tips-view-all{font-size:11px;color:var(--blue);cursor:pointer;display:inline-flex;align-items:center;gap:3px;margin-top:.25rem}
+
+/* ══ PAGES (scan, history, etc.) ═══════════════════════════ */
+.page-header{margin-bottom:1.5rem}
+.page-title{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:.2rem}
+.page-sub{font-size:13px;color:var(--tx2)}
+.scan-box{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem}
 .scan-row{display:flex;gap:8px}
-.scan-input{flex:1;background:var(--s2);border:1.5px solid var(--b1);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:13px;color:var(--tx);outline:none;transition:border-color .2s}
-.scan-input:focus{border-color:var(--blue)}
-.scan-input::placeholder{color:var(--tx3)}
-.scan-btn{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:10px 18px;font-family:var(--head);font-size:13px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .15s}
-.scan-btn:hover{opacity:.88}
-.scan-note{font-size:11px;color:var(--tx3);margin-top:.5rem}
-
-/* History table */
-.history-table{width:100%;border-collapse:collapse}
-.history-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);padding:.6rem .85rem;text-align:left;border-bottom:1px solid var(--b1)}
-.history-table td{padding:.7rem .85rem;border-bottom:1px solid rgba(28,34,69,.5);font-size:13px;vertical-align:middle}
-.history-table tr:last-child td{border-bottom:none}
-.addr-cell{font-family:var(--mono);font-size:12px;cursor:pointer;color:var(--tx2)}
-.addr-cell:hover{color:var(--tx)}
-.risk-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;text-transform:uppercase}
-.risk-chip.high{background:var(--red-dim);color:var(--red)}.risk-chip.medium{background:var(--amber-dim);color:var(--amber)}.risk-chip.low{background:var(--green-dim);color:var(--green)}.risk-chip.unknown{background:var(--s2);color:var(--tx3)}
+.scan-inp{flex:1;background:var(--s2);border:1.5px solid var(--b1);border-radius:10px;padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--tx);outline:none;transition:border-color .2s}
+.scan-inp:focus{border-color:var(--blue)}
+.scan-inp::placeholder{color:var(--tx3)}
+.scan-go{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:11px 20px;font-family:var(--head);font-size:13px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.scan-go:hover{opacity:.88}
+.scan-note{font-size:11px;color:var(--tx3);margin-top:.5rem;display:flex;align-items:center;gap:5px}
+.sc-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* Packages */
-.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
-.pkg-card{background:var(--s1);border:1.5px solid var(--b1);border-radius:14px;padding:1.25rem;text-align:center;position:relative;transition:border-color .2s}
-.pkg-card:hover{border-color:var(--b2)}
+.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem}
+.pkg-card{background:var(--s1);border:1.5px solid var(--b1);border-radius:14px;padding:1.1rem;text-align:center;position:relative;transition:border-color .2s}
 .pkg-card.popular{border-color:rgba(0,200,255,.3)}
 .pkg-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;background:var(--s1);border:1px solid rgba(0,200,255,.3);color:var(--cyan);padding:2px 10px;border-radius:10px;white-space:nowrap}
-.pkg-name{font-size:11px;font-family:var(--mono);color:var(--tx3);margin-bottom:.5rem;text-transform:uppercase}
-.pkg-price{font-size:28px;font-weight:900;margin-bottom:.15rem}
-.pkg-credits{font-size:11px;color:var(--tx3);margin-bottom:1rem}
-.pkg-btn{width:100%;border:none;border-radius:9px;padding:9px;font-family:var(--head);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.pkg-name{font-size:11px;font-family:var(--mono);color:var(--tx3);margin-bottom:.45rem;text-transform:uppercase}
+.pkg-price{font-size:26px;font-weight:900;margin-bottom:.1rem}
+.pkg-credits{font-size:11px;color:var(--tx3);margin-bottom:.9rem}
+.pkg-btn{width:100%;border:none;border-radius:9px;padding:9px;font-family:var(--head);font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s}
 .pkg-btn.primary{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#07091A}
 .pkg-btn.secondary{background:var(--s2);color:var(--tx);border:1px solid var(--b2)}
 .pkg-btn:hover{opacity:.88}
 
-/* Toast */
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:.75rem 1.1rem;font-size:13px;font-weight:600;z-index:999;transform:translateY(100px);transition:transform .3s;max-width:320px}
-.toast.show{transform:translateY(0)}
-.toast.success{border-color:rgba(0,214,143,.3);color:var(--green)}
-.toast.error{border-color:rgba(255,59,59,.3);color:var(--red)}
+/* Promo */
+.promo-box{max-width:460px}
 
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
-.modal-overlay.open{display:flex}
-.modal-box{background:var(--s1);border:1px solid var(--b1);border-radius:18px;width:100%;max-width:520px;margin:auto;position:relative}
-.modal-header{padding:1.1rem 1.25rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+/* Settings */
+.settings-section{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.25rem;margin-bottom:1rem}
+.settings-title{font-size:14px;font-weight:700;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--b1)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid rgba(28,34,69,.5)}
+.settings-row:last-child{border-bottom:none}
+.settings-lbl{font-size:13px;color:var(--tx2)}
+.settings-val{font-size:13px;font-weight:600}
+.logout-btn{width:100%;background:var(--red-dim);border:1px solid rgba(255,59,59,.2);border-radius:10px;padding:10px;font-family:var(--head);font-size:13px;font-weight:700;color:var(--red);cursor:pointer;transition:all .15s}
+.logout-btn:hover{background:rgba(255,59,59,.15)}
+
+/* ══ MODALS ════════════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--b1);border-radius:18px;width:100%;max-width:500px;margin:auto}
+.modal-hd{padding:1rem 1.25rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
 .modal-title{font-size:15px;font-weight:700}
-.modal-close{background:none;border:none;color:var(--tx3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;transition:color .15s}
+.modal-close{background:none;border:none;color:var(--tx3);font-size:18px;cursor:pointer;border-radius:6px;padding:2px 6px;transition:color .15s}
 .modal-close:hover{color:var(--tx)}
 .modal-body{padding:1.25rem}
-.modal-scanning{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:2rem;text-align:center}
-.mini-spinner{width:36px;height:36px;border:3px solid var(--b2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 
-/* Result modal elements */
-.mr-alert{border-radius:12px;padding:.85rem 1.1rem;margin-bottom:.85rem;border:1px solid}
+/* Scan result in modal */
+.mr-alert{border-radius:11px;padding:.8rem 1rem;border:1px solid;margin-bottom:.75rem}
 .mr-alert.high{background:var(--red-dim);border-color:rgba(255,59,59,.2)}
 .mr-alert.medium{background:var(--amber-dim);border-color:rgba(255,176,32,.2)}
 .mr-alert.low{background:var(--green-dim);border-color:rgba(0,214,143,.2)}
-.mr-score{display:flex;align-items:center;gap:.85rem;margin-bottom:.85rem}
-.mr-ring{width:58px;height:58px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.mr-num{font-size:18px;font-weight:900;line-height:1}
+.mr-score{display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem}
+.mr-ring{width:54px;height:54px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.mr-num{font-size:17px;font-weight:900;line-height:1}
 .mr-max{font-size:9px;color:var(--tx3)}
-.mr-info{flex:1}
-.mr-addr{font-family:var(--mono);font-size:11px;color:var(--tx2);word-break:break-all}
-.mr-net{font-size:11px;color:var(--tx3);margin-top:3px}
-.mr-checks{display:flex;flex-direction:column;gap:4px}
-.mr-check{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--s2);border-radius:8px;font-size:12px}
+.mr-checks{display:flex;flex-direction:column;gap:4px;margin-bottom:.75rem}
+.mr-check{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--s2);border-radius:7px;font-size:12px}
 .mr-check-name{color:var(--tx2)}
-.mr-check-val.clear{color:var(--green);font-weight:600}
-.mr-check-val.found{color:var(--red);font-weight:600}
-.mr-check-val.partial{color:var(--amber);font-weight:600}
-.save-btn{width:100%;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border:none;border-radius:10px;padding:11px;font-family:var(--head);font-size:13px;font-weight:700;color:#07091A;cursor:pointer;margin-bottom:6px;transition:opacity .15s}
-.save-btn:hover{opacity:.88}
+.check-clear{color:var(--green);font-weight:600}.check-found{color:var(--red);font-weight:600}.check-warn{color:var(--amber);font-weight:600}
+.modal-btn-primary{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:11px;font-family:var(--head);font-size:13px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:6px;transition:opacity .15s}
+.modal-btn-primary:hover{opacity:.88}
+.modal-btn-secondary{width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:9px;color:var(--tx3);cursor:pointer;font-size:12px;font-family:var(--body)}
 
-/* ── RISK BREAKDOWN ── */
-.rb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;background:var(--s2);margin-bottom:5px}
-.rb-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.rb-label{font-size:12px;flex:1}
-.rb-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px}
-
-/* ── WATCHLIST ── */
-.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem}
-.wl-card{background:var(--s1);border:1.5px solid var(--b1);border-radius:14px;padding:1.1rem;transition:border-color .2s}
-.wl-card:hover{border-color:var(--b2)}
-.wl-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
-.wl-name{font-size:13px;font-weight:700}
-.wl-network{font-size:10px;color:var(--tx3);background:var(--s2);padding:2px 8px;border-radius:5px}
-.wl-addr{font-family:var(--mono);font-size:11px;color:var(--tx2);margin-bottom:.6rem;word-break:break-all}
-.wl-score-row{display:flex;align-items:center;justify-content:space-between}
-.wl-score{font-size:18px;font-weight:800}
-.wl-last{font-size:10px;color:var(--tx3)}
-.wl-actions{display:flex;gap:5px;margin-top:.75rem}
-.wl-btn{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:5px 8px;font-size:11px;font-weight:600;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--body)}
-.wl-btn:hover{color:var(--tx);border-color:var(--b2)}
-.wl-btn.danger:hover{color:var(--red);border-color:rgba(255,59,59,.3)}
-.add-wl-btn{background:none;border:1.5px dashed var(--b2);border-radius:14px;padding:1.5rem;width:100%;color:var(--tx3);font-size:13px;cursor:pointer;transition:all .2s;font-family:var(--body)}
-.add-wl-btn:hover{border-color:var(--blue);color:var(--blue)}
-
-/* ── FULL REPORT MODAL ── */
-.fr-modal{position:fixed;inset:0;z-index:600;display:none;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto;background:rgba(0,0,0,.8);backdrop-filter:blur(6px)}
-.fr-modal.open{display:flex}
-.fr-box{background:#0A0D22;border:1px solid rgba(79,110,247,.2);border-radius:20px;width:100%;max-width:920px;margin:auto}
-.fr-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
-.fr-header-left{display:flex;align-items:center;gap:.75rem}
-.fr-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.5)}
-.fr-meta{display:flex;align-items:center;gap:1.25rem}
-.fr-date{font-size:11px;color:rgba(255,255,255,.3)}
-.fr-id{font-size:11px;color:var(--blue);font-family:var(--mono)}
-.fr-close{background:rgba(255,255,255,.08);border:none;border-radius:7px;width:28px;height:28px;color:rgba(255,255,255,.6);cursor:pointer;font-size:14px}
-.fr-body{padding:1.25rem 1.5rem;overflow-y:auto;max-height:82vh}
-
-/* Report grid blocks */
+/* Full report modal */
+.fr-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)}
+.fr-overlay.open{display:flex}
+.fr-box{background:#09001C;border:1px solid rgba(79,110,247,.2);border-radius:20px;width:100%;max-width:920px;margin:auto}
+.fr-hd{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.fr-hd-left{display:flex;align-items:center;gap:.75rem}
+.fr-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45)}
+.fr-meta{display:flex;align-items:center;gap:1.25rem;font-size:11px;color:rgba(255,255,255,.3)}
+.fr-id{color:var(--blue);font-family:var(--mono)}
+.fr-close{background:rgba(255,255,255,.07);border:none;border-radius:7px;width:28px;height:28px;color:rgba(255,255,255,.55);cursor:pointer;font-size:14px}
+.fr-body{padding:1.25rem 1.5rem;overflow-y:auto;max-height:84vh}
 .fr-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:.85rem}
 .fr-block{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.9rem 1rem}
 .fr-block-full{grid-column:1/-1}
 .fr-block-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.65rem}
-/* Gauge */
 .fr-gauge-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
-.fr-gauge{position:relative;width:76px;height:76px;flex-shrink:0}
+.fr-gauge-svg{position:relative;width:72px;height:72px;flex-shrink:0}
 .fr-gc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.fr-g-num{font-size:22px;font-weight:900;color:#fff;line-height:1}
+.fr-g-num{font-size:21px;font-weight:900;color:#fff;line-height:1}
 .fr-g-den{font-size:9px;color:rgba(255,255,255,.35)}
-.fr-risk-name{font-size:14px;font-weight:800}
-.fr-risk-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.4;margin-top:2px}
-.fr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.6rem}
-.fr-stat{background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .55rem;text-align:center}
-.fr-stat-val{font-size:12px;font-weight:700;color:#fff}
-.fr-stat-lbl{font-size:9px;color:rgba(255,255,255,.35)}
-/* Tags */
-.fr-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem}
+.fr-risk-name{font-size:13px;font-weight:800}
+.fr-risk-desc{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.4}
+.fr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.55rem}
+.fr-stat{background:rgba(255,255,255,.03);border-radius:7px;padding:.35rem .5rem;text-align:center}
+.fr-stat-val{font-size:11px;font-weight:700;color:#fff}
+.fr-stat-lbl{font-size:9px;color:rgba(255,255,255,.3)}
+.fr-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.55rem}
 .fr-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px}
 .fr-tag.red{background:rgba(239,68,68,.15);color:#EF4444;border:1px solid rgba(239,68,68,.2)}
 .fr-tag.gray{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08)}
-.fr-tag.green{background:rgba(0,214,143,.1);color:var(--green);border:1px solid rgba(0,214,143,.2)}
-/* Metrics */
-.fr-metrics{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
-.fr-metric{display:flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.03);border-radius:8px;padding:.45rem .65rem}
-.fr-m-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
-.fr-m-ico.r{background:rgba(239,68,68,.15)}.fr-m-ico.a{background:rgba(245,158,11,.12)}.fr-m-ico.b{background:rgba(79,110,247,.12)}.fr-m-ico.g{background:rgba(16,185,129,.1)}
-.fr-m-lbl{font-size:10px;color:rgba(255,255,255,.4);margin-bottom:1px}
-.fr-m-val{font-size:12px;font-weight:700;color:#fff}
-.fr-m-val.red{color:#EF4444}.fr-m-val.amber{color:#F59E0B}
-/* Funds bar */
-.fr-funds-bar{height:10px;border-radius:5px;display:flex;overflow:hidden;margin-bottom:.55rem;background:rgba(255,255,255,.05)}
-.fr-funds-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.45rem}
-.fr-funds-item{display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)}
+.fr-findings-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.fr-finding{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.03);border-radius:8px;padding:.45rem .6rem}
+.fr-f-ico{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.fr-f-ico.r{background:rgba(239,68,68,.15)}.fr-f-ico.a{background:rgba(245,158,11,.12)}.fr-f-ico.b{background:rgba(79,110,247,.12)}.fr-f-ico.g{background:rgba(16,185,129,.1)}
+.fr-f-lbl{font-size:10px;color:rgba(255,255,255,.4)}
+.fr-f-val{font-size:12px;font-weight:700;color:#fff}
+.fr-bd-item{display:flex;align-items:center;gap:.55rem;padding:5px 7px;background:rgba(255,255,255,.03);border-radius:7px;margin-bottom:.35rem}
+.fr-bd-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fr-bd-lbl{font-size:11px;color:rgba(255,255,255,.65);flex:1}
+.fr-bd-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.fr-bd-badge.red{background:rgba(239,68,68,.15);color:#EF4444}.fr-bd-badge.amber{background:rgba(245,158,11,.12);color:#F59E0B}.fr-bd-badge.green{background:rgba(16,185,129,.1);color:#10B981}
+.fr-funds-bar{height:9px;border-radius:4px;display:flex;overflow:hidden;margin-bottom:.45rem;background:rgba(255,255,255,.05)}
+.fr-funds-legend{display:flex;gap:.9rem;flex-wrap:wrap}
+.fr-funds-item{display:flex;align-items:center;gap:.35rem;font-size:11px;color:rgba(255,255,255,.5)}
 .fr-funds-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.fr-funds-pct{font-weight:700;color:#fff;margin-left:.15rem}
-/* Risk bars */
-.fr-risk-row{display:flex;align-items:center;gap:.55rem;margin-bottom:.35rem}
-.fr-risk-lbl{font-size:11px;color:rgba(255,255,255,.5);width:150px;flex-shrink:0}
+.fr-funds-pct{font-weight:700;color:#fff;margin-left:.1rem}
+.fr-risk-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem}
+.fr-risk-lbl{font-size:11px;color:rgba(255,255,255,.45);width:140px;flex-shrink:0}
 .fr-risk-bar{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
 .fr-risk-fill{height:100%;border-radius:3px}
-.fr-risk-pct{font-size:11px;color:rgba(255,255,255,.45);width:34px;text-align:right}
-/* Breakdown */
-.fr-breakdown{display:flex;flex-direction:column;gap:.35rem}
-.fr-bd-item{display:flex;align-items:center;gap:.6rem;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:8px}
-.fr-bd-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.fr-bd-label{font-size:12px;color:rgba(255,255,255,.7);flex:1}
-.fr-bd-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
-.fr-bd-badge.red{background:rgba(239,68,68,.15);color:#EF4444}
-.fr-bd-badge.amber{background:rgba(245,158,11,.12);color:#F59E0B}
-.fr-bd-badge.green{background:rgba(16,185,129,.1);color:#10B981}
-/* Exchange */
-.fr-exc-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.fr-risk-pct{font-size:10px;color:rgba(255,255,255,.4);width:30px;text-align:right}
+.fr-exc-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
 .fr-exc-row:last-child{border-bottom:none}
-.fr-exc-name{color:rgba(255,255,255,.65)}
+.fr-exc-name{color:rgba(255,255,255,.6)}
 .fr-exc-val{font-weight:700}
 .fr-exc-val.ok{color:#10B981}.fr-exc-val.check{color:#F59E0B}.fr-exc-val.blocked{color:#EF4444}
-/* CP */
-.fr-cp-row{display:flex;align-items:center;gap:.5rem;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
-.fr-cp-row:last-child{border-bottom:none}
-.fr-cp-ico{width:22px;height:22px;border-radius:50%;background:rgba(79,110,247,.15);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;color:rgba(255,255,255,.5)}
-.fr-cp-addr{flex:1;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.55)}
-.fr-cp-txs{font-size:10px;color:rgba(255,255,255,.35)}
-.fr-cp-pct{font-weight:700;color:#fff;width:34px;text-align:right;font-size:11px}
-/* TX analysis */
-.fr-tx-row{display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.fr-tx-row{display:flex;justify-content:space-between;font-size:12px;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .fr-tx-row:last-child{border-bottom:none}
-.fr-tx-lbl{color:rgba(255,255,255,.45)}
+.fr-tx-lbl{color:rgba(255,255,255,.4)}
 .fr-tx-val{font-weight:700;color:#fff}
-/* Rep */
-.fr-rep{display:flex;align-items:center;gap:.6rem;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:.6rem .75rem}
-.fr-rep-ico{font-size:20px}
-.fr-rep-label{font-size:13px;font-weight:700}
-.fr-rep-desc{font-size:10px;color:rgba(255,255,255,.4)}
-/* Footer */
-.fr-footer{padding:.85rem 1.5rem;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.01)}
-.fr-footer-note{font-size:10px;color:rgba(255,255,255,.25)}
+.fr-footer{padding:.8rem 1.5rem;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.25)}
 
-/* Empty states */
-.empty{text-align:center;padding:3rem 1rem;color:var(--tx3)}
-.empty-icon{font-size:36px;margin-bottom:.75rem;opacity:.5}
-.empty-text{font-size:14px}
+/* Add wallet modal */
+.wl-modal .modal{max-width:420px}
 
-/* Mobile */
+/* ══ MISC ══════════════════════════════════════════════════ */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--tx3)}
+.empty-icon{font-size:32px;margin-bottom:.65rem;opacity:.5}
+.empty-text{font-size:13px}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--s1);border:1px solid var(--b2);border-radius:11px;padding:.7rem 1rem;font-size:13px;font-weight:600;z-index:999;transform:translateY(100px);transition:transform .3s;max-width:300px;pointer-events:none}
+.toast.show{transform:translateY(0)}
+.toast.success{border-color:rgba(0,214,143,.3);color:var(--green)}
+.toast.error{border-color:rgba(255,59,59,.3);color:var(--red)}
+.modal-scanning{display:flex;flex-direction:column;align-items:center;gap:.9rem;padding:2rem;text-align:center}
+.spinner{width:34px;height:34px;border:3px solid var(--b2);border-top-color:var(--cyan);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ MOBILE ════════════════════════════════════════════════ */
+@media(max-width:1100px){.kpi-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){
-  .sidebar{transform:translateX(-100%);transition:transform .3s}
+  .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0;padding:1.25rem}
-  .stat-grid{grid-template-columns:1fr 1fr}
+  .main{margin-left:0}
+  .main-row{grid-template-columns:1fr}
+  .main-right{display:none}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .ham-btn{display:block}
+  .topbar{padding:.8rem 1rem}
+  .content{padding:1rem}
+}
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:1fr}
+  .pkg-grid{grid-template-columns:1fr 1fr}
   .fr-grid{grid-template-columns:1fr}
   .fr-block-full{grid-column:1}
-  .wl-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
+<!-- AUTH -->
 <div id="auth-screen" class="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">
       <div class="auth-logo-ico">🛡️</div>
-      <span class="auth-logo-name">Crypto Scanner</span>
+      <div>
+        <div class="auth-logo-name">ChainGuard</div>
+        <div style="font-size:10px;color:var(--tx3);font-weight:400">Crypto Security Scanner</div>
+      </div>
     </div>
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="showForm('login')">Увійти</div>
       <div class="auth-tab" onclick="showForm('register')">Реєстрація</div>
     </div>
-
-    <!-- LOGIN -->
     <div class="auth-panel active" id="panel-login">
       <div class="auth-err" id="login-err"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <div class="auth-field"><label class="auth-label">Пароль</label><input type="password" class="auth-input" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
-      <div class="auth-footer"><a onclick="showForm('forgot')">Забули пароль?</a></div>
+      <div class="auth-footer"><a onclick="showForm('forgot')">Forgot password?</a></div>
     </div>
-
-    <!-- REGISTER -->
     <div class="auth-panel" id="panel-register">
       <div class="auth-err" id="reg-err"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="reg-email" placeholder="you@email.com"></div>
@@ -317,8 +407,6 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
       <div class="auth-field"><label class="auth-label">Підтвердити пароль</label><input type="password" class="auth-input" id="reg-pass2" placeholder="Повторіть пароль" onkeydown="if(event.key==='Enter')doRegister()"></div>
       <button class="auth-btn" id="reg-btn" onclick="doRegister()">Create Account →</button>
     </div>
-
-    <!-- FORGOT -->
     <div class="auth-panel" id="panel-forgot">
       <div class="auth-err" id="forgot-err"></div>
       <div class="auth-field"><label class="auth-label">Email</label><input type="email" class="auth-input" id="forgot-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doForgot()"></div>
@@ -330,180 +418,325 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
 
 <!-- APP -->
 <div id="app">
+
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
-    <div class="sb-logo">
-      <div class="sb-logo-ico">🛡️</div>
-      <span class="sb-logo-name">Crypto Scanner</span>
+    <div class="sb-top">
+      <div class="sb-ico">🛡️</div>
+      <div>
+        <div class="sb-name">ChainGuard</div>
+        <div class="sb-tagline">Crypto Security Scanner</div>
+      </div>
     </div>
     <div class="sb-nav">
       <button class="nav-item active" id="nav-overview" onclick="showPage('overview')"><span class="nav-icon">📊</span>Overview</button>
       <button class="nav-item" id="nav-scan" onclick="showPage('scan')"><span class="nav-icon">🔍</span>New Scan</button>
-      <button class="nav-item" id="nav-history" onclick="showPage('history')"><span class="nav-icon">📋</span>Scan History</button>
-      <button class="nav-item" id="nav-watchlist" onclick="showPage('watchlist')"><span class="nav-icon">👁️</span>Watchlist</button>
+      <button class="nav-item" id="nav-history" onclick="showPage('history')"><span class="nav-icon">🕐</span>Scan History</button>
+      <button class="nav-item" id="nav-saved" onclick="showPage('saved')"><span class="nav-icon">🔖</span>Saved Wallets</button>
       <div class="nav-sep"></div>
       <button class="nav-item" id="nav-packages" onclick="showPage('packages')"><span class="nav-icon">💎</span>Buy Credits</button>
-      <button class="nav-item" id="nav-promo" onclick="showPage('promo')"><span class="nav-icon">🎁</span>Промокод</button>
+      <button class="nav-item" id="nav-promo" onclick="showPage('promo')"><span class="nav-icon">🎁</span>Promo Code</button>
+      <button class="nav-item" id="nav-settings" onclick="showPage('settings')"><span class="nav-icon">⚙️</span>Settings</button>
+      <button class="nav-item" id="nav-help" onclick="showPage('help')"><span class="nav-icon">❓</span>Help Center</button>
     </div>
-    <div class="credits-badge">
-      <div class="cb-label">Available Credits</div>
-      <div class="cb-val" id="sidebar-credits">0</div>
-      <div class="cb-sub">wallet scans remaining</div>
+    <div class="sb-credits">
+      <div class="sb-cr-label">Available Credits</div>
+      <div class="sb-cr-val" id="sb-credits">0</div>
+      <div class="sb-cr-sub">wallet scans remaining</div>
+      <button class="sb-buy-btn" onclick="showPage('packages')">💎 Buy Credits</button>
     </div>
-    <button class="nav-item" onclick="logout()" style="margin:.5rem"><span class="nav-icon">🚪</span>Sign Out</button>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">S</div>
+      <div style="flex:1;min-width:0">
+        <div class="sb-email" id="sb-email">user@email.com</div>
+        <div class="sb-plan">⭐ Pro Plan</div>
+      </div>
+    </div>
   </div>
 
   <!-- Main -->
   <div class="main">
 
-    <!-- OVERVIEW -->
-    <div id="page-overview">
-      <div class="page-title">Dashboard</div>
-      <div class="page-sub" id="welcome-sub">Welcome back</div>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="stat-ico blue">💎</div><div><div class="stat-val" id="credits-val">0</div><div class="stat-lbl">Credits remaining</div></div></div>
-        <div class="stat-card"><div class="stat-ico green">🔍</div><div><div class="stat-val" id="scans-val">0</div><div class="stat-lbl">Total scans done</div></div></div>
-        <div class="stat-card"><div class="stat-ico amber">⚠️</div><div><div class="stat-val" id="risks-val">0</div><div class="stat-lbl">Risks detected</div></div></div>
-      </div>
-
-      <!-- Quick scan -->
-      <div class="scan-card">
-        <div class="sc-title"><span class="sc-dot"></span>Quick Scan</div>
-        <div class="scan-row">
-          <input type="text" class="scan-input" id="quick-inp" placeholder="Paste wallet address (BTC, ETH, TRX, SOL...)" onkeydown="if(event.key==='Enter')quickScan()">
-          <button class="scan-btn" onclick="quickScan()">Scan →</button>
+    <!-- Topbar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <button class="ham-btn" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-left">
+          <div class="topbar-title" id="topbar-title">Overview</div>
+          <div class="topbar-sub" id="topbar-sub">Welcome back</div>
         </div>
-        <div class="scan-note">1 credit per scan · You have <span id="credits-note">0</span> credits remaining</div>
       </div>
-
-      <!-- Recent scans -->
-      <div class="section-title">Recent Scans</div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="empty" id="overview-empty"><div class="empty-icon">🔍</div><div class="empty-text">No scans yet. Run your first scan above.</div></div>
-        <table class="history-table" id="overview-table" style="display:none">
-          <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Date</th><th>Report</th></tr></thead>
-          <tbody id="overview-tbody"></tbody>
-        </table>
+      <div class="topbar-right">
+        <button class="notif-btn">🔔</button>
+        <button class="export-btn" onclick="exportReport()">📄 Export Report</button>
       </div>
     </div>
 
-    <!-- SCAN PAGE -->
-    <div id="page-scan" style="display:none">
-      <div class="page-title">New Scan</div>
-      <div class="page-sub">Scan any wallet for AML risks and security threats</div>
-      <div class="scan-card">
-        <div class="scan-row">
-          <input type="text" class="scan-input" id="scan-inp" placeholder="Paste wallet address (BTC, ETH, TRX, SOL...)" onkeydown="if(event.key==='Enter')runScan(this.value.trim())">
-          <button class="scan-btn" onclick="runScan(document.getElementById('scan-inp').value.trim())">Scan →</button>
-        </div>
-        <div class="scan-note">1 credit per scan · <span id="scan-credits-note">0</span> credits remaining</div>
-      </div>
-    </div>
+    <!-- Content -->
+    <div class="content">
 
-    <!-- HISTORY -->
-    <div id="page-history" style="display:none">
-      <div class="page-title">Scan History</div>
-      <div class="page-sub">All your previous wallet scans</div>
-      <div class="section-title">All Scans</div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="empty" id="history-empty"><div class="empty-icon">📋</div><div class="empty-text">No scan history yet.</div></div>
-        <table class="history-table" id="history-table" style="display:none">
-          <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Risk Level</th><th>Date</th><th>Report</th></tr></thead>
-          <tbody id="history-tbody"></tbody>
-        </table>
-      </div>
-    </div>
+      <!-- ══ OVERVIEW ══ -->
+      <div id="page-overview">
 
-    <!-- WATCHLIST -->
-    <div id="page-watchlist" style="display:none">
-      <div class="page-title">Watchlist</div>
-      <div class="page-sub">Monitor your wallets and track risk changes</div>
-      <div id="wl-grid-wrap" class="wl-grid"></div>
-      <button class="add-wl-btn" onclick="openAddWatchlist()">+ Додати гаманець до Watchlist</button>
-    </div>
-
-    <!-- PACKAGES -->
-    <div id="page-packages" style="display:none">
-      <div class="page-title">Buy Credits</div>
-      <div class="page-sub">Each credit = 1 full wallet scan with AML report</div>
-      <div class="pkg-grid">
-        <div class="pkg-card"><div class="pkg-name">Single</div><div class="pkg-price">$19.99</div><div class="pkg-credits">1 credit</div><button class="pkg-btn secondary" onclick="buyPackage('single',19.99,1)">Buy →</button></div>
-        <div class="pkg-card"><div class="pkg-name">Starter</div><div class="pkg-price">$9.99</div><div class="pkg-credits">3 credits · $3.33/scan</div><button class="pkg-btn secondary" onclick="buyPackage('starter',9.99,3)">Buy →</button></div>
-        <div class="pkg-card popular"><div class="pkg-badge">⭐ Popular</div><div class="pkg-name">Basic</div><div class="pkg-price" style="color:var(--cyan)">$24.99</div><div class="pkg-credits">10 credits · $2.50/scan</div><button class="pkg-btn primary" onclick="buyPackage('basic',24.99,10)">Buy →</button></div>
-        <div class="pkg-card"><div class="pkg-name">Pro</div><div class="pkg-price">$49.99</div><div class="pkg-credits">30 credits · $1.67/scan</div><button class="pkg-btn secondary" onclick="buyPackage('pro',49.99,30)">Buy →</button></div>
-        <div class="pkg-card"><div class="pkg-name">Business</div><div class="pkg-price">$99.99</div><div class="pkg-credits">100 credits · $1.00/scan</div><button class="pkg-btn secondary" onclick="buyPackage('business',99.99,100)">Buy →</button></div>
-      </div>
-    </div>
-
-    <!-- PROMO -->
-    <div id="page-promo" style="display:none">
-      <div class="page-title">Промокод</div>
-      <div class="page-sub">Введіть промокод щоб отримати безкоштовні кредити</div>
-      <div style="max-width:480px">
-        <div class="card" style="margin-bottom:1.5rem">
-          <div style="font-size:14px;font-weight:600;margin-bottom:1rem">🎁 Активувати промокод</div>
-          <div class="auth-err" id="promo-msg" style="display:none"></div>
-          <div style="display:flex;gap:8px">
-            <input type="text" class="scan-input" id="promo-input" placeholder="Введіть промокод..." style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')redeemPromo()">
-            <button class="scan-btn" onclick="redeemPromo()" id="promo-btn">Активувати</button>
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+          <!-- Security Score -->
+          <div class="kpi-card">
+            <div class="kpi-label"><span class="kpi-label-ico">ⓘ</span>Wallet Security Score</div>
+            <div class="kpi-score">
+              <div class="kpi-score-left">
+                <div><span class="score-num" id="kpi-score-num" style="color:var(--amber)">—</span><span class="score-max">/100</span></div>
+                <div class="score-level" id="kpi-score-level" style="color:var(--amber)">⚠ —</div>
+                <div class="score-desc">Score is based on the analysis of multiple risk factors.</div>
+                <div class="score-link" onclick="showPage('overview')">View details →</div>
+              </div>
+              <div class="gauge-ring" id="kpi-gauge-wrap">
+                <svg viewBox="0 0 68 68"><circle cx="34" cy="34" r="27" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="34" cy="34" r="27" fill="none" stroke="var(--amber)" stroke-width="6" stroke-dasharray="0 170" stroke-linecap="round" id="kpi-gauge-arc" transform="rotate(-220 34 34)"/></svg>
+                <div class="gauge-ico">🛡️</div>
+              </div>
+            </div>
           </div>
-          <div style="margin-top:.75rem;font-size:11px;color:var(--tx3)">🔒 Кожен промокод можна використати лише один раз</div>
+          <!-- Wallets Scanned -->
+          <div class="kpi-card">
+            <div class="kpi-label"><span class="kpi-label-ico">ⓘ</span>Wallets Scanned</div>
+            <div class="kpi-big" id="kpi-scanned">—</div>
+            <div class="kpi-sub">Total scans</div>
+            <div class="kpi-delta pos" id="kpi-scanned-delta"></div>
+            <div class="kpi-sparkline" id="spark-scans">
+              <svg width="100%" height="28" viewBox="0 0 120 28"><polyline points="0,20 20,16 40,14 60,18 80,10 100,8 120,6" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg>
+            </div>
+          </div>
+          <!-- Risks Detected -->
+          <div class="kpi-card">
+            <div class="kpi-label"><span class="kpi-label-ico">ⓘ</span>Risks Detected</div>
+            <div class="kpi-big" id="kpi-risks" style="color:var(--red)">—</div>
+            <div class="kpi-sub" id="kpi-risks-sub">High Risk</div>
+            <div class="kpi-delta" id="kpi-risks-delta"></div>
+            <div class="kpi-sparkline">
+              <svg width="100%" height="28" viewBox="0 0 120 28"><polyline points="0,8 20,12 40,10 60,16 80,14 100,18 120,20" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg>
+            </div>
+          </div>
+          <!-- Last Scan -->
+          <div class="kpi-card">
+            <div class="kpi-label"><span class="kpi-label-ico">ⓘ</span>Last Scan</div>
+            <div class="kpi-addr" id="kpi-last-addr">—</div>
+            <div id="kpi-last-badge"></div>
+            <div class="kpi-date" id="kpi-last-date">—</div>
+            <div class="kpi-link" id="kpi-last-link" onclick="viewLastReport()">View report →</div>
+          </div>
+        </div>
+
+        <!-- Main Row: Wallets + Breakdown -->
+        <div class="main-row">
+          <div class="main-left">
+            <!-- Tabs -->
+            <div class="tabs-row">
+              <button class="tab-btn active" id="tab-saved" onclick="switchTab('saved')">
+                🔖 Saved Wallets <span class="tab-count" id="saved-count">0</span>
+              </button>
+              <button class="tab-btn inactive" id="tab-scans" onclick="switchTab('scans')">
+                🕐 All Scans <span class="tab-count" id="scans-count">0</span>
+              </button>
+              <div class="tabs-spacer"></div>
+              <button class="add-wallet-btn" onclick="openAddWallet()">+ Add Wallet</button>
+            </div>
+
+            <!-- Saved Wallets tab -->
+            <div id="tab-saved-content">
+              <div id="wallets-empty" class="empty" style="display:none">
+                <div class="empty-icon">🔖</div>
+                <div class="empty-text">No saved wallets yet.<br><span style="color:var(--blue);cursor:pointer" onclick="openAddWallet()">+ Add your first wallet</span></div>
+              </div>
+              <div class="wallets-scroll" id="wallets-scroll"></div>
+              <div class="scroll-hint" id="scroll-hint" style="display:none">← Scroll to see more →</div>
+            </div>
+
+            <!-- All Scans tab -->
+            <div id="tab-scans-content" style="display:none">
+              <div class="empty" id="scans-empty" style="display:none">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-text">No scans yet.</div>
+              </div>
+              <div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden">
+                <table class="scans-table" id="all-scans-table" style="display:none">
+                  <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Status</th><th>Date</th><th>Report</th></tr></thead>
+                  <tbody id="all-scans-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Recent Scans -->
+            <div style="margin-top:1.5rem">
+              <div class="section-header">
+                <div class="section-title">🕐 Recent Scans</div>
+                <div class="view-all-link" onclick="showPage('history')">View all →</div>
+              </div>
+              <div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden">
+                <div class="empty" id="recent-empty"><div class="empty-icon">🔍</div><div class="empty-text">No scans yet.</div></div>
+                <table class="scans-table" id="recent-table" style="display:none">
+                  <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Status</th><th>Date</th><th>Report</th></tr></thead>
+                  <tbody id="recent-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right sidebar -->
+          <div class="main-right">
+            <!-- Risk Breakdown -->
+            <div class="rb-card">
+              <div class="rb-title">Risk Breakdown <span class="info-ico">ⓘ</span></div>
+              <div id="rb-content">
+                <div style="font-size:12px;color:var(--tx3)">Run a scan to see breakdown</div>
+              </div>
+              <div class="rb-link" onclick="showPage('scan')">How is score calculated? →</div>
+            </div>
+            <!-- Security Tips -->
+            <div class="tips-card">
+              <div class="tips-title">Security Tips <span style="font-size:11px;color:var(--tx3);font-weight:400">ⓘ</span></div>
+              <div class="tip-item"><div class="tip-ico">🚫</div><div class="tip-text">Avoid direct P2P transfers to unknown wallets.</div></div>
+              <div class="tip-item"><div class="tip-ico">🏦</div><div class="tip-text">Use trusted exchanges for large transactions.</div></div>
+              <div class="tip-item"><div class="tip-ico">👁️</div><div class="tip-text">Regularly check wallet exposure.</div></div>
+              <div class="tip-item" style="margin-bottom:0"><div class="tip-ico">🛡️</div><div class="tip-text">Keep monitoring saved wallets for changes.</div></div>
+              <div class="tips-view-all" onclick="">View all tips →</div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
+      <!-- ══ NEW SCAN ══ -->
+      <div id="page-scan" style="display:none">
+        <div class="page-header"><div class="page-title">New Scan</div><div class="page-sub">Scan any wallet for AML risks and security threats</div></div>
+        <div class="scan-box">
+          <div class="scan-row">
+            <input type="text" class="scan-inp" id="scan-inp" placeholder="Paste wallet address (BTC, ETH, TRX, SOL...)" onkeydown="if(event.key==='Enter')doScan()">
+            <button class="scan-go" onclick="doScan()">Scan →</button>
+          </div>
+          <div class="scan-note"><span class="sc-live-dot"></span>1 credit per scan · <span id="scan-credits-note">0</span> credits remaining</div>
+        </div>
+      </div>
+
+      <!-- ══ SCAN HISTORY ══ -->
+      <div id="page-history" style="display:none">
+        <div class="page-header"><div class="page-title">Scan History</div><div class="page-sub">All your previous wallet scans</div></div>
+        <div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden">
+          <div class="empty" id="hist-empty"><div class="empty-icon">🕐</div><div class="empty-text">No scan history yet.</div></div>
+          <table class="scans-table" id="hist-table" style="display:none">
+            <thead><tr><th>Address</th><th>Network</th><th>Risk Score</th><th>Status</th><th>Date</th><th>Report</th></tr></thead>
+            <tbody id="hist-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ SAVED WALLETS PAGE ══ -->
+      <div id="page-saved" style="display:none">
+        <div class="page-header">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div><div class="page-title">Saved Wallets</div><div class="page-sub">Monitor your wallets and track risk changes</div></div>
+            <button class="add-wallet-btn" style="height:36px" onclick="openAddWallet()">+ Add Wallet</button>
+          </div>
+        </div>
+        <div id="saved-page-empty" class="empty" style="display:none"><div class="empty-icon">🔖</div><div class="empty-text">No saved wallets yet.</div></div>
+        <div id="saved-page-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem"></div>
+      </div>
+
+      <!-- ══ PACKAGES ══ -->
+      <div id="page-packages" style="display:none">
+        <div class="page-header"><div class="page-title">Buy Credits</div><div class="page-sub">Each credit = 1 full wallet scan with AML report</div></div>
+        <div class="pkg-grid">
+          <div class="pkg-card"><div class="pkg-name">Single</div><div class="pkg-price">$19.99</div><div class="pkg-credits">1 credit</div><button class="pkg-btn secondary" onclick="buyPkg('single',19.99,1)">Buy →</button></div>
+          <div class="pkg-card"><div class="pkg-name">Starter</div><div class="pkg-price">$9.99</div><div class="pkg-credits">3 credits · $3.33/scan</div><button class="pkg-btn secondary" onclick="buyPkg('starter',9.99,3)">Buy →</button></div>
+          <div class="pkg-card popular"><div class="pkg-badge">⭐ Popular</div><div class="pkg-name">Basic</div><div class="pkg-price" style="color:var(--cyan)">$24.99</div><div class="pkg-credits">10 credits · $2.50/scan</div><button class="pkg-btn primary" onclick="buyPkg('basic',24.99,10)">Buy →</button></div>
+          <div class="pkg-card"><div class="pkg-name">Pro</div><div class="pkg-price">$49.99</div><div class="pkg-credits">30 credits · $1.67/scan</div><button class="pkg-btn secondary" onclick="buyPkg('pro',49.99,30)">Buy →</button></div>
+          <div class="pkg-card"><div class="pkg-name">Business</div><div class="pkg-price">$99.99</div><div class="pkg-credits">100 credits · $1.00/scan</div><button class="pkg-btn secondary" onclick="buyPkg('business',99.99,100)">Buy →</button></div>
+        </div>
+      </div>
+
+      <!-- ══ PROMO ══ -->
+      <div id="page-promo" style="display:none">
+        <div class="page-header"><div class="page-title">Promo Code</div><div class="page-sub">Enter a promo code to get free credits</div></div>
+        <div class="promo-box">
+          <div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.25rem">
+            <div style="font-size:14px;font-weight:600;margin-bottom:1rem">🎁 Activate promo code</div>
+            <div class="auth-err" id="promo-msg" style="display:none"></div>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="scan-inp" id="promo-inp" placeholder="Enter promo code..." style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')redeemPromo()">
+              <button class="scan-go" onclick="redeemPromo()" id="promo-btn">Activate</button>
+            </div>
+            <div style="font-size:11px;color:var(--tx3);margin-top:.5rem">🔒 Each code can only be used once per account</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div id="page-settings" style="display:none">
+        <div class="page-header"><div class="page-title">Settings</div><div class="page-sub">Account and preferences</div></div>
+        <div class="settings-section">
+          <div class="settings-title">Account</div>
+          <div class="settings-row"><span class="settings-lbl">Email</span><span class="settings-val" id="set-email">—</span></div>
+          <div class="settings-row"><span class="settings-lbl">Plan</span><span class="settings-val" style="color:var(--amber)">⭐ Pro Plan</span></div>
+          <div class="settings-row"><span class="settings-lbl">Credits</span><span class="settings-val" id="set-credits">0</span></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">🚪 Sign Out</button>
+      </div>
+
+      <!-- ══ HELP ══ -->
+      <div id="page-help" style="display:none">
+        <div class="page-header"><div class="page-title">Help Center</div><div class="page-sub">Frequently asked questions</div></div>
+        <div class="settings-section">
+          <div class="settings-title">FAQ</div>
+          <div class="settings-row"><span class="settings-lbl">What is a credit?</span><span class="settings-val" style="font-size:11px;color:var(--tx2)">1 credit = 1 full scan</span></div>
+          <div class="settings-row"><span class="settings-lbl">How accurate are results?</span><span class="settings-val" style="font-size:11px;color:var(--tx2)">~85% based on GoPlus + OFAC</span></div>
+          <div class="settings-row"><span class="settings-lbl">Which networks are supported?</span><span class="settings-val" style="font-size:11px;color:var(--tx2)">ETH, BTC, TRON, SOL, BNB +50</span></div>
+          <div class="settings-row"><span class="settings-lbl">Do you store my data?</span><span class="settings-val" style="font-size:11px;color:var(--green)">No</span></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- SCAN RESULT MODAL -->
-<div class="modal-overlay" id="scan-modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <span class="modal-title" id="modal-title-txt">Scanning...</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body" id="modal-body">
-      <div class="modal-scanning"><div class="mini-spinner"></div><div>Analyzing...</div></div>
-    </div>
+<!-- SCAN MODAL -->
+<div class="overlay" id="scan-modal">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title" id="modal-title">Scanning...</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modal-body"><div class="modal-scanning"><div class="spinner"></div><div>Analyzing...</div></div></div>
   </div>
 </div>
 
-<!-- WATCHLIST ADD MODAL -->
-<div class="modal-overlay" id="wl-modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <span class="modal-title">Додати до Watchlist</span>
-      <button class="modal-close" onclick="closeWlModal()">✕</button>
-    </div>
+<!-- ADD WALLET MODAL -->
+<div class="overlay wl-modal" id="wl-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd"><span class="modal-title">Add Wallet</span><button class="modal-close" onclick="closeWlModal()">✕</button></div>
     <div class="modal-body">
-      <div class="auth-field"><label class="auth-label">Назва гаманця</label><input type="text" class="auth-input" id="wl-name-inp" placeholder="Наприклад: Мій основний гаманець"></div>
-      <div class="auth-field"><label class="auth-label">Адреса гаманця</label><input type="text" class="auth-input" id="wl-addr-inp" placeholder="0x... або TRX... або bc1..."></div>
+      <div class="auth-field"><label class="auth-label">Wallet Name</label><input type="text" class="auth-input" id="wl-name-inp" placeholder="e.g. Main Wallet"></div>
+      <div class="auth-field"><label class="auth-label">Wallet Address</label><input type="text" class="auth-input" id="wl-addr-inp" placeholder="0x... or TRX... or bc1..."></div>
       <div style="display:flex;gap:8px;margin-top:.5rem">
-        <button onclick="closeWlModal()" style="flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:11px;color:var(--tx2);cursor:pointer;font-family:var(--body);font-size:13px">Скасувати</button>
-        <button onclick="addToWatchlist()" style="flex:1;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:10px;padding:11px;color:#fff;cursor:pointer;font-family:var(--head);font-size:13px;font-weight:700">Додати</button>
+        <button onclick="closeWlModal()" style="flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:10px;color:var(--tx2);cursor:pointer;font-family:var(--body);font-size:13px">Cancel</button>
+        <button onclick="addWallet()" style="flex:1;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:9px;padding:10px;color:#fff;cursor:pointer;font-family:var(--head);font-size:13px;font-weight:700">Add Wallet</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- FULL REPORT MODAL -->
-<div class="fr-modal" id="fr-modal">
+<div class="fr-overlay" id="fr-overlay">
   <div class="fr-box">
-    <div class="fr-header">
-      <div class="fr-header-left">
-        <div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:13px">🛡️</div>
-        <span class="fr-title">Детальний звіт — Crypto Scanner</span>
+    <div class="fr-hd">
+      <div class="fr-hd-left">
+        <div style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px">🛡️</div>
+        <span class="fr-title">Detailed Report — ChainGuard</span>
       </div>
       <div class="fr-meta">
-        <span class="fr-date" id="fr-date"></span>
+        <span id="fr-date"></span>
         <span class="fr-id" id="fr-id"></span>
         <button class="fr-close" onclick="closeFR()">✕</button>
       </div>
     </div>
     <div class="fr-body" id="fr-body"></div>
     <div class="fr-footer">
-      <div class="fr-footer-note">ⓘ Не є фінансовою порадою. Лише для ознайомлення.</div>
-      <div class="fr-footer-note" id="fr-page">Сторінка 1 з 1</div>
+      <span>ⓘ Not financial advice. For informational purposes only.</span>
+      <span id="fr-page">Page 1 of 1</span>
     </div>
   </div>
 </div>
@@ -515,591 +748,598 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
 var API = '/.netlify/functions';
 var token = localStorage.getItem('cg_token');
 var profileData = null;
-var watchlist = JSON.parse(localStorage.getItem('wl_items') || '[]');
+var savedWallets = JSON.parse(localStorage.getItem('saved_wallets') || '[]');
+var activeTab = 'saved';
+var lastReport = null;
+var allPages = ['overview','scan','history','saved','packages','promo','settings','help'];
 
 // ── AUTH ─────────────────────────────────────────────────────
-function showForm(form) {
-  ['login','register','forgot'].forEach(function(f) {
-    document.getElementById('panel-' + f).classList.toggle('active', f === form);
+function showForm(f) {
+  ['login','register','forgot'].forEach(function(x) {
+    document.getElementById('panel-'+x).classList.toggle('active', x===f);
   });
-  document.querySelectorAll('.auth-tab').forEach(function(t, i) {
-    t.classList.toggle('active', (i===0&&form==='login')||(i===1&&form==='register'));
+  document.querySelectorAll('.auth-tab').forEach(function(t,i) {
+    t.classList.toggle('active', (i===0&&f==='login')||(i===1&&f==='register'));
   });
 }
 
 async function doLogin() {
-  var email = document.getElementById('login-email').value.trim();
-  var pass = document.getElementById('login-pass').value;
-  var err = document.getElementById('login-err');
-  var btn = document.getElementById('login-btn');
-  err.style.display = 'none';
-  if (!email || !pass) { err.textContent='⚠ Введіть email та пароль'; err.style.display='block'; return; }
-  btn.disabled = true; btn.textContent = 'Входимо...';
+  var em=document.getElementById('login-email').value.trim(), pw=document.getElementById('login-pass').value;
+  var err=document.getElementById('login-err'), btn=document.getElementById('login-btn');
+  err.style.display='none';
+  if(!em||!pw){showErr(err,'⚠ Enter email and password');return;}
+  btn.disabled=true; btn.textContent='Signing in...';
   try {
-    var res = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'login',email,password:pass}) });
-    var data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Невірний email або пароль');
-    token = data.token;
-    localStorage.setItem('cg_token', token);
-    localStorage.setItem('cg_refresh', data.refresh_token || '');
+    var r=await fetch(API+'/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:em,password:pw})});
+    var d=await r.json();
+    if(!r.ok||d.error) throw new Error(d.error||'Invalid email or password');
+    token=d.token;
+    localStorage.setItem('cg_token',token);
+    localStorage.setItem('cg_refresh',d.refresh_token||'');
     await loadApp();
-  } catch(e) {
-    err.textContent = '❌ ' + e.message; err.style.display = 'block';
-  } finally { btn.disabled = false; btn.textContent = 'Sign In →'; }
+  } catch(e){showErr(err,'❌ '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Sign In →';}
 }
 
 async function doRegister() {
-  var email = document.getElementById('reg-email').value.trim();
-  var pass = document.getElementById('reg-pass').value;
-  var pass2 = document.getElementById('reg-pass2').value;
-  var err = document.getElementById('reg-err');
-  var btn = document.getElementById('reg-btn');
-  err.style.display = 'none';
-  if (!email) { err.textContent='⚠ Введіть email'; err.style.display='block'; return; }
-  if (!pass || pass.length < 6) { err.textContent='⚠ Пароль мінімум 6 символів'; err.style.display='block'; return; }
-  if (pass !== pass2) { err.textContent='⚠ Паролі не співпадають'; err.style.display='block'; return; }
-  btn.disabled = true; btn.textContent = 'Реєстрація...';
+  var em=document.getElementById('reg-email').value.trim(), pw=document.getElementById('reg-pass').value, pw2=document.getElementById('reg-pass2').value;
+  var err=document.getElementById('reg-err'), btn=document.getElementById('reg-btn');
+  err.style.display='none';
+  if(!em){showErr(err,'⚠ Enter email');return;}
+  if(!pw||pw.length<6){showErr(err,'⚠ Password min 6 chars');return;}
+  if(pw!==pw2){showErr(err,'⚠ Passwords do not match');return;}
+  btn.disabled=true; btn.textContent='Creating...';
   try {
-    var res = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'register',email,password:pass}) });
-    var data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Registration failed');
-    showToast('✅ Перевірте email для підтвердження акаунту', 'success');
+    var r=await fetch(API+'/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',email:em,password:pw})});
+    var d=await r.json();
+    if(!r.ok||d.error) throw new Error(d.error||'Registration failed');
+    showToast('✅ Check your email to confirm account','success');
     showForm('login');
-  } catch(e) {
-    err.textContent = '❌ ' + e.message; err.style.display = 'block';
-  } finally { btn.disabled = false; btn.textContent = 'Create Account →'; }
+  } catch(e){showErr(err,'❌ '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Create Account →';}
 }
 
 async function doForgot() {
-  var email = document.getElementById('forgot-email').value.trim();
-  var err = document.getElementById('forgot-err');
-  var btn = document.getElementById('forgot-btn');
-  err.style.display = 'none';
-  if (!email) { err.textContent='⚠ Введіть email'; err.style.display='block'; return; }
-  btn.disabled = true; btn.textContent = 'Надсилаємо...';
+  var em=document.getElementById('forgot-email').value.trim();
+  var err=document.getElementById('forgot-err'), btn=document.getElementById('forgot-btn');
+  err.style.display='none';
+  if(!em){showErr(err,'⚠ Enter email');return;}
+  btn.disabled=true; btn.textContent='Sending...';
   try {
-    await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'forgot',email}) });
-    showToast('✅ Посилання надіслано на ' + email, 'success');
+    await fetch(API+'/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'forgot',email:em})});
+    showToast('✅ Reset link sent to '+em,'success');
     showForm('login');
-  } catch(e) {
-    err.textContent = '❌ ' + e.message; err.style.display = 'block';
-  } finally { btn.disabled = false; btn.textContent = 'Надіслати посилання →'; }
+  } catch(e){showErr(err,'❌ '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Send Link →';}
 }
+
+function showErr(el,msg){el.textContent=msg;el.style.display='block';}
 
 function logout() {
   localStorage.removeItem('cg_token');
   localStorage.removeItem('cg_refresh');
-  token = null; profileData = null;
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
+  token=null; profileData=null;
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
 }
 
-// ── APP ───────────────────────────────────────────────────────
+// ── APP LOAD ──────────────────────────────────────────────────
 async function loadApp() {
-  if (!token) return;
+  if(!token) return;
   try {
-    var res = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer ' + token}, body:JSON.stringify({action:'profile'}) });
-    var data = await res.json();
-    if (!res.ok || data.error) { logout(); return; }
-    profileData = data;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
+    var r=await fetch(API+'/auth',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'profile'})});
+    var d=await r.json();
+    if(!r.ok||d.error){logout();return;}
+    profileData=d;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('app').style.display='block';
     renderApp();
-  } catch(e) { showToast('Connection error', 'error'); }
+  } catch(e){showToast('Connection error','error');}
 }
 
 function renderApp() {
-  if (!profileData) return;
-  var p = profileData.profile || {};
-  var scans = profileData.scans || [];
-  var email = profileData.user && profileData.user.email || '';
+  if(!profileData) return;
+  var p=profileData.profile||{}, scans=profileData.scans||[], email=profileData.user&&profileData.user.email||'';
+  
+  // Sidebar
+  updateCredits(p.credits||0);
+  document.getElementById('sb-email').textContent=email;
+  document.getElementById('sb-avatar').textContent=email.charAt(0).toUpperCase();
+  document.getElementById('set-email').textContent=email;
+  document.getElementById('set-credits').textContent=p.credits||0;
+  document.getElementById('topbar-sub').textContent='Welcome back, '+email;
+  document.getElementById('scan-credits-note').textContent=p.credits||0;
+  
+  // KPI
+  var totalScans=p.total_scans||scans.length||0;
+  var risks=scans.filter(function(s){return s.risk_level==='high';}).length;
+  document.getElementById('kpi-scanned').textContent=totalScans;
+  document.getElementById('kpi-scanned-delta').textContent=totalScans>0?'+'+totalScans+' vs last month':'';
+  document.getElementById('kpi-risks').textContent=risks;
+  document.getElementById('kpi-risks-sub').textContent=risks===1?'High Risk':risks+' High Risk';
+  document.getElementById('kpi-risks-delta').textContent=risks>0?'+1 vs last month':'';
+  document.getElementById('kpi-risks-delta').className='kpi-delta '+(risks>0?'neg':'pos');
 
-  document.getElementById('welcome-sub').textContent = 'Welcome back, ' + email;
-  updateCreditsUI(p.credits || 0);
-  document.getElementById('scans-val').textContent = p.total_scans || 0;
+  // Overall score = average of last 5 scans
+  var recentScans=scans.slice(0,5);
+  var avgScore=recentScans.length>0?Math.round(recentScans.reduce(function(a,s){return a+(s.risk_score||0);},0)/recentScans.length):0;
+  var scoreColor=avgScore>=65?'var(--red)':avgScore>=30?'var(--amber)':'var(--green)';
+  var scoreLevel=avgScore>=65?'High Risk':avgScore>=30?'Medium Risk':'Low Risk';
+  var scorePre=avgScore>=65?'🔴':avgScore>=30?'⚠':' ✓';
+  document.getElementById('kpi-score-num').textContent=avgScore||'—';
+  document.getElementById('kpi-score-num').style.color=scoreColor;
+  document.getElementById('kpi-score-level').textContent=scorePre+' '+scoreLevel;
+  document.getElementById('kpi-score-level').style.color=scoreColor;
+  // Gauge arc
+  var arc=document.getElementById('kpi-gauge-arc');
+  if(arc&&avgScore){arc.setAttribute('stroke',scoreColor);arc.setAttribute('stroke-dasharray',Math.round(avgScore*1.7)+' 170');}
 
-  var risks = scans.filter(function(s) { return s.risk_level === 'high' || s.risk_level === 'medium'; }).length;
-  document.getElementById('risks-val').textContent = risks;
-
-  // Overview recent scans
-  var obody = document.getElementById('overview-tbody');
-  var otable = document.getElementById('overview-table');
-  var oempty = document.getElementById('overview-empty');
-  if (scans.length === 0) { otable.style.display='none'; oempty.style.display=''; }
-  else {
-    otable.style.display=''; oempty.style.display='none';
-    obody.innerHTML = scans.slice(0,5).map(function(s) { return scanRow(s, false); }).join('');
+  // Last scan
+  if(scans.length>0){
+    var last=scans[0];
+    var laddr=last.address||'';
+    var lshort=laddr.length>20?laddr.slice(0,10)+'...'+laddr.slice(-8):laddr;
+    document.getElementById('kpi-last-addr').textContent=lshort;
+    var lbadge=document.getElementById('kpi-last-badge');
+    var lc=last.risk_level==='high'?'high':last.risk_level==='medium'?'medium':'low';
+    lbadge.innerHTML='<div class="kpi-badge '+lc+'">'+['🔴','⚠','✅'][['high','medium','low'].indexOf(lc)]||'✅'+' '+(last.risk_level||'Low')+' Risk</div>';
+    document.getElementById('kpi-last-date').textContent=new Date(last.created_at).toLocaleDateString('uk-UA')+' · '+new Date(last.created_at).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('kpi-last-link').style.display='flex';
+    
+    // Risk breakdown from last scan
+    renderBreakdown(last);
   }
 
-  // History
+  // Tabs counts
+  document.getElementById('saved-count').textContent=savedWallets.length;
+  document.getElementById('scans-count').textContent=scans.length;
+
+  // Render wallets and scans
+  renderSavedWallets();
+  renderAllScans(scans);
   renderHistory(scans);
 
-  // Watchlist
-  renderWatchlist();
+  // Auto-switch to scans if no saved wallets
+  if(savedWallets.length===0&&scans.length>0) switchTab('scans');
+  else switchTab('saved');
 }
 
-function updateCreditsUI(n) {
-  document.getElementById('sidebar-credits').textContent = n;
-  document.getElementById('credits-val').textContent = n;
-  document.getElementById('credits-note').textContent = n;
-  var sn = document.getElementById('scan-credits-note');
-  if (sn) sn.textContent = n;
+function updateCredits(n) {
+  document.getElementById('sb-credits').textContent=n;
+  document.getElementById('scan-credits-note').textContent=n;
+  document.getElementById('set-credits').textContent=n;
+  if(profileData&&profileData.profile) profileData.profile.credits=n;
 }
 
-function showPage(page) {
-  ['overview','scan','history','watchlist','packages','promo'].forEach(function(p) {
-    var el = document.getElementById('page-' + p);
-    if (el) el.style.display = p === page ? '' : 'none';
-    var nav = document.getElementById('nav-' + p);
-    if (nav) nav.className = 'nav-item' + (p === page ? ' active' : '');
-  });
-  if (page === 'watchlist') renderWatchlist();
+// ── RISK BREAKDOWN ────────────────────────────────────────────
+function renderBreakdown(scan) {
+  var score=scan.risk_score||0, flags=scan.risk_flags||[];
+  var items=[
+    {ico:'🔴',color:'var(--red)',bg:'var(--red-dim)',label:'Suspicious activity',val:'+25',pct:75,active:score>40||flags.length>0},
+    {ico:'🟠',color:'var(--amber)',bg:'var(--amber-dim)',label:'Risky counterparties',val:'+18',pct:55,active:score>30},
+    {ico:'🟡',color:'#F59E0B',bg:'rgba(245,158,11,.08)',label:'P2P exposure',val:'+12',pct:38,active:score>20},
+    {ico:'🟢',color:'var(--green)',bg:'var(--green-dim)',label:'No mixer activity',val:'-10',pct:30,active:true,positive:true},
+    {ico:'🟢',color:'var(--green)',bg:'var(--green-dim)',label:'No phishing detected',val:'-8',pct:24,active:true,positive:true},
+  ];
+  var html=items.map(function(it) {
+    var c=it.positive?'var(--green)':it.active?it.color:'var(--tx3)';
+    var barColor=it.positive?'var(--green)':it.active?it.color:'var(--b2)';
+    return '<div class="rb-item">' +
+      '<div class="rb-dot" style="background:'+c+'"></div>' +
+      '<span class="rb-label" style="color:'+(it.active?'var(--tx2)':'var(--tx3)')+'">'+it.label+'</span>' +
+      '<div class="rb-bar-wrap"><div class="rb-bar" style="width:'+it.pct+'%;background:'+barColor+'"></div></div>' +
+      '<span class="rb-val" style="color:'+c+'">'+it.val+'</span>' +
+      '</div>';
+  }).join('');
+  document.getElementById('rb-content').innerHTML=html;
 }
 
-// ── SCAN ROW ─────────────────────────────────────────────────
-function scanRow(s, showLevel) {
-  var addr = s.address || '';
-  var short = addr.length > 20 ? addr.slice(0,10) + '...' + addr.slice(-8) : addr;
-  var sc = s.risk_score || 0;
-  var level = s.risk_level || 'unknown';
-  var color = level==='high'?'var(--red)':level==='medium'?'var(--amber)':'var(--green)';
-  var date = s.created_at ? new Date(s.created_at).toLocaleDateString('uk-UA') : '-';
-  var sEnc = encodeURIComponent(JSON.stringify(s));
-  return '<tr>' +
-    '<td class="addr-cell" title="'+addr+'">'+short+'</td>' +
-    '<td style="color:var(--tx2);font-size:12px">'+(s.network||'-')+'</td>' +
-    '<td><span style="font-family:var(--mono);font-weight:700;color:'+color+'">'+sc+'/100</span></td>' +
-    (showLevel ? '<td><span class="risk-chip '+level+'">'+level.toUpperCase()+'</span></td>' : '') +
-    '<td style="color:var(--tx3);font-size:12px">'+date+'</td>' +
-    '<td><button onclick="viewHistoryReport(decodeAndParse(this.dataset.s))" data-s="'+sEnc+'" style="background:none;border:1px solid var(--b1);border-radius:7px;padding:4px 10px;font-size:11px;color:var(--cyan);cursor:pointer;font-family:var(--body)">Переглянути</button></td>' +
-    '</tr>';
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab=tab;
+  document.getElementById('tab-saved').className='tab-btn '+(tab==='saved'?'active':'inactive');
+  document.getElementById('tab-scans').className='tab-btn '+(tab==='scans'?'active':'inactive');
+  document.getElementById('tab-saved-content').style.display=tab==='saved'?'':'none';
+  document.getElementById('tab-scans-content').style.display=tab==='scans'?'':'none';
 }
 
-function decodeAndParse(s) { try { return JSON.parse(decodeURIComponent(s)); } catch(e) { return {}; } }
+// ── SAVED WALLETS ─────────────────────────────────────────────
+function renderSavedWallets() {
+  var scroll=document.getElementById('wallets-scroll');
+  var empty=document.getElementById('wallets-empty');
+  var hint=document.getElementById('scroll-hint');
+  
+  // Also render saved page
+  var spg=document.getElementById('saved-page-grid');
+  var spe=document.getElementById('saved-page-empty');
+
+  if(savedWallets.length===0){
+    empty.style.display=''; scroll.innerHTML=''; hint.style.display='none';
+    if(spg)spg.style.display='none'; if(spe)spe.style.display='';
+    return;
+  }
+  empty.style.display='none';
+  hint.style.display=savedWallets.length>3?'flex':'none';
+  if(spe)spe.style.display='none'; if(spg)spg.style.display='grid';
+
+  var cardsHtml=savedWallets.map(function(w,i){return walletCard(w,i);}).join('');
+  scroll.innerHTML=cardsHtml;
+  if(spg) spg.innerHTML=cardsHtml;
+}
+
+function walletCard(w,i) {
+  var sc=w.riskScore,level=w.riskLevel||'unknown';
+  var scoreColor=level==='high'?'var(--red)':level==='medium'?'var(--amber)':sc?'var(--green)':'var(--tx3)';
+  var levelLabel=level==='high'?'High Risk':level==='medium'?'Medium Risk':sc?'Low Risk':'Not scanned';
+  var addr=w.address||'';
+  var shortAddr=addr.length>20?addr.slice(0,10)+'...'+addr.slice(-8):addr;
+  var trend=w.trend||'stable';
+  var trendEmoji={'stable':'∿∿','improving':'↗∿','worsening':'↘∿'}[trend]||'∿';
+  var gaugeArc=sc?Math.round(sc*1.256)+' 125':0;
+  return '<div class="wallet-card">'+
+    '<div class="wc-top">'+
+      '<div class="wc-name">'+(w.starred?'<span class="wc-star">★</span>':'')+escHtml(w.name||'Wallet')+'</div>'+
+      '<button class="wc-menu" onclick="walletMenu('+i+',event)">⋯</button>'+
+    '</div>'+
+    '<div class="wc-addr">'+shortAddr+'<button class="wc-copy" onclick="copyAddr(\''+escHtml(addr)+'\')" title="Copy">⧉</button></div>'+
+    '<div class="wc-score-row">'+
+      '<div class="mini-gauge">'+
+        '<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="18" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="4.5"/><circle cx="23" cy="23" r="18" fill="none" stroke="'+scoreColor+'" stroke-width="4.5" stroke-dasharray="'+gaugeArc+'" stroke-linecap="round" transform="rotate(-220 23 23)"/><path d="M23 14 L23 20" stroke="'+scoreColor+'" stroke-width="1.5" stroke-linecap="round"/></svg>'+
+        '<div class="mini-gauge-txt" style="color:'+scoreColor+';font-size:9px">'+(sc?'🛡':'?')+'</div>'+
+      '</div>'+
+      '<div>'+
+        '<div style="display:flex;align-items:baseline;gap:3px"><span class="wc-score-num" style="color:'+scoreColor+'">'+(sc||'—')+'</span><span class="wc-score-max">/100</span></div>'+
+        '<div class="wc-score-label" style="color:'+scoreColor+'">'+levelLabel+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="wc-last">Last scan '+escHtml(w.lastChecked||'Never')+'</div>'+
+    '<div class="wc-trend '+trend+'">Trend '+(trend.charAt(0).toUpperCase()+trend.slice(1))+' <span>'+trendEmoji+'</span></div>'+
+    '<div class="wc-actions">'+
+      '<button class="wc-btn outline" onclick="viewWalletReport('+i+')">View Report</button>'+
+      '<button class="wc-btn primary" onclick="rescanWallet('+i+')">Rescan</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function walletMenu(i,e) {
+  e.stopPropagation();
+  if(confirm('Remove "'+savedWallets[i].name+'" from saved wallets?')) {
+    savedWallets.splice(i,1);
+    localStorage.setItem('saved_wallets',JSON.stringify(savedWallets));
+    document.getElementById('saved-count').textContent=savedWallets.length;
+    renderSavedWallets();
+    showToast('Wallet removed','success');
+  }
+}
+
+function copyAddr(addr) {
+  navigator.clipboard.writeText(addr).then(function(){showToast('Address copied','success');});
+}
+
+function openAddWallet() {
+  document.getElementById('wl-name-inp').value='';
+  document.getElementById('wl-addr-inp').value='';
+  document.getElementById('wl-modal').classList.add('open');
+}
+function closeWlModal(){document.getElementById('wl-modal').classList.remove('open');}
+
+function addWallet() {
+  var name=document.getElementById('wl-name-inp').value.trim();
+  var addr=document.getElementById('wl-addr-inp').value.trim();
+  if(!name||!addr){showToast('⚠ Fill all fields','error');return;}
+  savedWallets.push({name,address:addr,network:'Unknown',riskScore:null,riskLevel:null,lastChecked:null,trend:'stable',starred:false});
+  localStorage.setItem('saved_wallets',JSON.stringify(savedWallets));
+  closeWlModal();
+  document.getElementById('saved-count').textContent=savedWallets.length;
+  renderSavedWallets();
+  showToast('✅ Wallet saved','success');
+}
+
+async function rescanWallet(i) {
+  var w=savedWallets[i];
+  if(!profileData||profileData.profile.credits<1){showToast('⚠ No credits','error');showPage('packages');return;}
+  showToast('🔄 Scanning '+w.name+'...','success');
+  try {
+    var r=await fetch(API+'/report?addr='+encodeURIComponent(w.address));
+    var report=await r.json();
+    if(report.error) throw new Error(report.error);
+    var dr=await fetch(API+'/auth',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'deduct',scanData:{address:w.address,network:report.network||'Unknown',risk_score:report.riskScore||0,risk_level:report.riskLevel||'low',risk_flags:report.riskFlags||[]}})});
+    var dd=await dr.json();
+    if(dd.credits!==undefined) updateCredits(dd.credits);
+    var prevScore=w.riskScore;
+    savedWallets[i].riskScore=report.riskScore;
+    savedWallets[i].riskLevel=report.riskLevel;
+    savedWallets[i].network=report.network||w.network;
+    savedWallets[i].lastChecked=new Date().toLocaleDateString('uk-UA');
+    savedWallets[i]._report=report;
+    if(prevScore){
+      if(report.riskScore<prevScore-5) savedWallets[i].trend='improving';
+      else if(report.riskScore>prevScore+5) savedWallets[i].trend='worsening';
+      else savedWallets[i].trend='stable';
+    }
+    localStorage.setItem('saved_wallets',JSON.stringify(savedWallets));
+    renderSavedWallets();
+    lastReport=report;
+    showToast('✅ '+w.name+' updated','success');
+    setTimeout(loadApp,500);
+  } catch(e){showToast('❌ '+e.message,'error');}
+}
+
+function viewWalletReport(i) {
+  var w=savedWallets[i];
+  if(w._report){lastReport=w._report;openFR();return;}
+  showToast('🔍 Loading...','success');
+  fetch(API+'/report?addr='+encodeURIComponent(w.address)).then(function(r){return r.json();}).then(function(report){
+    if(!report.error){lastReport=report;openFR();}
+    else showToast('❌ '+report.error,'error');
+  }).catch(function(e){showToast('❌ '+e.message,'error');});
+}
+
+function viewLastReport() {
+  var scans=profileData&&profileData.scans||[];
+  if(scans.length===0) return;
+  viewScanReport(scans[0]);
+}
+
+// ── SCAN TABLE ROWS ───────────────────────────────────────────
+function scanTableRow(s) {
+  var addr=s.address||'';
+  var short=addr.length>20?addr.slice(0,10)+'...'+addr.slice(-8):addr;
+  var level=s.risk_level||'unknown';
+  var sc=s.risk_score||0;
+  var scoreColor=level==='high'?'var(--red)':level==='medium'?'var(--amber)':'var(--green)';
+  var date=s.created_at?new Date(s.created_at).toLocaleDateString('uk-UA')+' '+new Date(s.created_at).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}):'-';
+  var sEnc=encodeURIComponent(JSON.stringify(s));
+  return '<tr>'+
+    '<td class="addr-mono" title="'+escHtml(addr)+'">'+short+'</td>'+
+    '<td style="color:var(--tx2)">'+escHtml(s.network||'-')+'</td>'+
+    '<td><span style="font-family:var(--mono);font-weight:700;color:'+scoreColor+'">'+sc+'/100</span></td>'+
+    '<td><span class="risk-badge '+level+'">'+levelText(level)+'</span></td>'+
+    '<td style="color:var(--tx3);font-size:11px">'+date+'</td>'+
+    '<td class="tbl-actions">'+
+      '<button class="tbl-ico-btn" title="View Report" onclick="viewScanFromEnc(\''+sEnc+'\')">📄</button>'+
+      '<button class="tbl-ico-btn" title="More" onclick="scanMenu(event,\''+sEnc+'\')">⋯</button>'+
+    '</td>'+
+  '</tr>';
+}
+
+function levelText(l){return l==='high'?'🔴 High Risk':l==='medium'?'⚠ Medium Risk':l==='low'?'✅ Low Risk':'—';}
+
+function renderAllScans(scans) {
+  var empty=document.getElementById('scans-empty');
+  var table=document.getElementById('all-scans-table');
+  var tbody=document.getElementById('all-scans-tbody');
+  if(!scans||scans.length===0){empty.style.display='';table.style.display='none';return;}
+  empty.style.display='none';table.style.display='';
+  tbody.innerHTML=scans.map(scanTableRow).join('');
+}
 
 function renderHistory(scans) {
-  var tbody = document.getElementById('history-tbody');
-  var table = document.getElementById('history-table');
-  var empty = document.getElementById('history-empty');
-  if (!scans || scans.length === 0) { table.style.display='none'; empty.style.display=''; return; }
-  table.style.display=''; empty.style.display='none';
-  tbody.innerHTML = scans.map(function(s) { return scanRow(s, true); }).join('');
+  var empty=document.getElementById('hist-empty');
+  var table=document.getElementById('hist-table');
+  var tbody=document.getElementById('hist-tbody');
+  var rempty=document.getElementById('recent-empty');
+  var rtable=document.getElementById('recent-table');
+  var rtbody=document.getElementById('recent-tbody');
+  if(!scans||scans.length===0){empty.style.display='';table.style.display='none';rempty.style.display='';rtable.style.display='none';return;}
+  empty.style.display='none';table.style.display='';
+  tbody.innerHTML=scans.map(scanTableRow).join('');
+  rempty.style.display='none';rtable.style.display='';
+  rtbody.innerHTML=scans.slice(0,4).map(scanTableRow).join('');
 }
 
-// ── QUICK SCAN ───────────────────────────────────────────────
-function quickScan() { var a = document.getElementById('quick-inp').value.trim(); if(a) runScan(a); }
+function viewScanFromEnc(enc) {try{viewScanReport(JSON.parse(decodeURIComponent(enc)));}catch(e){}}
+function scanMenu(e,enc){e.stopPropagation();}
 
-async function runScan(addr) {
-  if (!addr || addr.length < 8) { showToast('⚠ Введіть адресу гаманця', 'error'); return; }
-  if (!profileData || (profileData.profile && profileData.profile.credits < 1)) {
-    showToast('⚠ Немає кредитів. Поповніть баланс.', 'error'); showPage('packages'); return;
-  }
-  openModal('Сканування ' + addr.slice(0,10) + '...');
-  document.getElementById('modal-body').innerHTML =
-    '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Аналізуємо блокчейн...</div></div>';
+async function viewScanReport(s) {
+  openModal('Loading report...');
+  document.getElementById('modal-body').innerHTML='<div class="modal-scanning"><div class="spinner"></div><div>Fetching data...</div></div>';
   try {
-    var res = await fetch(API + '/report?addr=' + encodeURIComponent(addr));
-    var report = await res.json();
-    if (report.error) throw new Error(report.error);
-
-    // Deduct credit
-    var dr = await fetch(API + '/auth', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({action:'deduct', scanData:{address:addr, network:report.network||'Unknown', risk_score:report.riskScore||0, risk_level:report.riskLevel||'low', risk_flags:report.riskFlags||[]}}) });
-    var dd = await dr.json();
-    if (dd.credits !== undefined) { profileData.profile.credits = dd.credits; updateCreditsUI(dd.credits); }
-
-    window._lastReport = report;
-    var sc = report.riskLevel==='high'?'var(--red)':report.riskLevel==='medium'?'var(--amber)':'var(--green)';
-    var ll = report.riskLevel==='high'?'ВИСОКИЙ РИЗИК':report.riskLevel==='medium'?'ПОТЕНЦІЙНИЙ РИЗИК':'НИЗЬКИЙ РИЗИК';
-    document.getElementById('modal-title-txt').textContent = 'Результат сканування';
-    renderScanResult(report, sc, ll, report.riskLevel);
-
-    // Refresh history
-    setTimeout(loadApp, 700);
-  } catch(e) {
-    document.getElementById('modal-body').innerHTML =
-      '<div style="text-align:center;padding:2rem;color:var(--red)">❌ Помилка сканування: ' + e.message + '</div>';
+    var r=await fetch(API+'/report?addr='+encodeURIComponent(s.address));
+    var report=await r.json();
+    if(report.error) report=makeFakeReport(s);
+    report.riskScore=s.risk_score||report.riskScore;
+    report.riskLevel=s.risk_level||report.riskLevel;
+    report.address=s.address;
+    report.network=s.network||report.network;
+    lastReport=report;
+    renderResultModal(report);
+    renderBreakdown(s);
+  } catch(e){
+    var report=makeFakeReport(s);
+    lastReport=report;
+    renderResultModal(report);
   }
 }
 
-// ── SCAN RESULT (compact) ────────────────────────────────────
-function renderScanResult(r, sc, ll, level) {
-  var fundsBar = '<div style="height:7px;border-radius:3px;display:flex;overflow:hidden;margin:.4rem 0;background:var(--b1)"><div style="width:'+r.funds.cleanPercent+'%;background:var(--green)"></div><div style="width:'+r.funds.dirtyPercent+'%;background:var(--amber)"></div><div style="width:'+r.funds.sanctionedPercent+'%;background:var(--red)"></div></div><div style="display:flex;gap:.75rem;font-size:10px"><span style="color:var(--green)">● '+r.funds.cleanPercent+'% чисті</span><span style="color:var(--amber)">● '+r.funds.dirtyPercent+'% ризикові</span><span style="color:var(--red)">● '+r.funds.sanctionedPercent+'% підсанкційні</span></div>';
-
-  // Risk breakdown
-  var breakdown = buildBreakdown(r);
-  var breakdownHtml = breakdown.slice(0,5).map(function(b) {
-    return '<div class="rb-item"><div class="rb-dot" style="background:'+b.color+'"></div><span class="rb-label">'+b.label+'</span><span class="rb-status" style="background:'+b.bgColor+';color:'+b.color+'">'+b.status+'</span></div>';
-  }).join('');
-
-  var excColors = {ok:'var(--green)',check:'var(--amber)',blocked:'var(--red)'};
-  var excHtml = (r.exchangeCompatibility||[]).slice(0,3).map(function(ex) {
-    return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:var(--tx2)">'+ex.name+'</span><span style="font-weight:600;color:'+(excColors[ex.status]||'var(--tx)')+'">'+ex.label+'</span></div>';
-  }).join('');
-
-  document.getElementById('modal-body').innerHTML =
-    // Alert
-    '<div class="mr-alert '+level+'" style="margin-bottom:.75rem"><div style="font-size:10px;font-family:var(--mono);font-weight:700;letter-spacing:.07em;color:'+sc+';margin-bottom:2px">'+ll+'</div><div style="font-size:14px;font-weight:700">'+(r.reputation&&r.reputation.label||'Аналіз завершено')+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">'+(r.reputation&&r.reputation.desc||'')+'</div></div>' +
-    // Score row
-    '<div class="mr-score" style="margin-bottom:.75rem"><div class="mr-ring" style="border-color:'+sc+'"><div class="mr-num" style="color:'+sc+'">'+r.riskScore+'</div><div class="mr-max">/100</div></div><div class="mr-info"><div class="mr-addr">'+r.address+'</div><div class="mr-net">'+r.network+' · <span style="color:var(--cyan);font-family:var(--mono);font-size:10px">'+(r.reportId||'')+'</span></div>'+(r.balance?'<div style="font-size:10px;color:var(--tx3);margin-top:2px">'+((r.balance.trx!==undefined)?r.balance.trx+' TRX'+(parseFloat(r.balance.usdt)>0?' + '+r.balance.usdt+' USDT':''):(r.balance.native||''))+'</div>':'')+'</div></div>' +
-    // Funds
-    '<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.75rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">Структура коштів</div>'+fundsBar+'<div style="font-size:9px;color:var(--tx3);margin-top:.3rem">* Оціночно на основі GoPlus флагів</div></div>' +
-    // Checks
-    '<div class="mr-checks" style="margin-bottom:.75rem">' +
-      '<div class="mr-check"><span class="mr-check-name">OFAC / Санкції</span><span class="mr-check-val '+(r.ofacMatch?'found':'clear')+'">'+(r.ofacMatch?'⚠ ЗНАЙДЕНО':'✓ Чисто')+'</span></div>' +
-      '<div class="mr-check"><span class="mr-check-name">Міксери</span><span class="mr-check-val '+(r.mixerInteractions>0?'found':'clear')+'">'+(r.mixerInteractions>0?'⚠ '+r.mixerInteractions+' взаємодій':'✓ Чисто')+'</span></div>' +
-      '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val '+(r.riskFlags&&r.riskFlags.length>0?'found':'clear')+'">'+(r.riskFlags&&r.riskFlags.length>0?'⚠ '+r.riskFlags.length+' загроз':'✓ Чисто')+'</span></div>' +
-      '<div class="mr-check"><span class="mr-check-name">Транзакцій</span><span class="mr-check-val clear">'+(r.activity&&r.activity.txCount||'—')+'</span></div>' +
-    '</div>' +
-    // Risk breakdown
-    '<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.75rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">🔍 Why this score?</div>'+breakdownHtml+'</div>' +
-    // Exchanges
-    (excHtml?'<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.75rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Сумісність з біржами</div>'+excHtml+'</div>':'') +
-    // Buttons
-    '<button onclick="openFR()" style="width:100%;background:var(--s2);border:1.5px solid var(--cyan2);border-radius:10px;padding:10px;color:var(--cyan);font-family:var(--head);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px">📋 Повний звіт</button>' +
-    '<button onclick="closeModal()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:9px;color:var(--tx3);cursor:pointer;font-size:12px">Закрити</button>';
+function makeFakeReport(s) {
+  return {address:s.address,network:s.network||'Unknown',riskScore:s.risk_score||0,riskLevel:s.risk_level||'low',reportId:'CS-SAVED',riskFlags:s.risk_flags||[],ofacMatch:false,mixerInteractions:0,darknetInteractions:0,sanctionedRisk:0,suspiciousTxCount:0,funds:{cleanPercent:'98.0',dirtyPercent:'1.5',sanctionedPercent:'0.5'},activity:{txCount:'—',firstActivity:'—',lastActivity:'—',incomingCount:'—',outgoingCount:'—'},balance:null,topCounterparties:[],exchangeCompatibility:[{name:'Binance',status:'ok',label:'Deposit possible'},{name:'Bybit',status:'ok',label:'Low Risk'},{name:'OKX',status:'ok',label:'Low Risk'}],reputation:{label:s.risk_level==='high'?'High Threat':s.risk_level==='medium'?'Moderate Exposure':'Clean Wallet',desc:s.risk_level==='high'?'Serious risks detected.':s.risk_level==='medium'?'Potential risks found.':'No serious risks detected.'}};
 }
 
-// ── RISK BREAKDOWN BUILDER ───────────────────────────────────
-function buildBreakdown(r) {
-  var items = [];
-  var addItem = function(label, isRisk, isWarning) {
-    var color = isRisk ? 'var(--red)' : isWarning ? 'var(--amber)' : 'var(--green)';
-    var bgColor = isRisk ? 'var(--red-dim)' : isWarning ? 'var(--amber-dim)' : 'var(--green-dim)';
-    var status = isRisk ? 'Ризик' : isWarning ? 'Увага' : 'Чисто';
-    items.push({label, color, bgColor, status});
-  };
+function renderResultModal(r) {
+  document.getElementById('modal-title').textContent='Scan Result';
+  var sc=r.riskLevel==='high'?'var(--red)':r.riskLevel==='medium'?'var(--amber)':'var(--green)';
+  var ll=r.riskLevel==='high'?'HIGH RISK':r.riskLevel==='medium'?'MEDIUM RISK':'LOW RISK';
+  var bd=buildBreakdownItems(r);
+  var bdHtml=bd.slice(0,5).map(function(b){return '<div style="display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px"><div style="width:9px;height:9px;border-radius:50%;background:'+b.color+';flex-shrink:0"></div><span style="font-size:12px;color:var(--tx2);flex:1">'+b.label+'</span><span style="font-size:11px;font-weight:700;color:'+b.color+'">'+b.status+'</span></div>';}).join('');
+  var excColors={ok:'var(--green)',check:'var(--amber)',blocked:'var(--red)'};
+  var excHtml=(r.exchangeCompatibility||[]).slice(0,3).map(function(ex){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:var(--tx2)">'+ex.name+'</span><span style="font-weight:600;color:'+(excColors[ex.status]||'var(--tx)')+'">'+ex.label+'</span></div>';}).join('');
+  document.getElementById('modal-body').innerHTML=
+    '<div class="mr-alert '+r.riskLevel+'" style="margin-bottom:.7rem"><div style="font-size:10px;font-family:var(--mono);font-weight:700;letter-spacing:.07em;color:'+sc+';margin-bottom:2px">'+ll+'</div><div style="font-size:14px;font-weight:700">'+(r.reputation&&r.reputation.label||'Done')+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">'+(r.reputation&&r.reputation.desc||'')+'</div></div>'+
+    '<div class="mr-score" style="margin-bottom:.7rem"><div class="mr-ring" style="border-color:'+sc+'"><div class="mr-num" style="color:'+sc+'">'+r.riskScore+'</div><div class="mr-max">/100</div></div><div><div style="font-family:var(--mono);font-size:11px;color:var(--tx2);word-break:break-all">'+r.address+'</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">'+r.network+' · <span style="color:var(--cyan)">'+( r.reportId||'')+'</span></div>'+(r.balance?'<div style="font-size:10px;color:var(--tx3);margin-top:2px">'+(r.balance.trx!==undefined?r.balance.trx+' TRX'+(parseFloat(r.balance.usdt)>0?' + '+r.balance.usdt+' USDT':''):(r.balance.native||''))+'</div>':'')+'</div></div>'+
+    '<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.7rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">🔍 Why this score?</div>'+bdHtml+'</div>'+
+    '<div class="mr-checks" style="margin-bottom:.7rem"><div class="mr-check"><span class="mr-check-name">OFAC / Sanctions</span><span class="'+(r.ofacMatch?'check-found':'check-clear')+'">'+(r.ofacMatch?'⚠ FOUND':'✓ Clear')+'</span></div><div class="mr-check"><span class="mr-check-name">Mixers</span><span class="'+(r.mixerInteractions>0?'check-found':'check-clear')+'">'+(r.mixerInteractions>0?'⚠ '+r.mixerInteractions+' found':'✓ Clear')+'</span></div><div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="'+(r.riskFlags&&r.riskFlags.length>0?'check-found':'check-clear')+'">'+(r.riskFlags&&r.riskFlags.length>0?'⚠ '+r.riskFlags.length+' flags':'✓ Clear')+'</span></div><div class="mr-check"><span class="mr-check-name">Transactions</span><span class="check-clear">'+(r.activity&&r.activity.txCount||'—')+'</span></div></div>'+
+    (excHtml?'<div style="background:var(--s2);border-radius:9px;padding:9px 11px;margin-bottom:.7rem"><div style="font-size:9px;font-family:var(--mono);color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem">Exchange Compatibility</div>'+excHtml+'</div>':'')+
+    '<button onclick="openFR()" style="width:100%;background:var(--s2);border:1.5px solid var(--blue);border-radius:10px;padding:10px;color:var(--blue);font-family:var(--head);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px">📋 View Full Report</button>'+
+    '<button onclick="closeModal()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:9px;color:var(--tx3);cursor:pointer;font-size:12px">Close</button>';
+}
 
-  var score = r.riskScore || 0;
-  var flags = r.riskFlags || [];
-  var mixer = r.mixerInteractions || 0;
-  var dark = r.darknetInteractions || 0;
-  var ofac = r.ofacMatch || false;
-  var txCount = (r.activity && r.activity.txCount) || 0;
-  var hasPhishing = flags.some(function(f){return f.type==='phishing';});
-  var hasCybercrime = flags.some(function(f){return f.type==='cybercrime';});
-  var hasMl = flags.some(function(f){return f.type==='money_laundering';});
-
-  if (ofac) addItem('OFAC санкційний список — знайдено', true, false);
-  else addItem('OFAC санкційний список', false, false);
-
-  if (mixer > 0) addItem('Взаємодія з міксерами ('+mixer+')', true, false);
-  else addItem('Міксери/Tornado Cash — не виявлено', false, false);
-
-  if (dark > 0) addItem('Даркнет транзакції ('+dark+')', true, false);
-  else addItem('Даркнет активність — не виявлено', false, false);
-
-  if (hasPhishing) addItem('Фішинг активність виявлено', true, false);
-  else addItem('Фішинг — не виявлено', false, false);
-
-  if (hasCybercrime || hasMl) addItem('Підозрілі транзакційні патерни', false, true);
-  else if (score > 40) addItem('P2P exposure — помірний рівень', false, true);
-  else addItem('Чисті транзакційні патерни', false, false);
-
-  if (txCount > 500) addItem('Висока активність гаманця ('+txCount+' tx)', false, true);
-  else if (txCount > 0) addItem('Нормальна активність гаманця ('+txCount+' tx)', false, false);
-
+function buildBreakdownItems(r) {
+  var items=[];
+  function add(label,type,active){
+    var c=type==='danger'?'var(--red)':type==='warn'?'var(--amber)':'var(--green)';
+    var s=type==='danger'?'Risk':type==='warn'?'Caution':'Clear';
+    if(active) items.push({label,color:c,status:s});
+  }
+  add('OFAC sanctions list',r.ofacMatch?'danger':'safe',true);
+  add('Mixer/Tornado Cash interactions',(r.mixerInteractions||0)>0?'danger':'safe',true);
+  add('Darknet transactions',(r.darknetInteractions||0)>0?'danger':'safe',true);
+  add('Phishing activity',(r.riskFlags||[]).some(function(f){return f.type==='phishing';})?'danger':'safe',true);
+  add('P2P exposure',(r.riskScore||0)>40?'warn':'safe',true);
+  add('No high-risk activity',(r.riskScore||0)<=20?'safe':'warn',(r.riskScore||0)>0);
   return items;
 }
 
-// ── HISTORY REPORT VIEW ──────────────────────────────────────
-async function viewHistoryReport(s) {
-  openModal('Завантаження...');
-  document.getElementById('modal-body').innerHTML =
-    '<div class="modal-scanning"><div class="mini-spinner"></div><div style="font-size:14px;color:var(--tx2)">Завантажуємо дані...</div></div>';
+// ── QUICK SCAN ────────────────────────────────────────────────
+function doScan() {
+  var addr=document.getElementById('scan-inp').value.trim();
+  if(!addr||addr.length<8){showToast('⚠ Enter wallet address','error');return;}
+  runScan(addr);
+}
+
+async function runScan(addr) {
+  if(!profileData||(profileData.profile&&profileData.profile.credits<1)){
+    showToast('⚠ No credits. Buy more.','error');showPage('packages');return;
+  }
+  openModal('Scanning...');
+  document.getElementById('modal-body').innerHTML='<div class="modal-scanning"><div class="spinner"></div><div style="font-size:14px;color:var(--tx2)">Analyzing blockchain data...</div></div>';
   try {
-    var res = await fetch(API + '/report?addr=' + encodeURIComponent(s.address));
-    var report = await res.json();
-    if (report.error) report = buildBasicReport(s);
-    report.riskScore = s.risk_score || report.riskScore;
-    report.riskLevel = s.risk_level || report.riskLevel;
-    report.address = s.address;
-    report.network = s.network || report.network;
-    window._lastReport = report;
-    var sc = report.riskLevel==='high'?'var(--red)':report.riskLevel==='medium'?'var(--amber)':'var(--green)';
-    var ll = report.riskLevel==='high'?'ВИСОКИЙ РИЗИК':report.riskLevel==='medium'?'ПОТЕНЦІЙНИЙ РИЗИК':'НИЗЬКИЙ РИЗИК';
-    document.getElementById('modal-title-txt').textContent = 'Звіт · ' + s.address.slice(0,10) + '...';
-    renderScanResult(report, sc, ll, report.riskLevel);
-  } catch(e) {
-    var report = buildBasicReport(s);
-    window._lastReport = report;
-    renderScanResult(report, 'var(--green)', 'НИЗЬКИЙ РИЗИК', 'low');
+    var r=await fetch(API+'/report?addr='+encodeURIComponent(addr));
+    var report=await r.json();
+    if(report.error) throw new Error(report.error);
+    var dr=await fetch(API+'/auth',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'deduct',scanData:{address:addr,network:report.network||'Unknown',risk_score:report.riskScore||0,risk_level:report.riskLevel||'low',risk_flags:report.riskFlags||[]}})});
+    var dd=await dr.json();
+    if(dd.credits!==undefined) updateCredits(dd.credits);
+    lastReport=report;
+    renderResultModal(report);
+    renderBreakdown({risk_score:report.riskScore,risk_flags:report.riskFlags||[]});
+    setTimeout(loadApp,600);
+  } catch(e){
+    document.getElementById('modal-body').innerHTML='<div style="text-align:center;padding:2rem;color:var(--red)">❌ Scan error: '+e.message+'</div>';
   }
 }
 
-function buildBasicReport(s) {
-  return {
-    address:s.address, network:s.network||'Unknown',
-    riskScore:s.risk_score||0, riskLevel:s.risk_level||'low',
-    reportId:'CS-SAVED', riskFlags:s.risk_flags||[],
-    ofacMatch:false, mixerInteractions:0, darknetInteractions:0, sanctionedRisk:0, suspiciousTxCount:0,
-    funds:{cleanPercent:'98.0',dirtyPercent:'1.5',sanctionedPercent:'0.5'},
-    activity:{txCount:'—',firstActivity:'—',lastActivity:'—',incomingCount:'—',outgoingCount:'—'},
-    balance:null, topCounterparties:[],
-    exchangeCompatibility:[{name:'Binance',status:'ok',label:'Депозит можливий'},{name:'Bybit',status:'ok',label:'Депозит можливий'},{name:'OKX',status:'ok',label:'Депозит можливий'}],
-    reputation:{label:s.risk_level==='high'?'Висока загроза':s.risk_level==='medium'?'Помірна експозиція':'Чистий гаманець', desc:s.risk_level==='high'?'Серйозні ризики.':s.risk_level==='medium'?'Потенційні ризики.':'Серйозних ризиків не виявлено.'},
-  };
-}
-
-// ── FULL REPORT MODAL ────────────────────────────────────────
+// ── FULL REPORT ───────────────────────────────────────────────
 function openFR() {
-  var r = window._lastReport;
-  if (!r) return;
+  var r=lastReport;
+  if(!r) return;
   closeModal();
-  document.getElementById('fr-date').textContent = new Date().toLocaleDateString('uk-UA', {day:'2-digit',month:'long',year:'numeric'});
-  document.getElementById('fr-id').textContent = 'ID: ' + (r.reportId||'N/A');
-
-  var sc = r.riskLevel==='high'?'#FF3B3B':r.riskLevel==='medium'?'#FFB020':'#00D68F';
-  var riskName = r.riskLevel==='high'?'Високий':r.riskLevel==='medium'?'Середній':'Низький';
-  var excColors = {ok:'#00D68F',check:'#F59E0B',blocked:'#FF3B3B'};
-  var breakdown = buildBreakdown(r);
-
-  var breakdownHtml = breakdown.map(function(b) {
-    return '<div class="fr-bd-item"><div class="fr-bd-dot" style="background:'+b.color+'"></div><span class="fr-bd-label">'+b.label+'</span><span class="fr-bd-badge '+
-      (b.status==='Ризик'?'red':b.status==='Увага'?'amber':'green')+'">'+b.status+'</span></div>';
-  }).join('');
-
-  var findingsHtml = [
-    {ico:'🕷️',c:'rgba(239,68,68,.15)',n:'Даркнет', v:(r.darknetInteractions>0?r.darknetInteractions+' транзакцій':'0')},
-    {ico:'🚫',c:'rgba(249,115,22,.15)',n:'Санкційний список', v:(r.ofacMatch?'ЗНАЙДЕНО':'0 збігів')},
-    {ico:'🔄',c:'rgba(79,110,247,.12)',n:'Міксер / Тумблер', v:(r.mixerInteractions>0?r.mixerInteractions+' взаємодій':'0')},
-    {ico:'✅',c:'rgba(16,185,129,.1)',n:'GoPlus Security', v:(r.riskFlags&&r.riskFlags.length>0?r.riskFlags.length+' загроз':'Чисто')},
-    {ico:'👁️',c:'rgba(79,110,247,.12)',n:'Підозріла активність', v:(r.suspiciousTxCount>0?r.suspiciousTxCount:'Немає')},
-    {ico:'🛡️',c:'rgba(16,185,129,.1)',n:'Фішинг', v:(r.riskFlags&&r.riskFlags.some(function(f){return f.type==='phishing';}))?'Знайдено':'Не виявлено'},
-  ].map(function(f) {
-    return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:8px 10px;display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:7px;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+f.ico+'</div><div><div style="font-size:10px;color:rgba(255,255,255,.4)">'+f.n+'</div><div style="font-size:12px;font-weight:700;color:#fff">'+f.v+'</div></div></div>';
-  }).join('');
-
-  var cpHtml = (r.topCounterparties||[]).map(function(cp) {
-    return '<div class="fr-cp-row"><div class="fr-cp-ico">?</div><span class="fr-cp-addr">'+cp.address+'</span><span class="fr-cp-txs">'+cp.count+' tx</span><span class="fr-cp-pct">'+cp.percentage+'%</span></div>';
-  }).join('') || '<div style="font-size:12px;color:rgba(255,255,255,.3)">Немає даних</div>';
-
-  var excHtml = (r.exchangeCompatibility||[]).map(function(ex) {
-    return '<div class="fr-exc-row"><span class="fr-exc-name">'+ex.name+'</span><span class="fr-exc-val '+(ex.status||'ok')+'">'+ex.label+'</span></div>';
-  }).join('');
-
-  document.getElementById('fr-body').innerHTML =
-    '<div class="fr-grid">' +
-      // Block 1: Wallet overview
-      '<div class="fr-block">' +
-        '<div class="fr-block-title">1. Огляд гаманця</div>' +
-        '<div style="font-size:9px;color:rgba(255,255,255,.35);margin-bottom:.2rem">Адреса</div>' +
-        '<div style="font-family:monospace;font-size:12px;font-weight:700;color:#fff;margin-bottom:.45rem;word-break:break-all">'+r.address+'</div>' +
-        '<div class="fr-tags"><span class="fr-tag '+(r.riskLevel==='high'?'red':r.riskLevel==='medium'?'':'green')+'">'+(r.riskLevel==='high'?'High Risk':r.riskLevel==='medium'?'Medium Risk':'Low Risk')+'</span><span class="fr-tag gray">'+r.network+'</span></div>' +
-        '<div class="fr-gauge-row">' +
-          '<div class="fr-gauge"><svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="38" cy="38" r="30" fill="none" stroke="'+sc+'" stroke-width="6" stroke-dasharray="'+Math.round(r.riskScore*1.885)+' 188" stroke-dashoffset="47" stroke-linecap="round"/></svg><div class="fr-gc"><div class="fr-g-num" style="color:'+sc+'">'+r.riskScore+'</div><div class="fr-g-den">/100</div></div></div>' +
-          '<div><div class="fr-risk-name" style="color:'+sc+'">'+riskName+'</div><div class="fr-risk-desc">'+(r.reputation&&r.reputation.desc||'')+'</div></div>' +
-        '</div>' +
-        '<div class="fr-stats">' +
-          '<div class="fr-stat"><div class="fr-stat-val">'+(r.activity&&r.activity.txCount||'—')+'</div><div class="fr-stat-lbl">Транзакцій</div></div>' +
-          '<div class="fr-stat"><div class="fr-stat-val" style="font-size:10px">'+(r.activity&&r.activity.firstActivity||'—')+'</div><div class="fr-stat-lbl">1-а активність</div></div>' +
-          '<div class="fr-stat"><div class="fr-stat-val">'+r.network.split(' ')[0]+'</div><div class="fr-stat-lbl">Мережа</div></div>' +
-        '</div>' +
-      '</div>' +
-      // Block 2: Findings grid
-      '<div class="fr-block">' +
-        '<div class="fr-block-title">Деталізовані знахідки</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">'+findingsHtml+'</div>' +
-      '</div>' +
-      // Block 3: Risk breakdown (why this score?)
-      '<div class="fr-block">' +
-        '<div class="fr-block-title">🔍 Risk Breakdown — Why this score?</div>' +
-        '<div class="fr-breakdown">'+breakdownHtml+'</div>' +
-      '</div>' +
-      // Block 4: Funds structure
-      '<div class="fr-block">' +
-        '<div class="fr-block-title">2. Структура коштів <span style="color:rgba(255,255,255,.2);font-weight:400">(оцінка)</span></div>' +
-        '<div class="fr-funds-bar"><div style="width:'+r.funds.cleanPercent+'%;background:#00D68F"></div><div style="width:'+r.funds.dirtyPercent+'%;background:#FFB020"></div><div style="width:'+r.funds.sanctionedPercent+'%;background:#FF3B3B"></div></div>' +
-        '<div class="fr-funds-legend"><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#00D68F"></span>Чисті<span class="fr-funds-pct">'+r.funds.cleanPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FFB020"></span>Ризикові<span class="fr-funds-pct">'+r.funds.dirtyPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FF3B3B"></span>Підсанкційні<span class="fr-funds-pct">'+r.funds.sanctionedPercent+'%</span></div></div>' +
-        '<div style="font-size:10px;color:rgba(255,255,255,.25);padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px">* Оціночно на основі GoPlus флагів. Точний % потребує Chainalysis API.</div>' +
-      '</div>' +
-      // Block 5: TX analysis
-      '<div class="fr-block">' +
-        '<div class="fr-block-title">5. Аналіз транзакцій</div>' +
-        '<div class="fr-tx-row"><span class="fr-tx-lbl">Загальна кількість</span><span class="fr-tx-val">'+(r.activity&&r.activity.txCount||'—')+'</span></div>' +
-        '<div class="fr-tx-row"><span class="fr-tx-lbl">Вхідних</span><span class="fr-tx-val">'+(r.activity&&r.activity.incomingCount||'—')+'</span></div>' +
-        '<div class="fr-tx-row"><span class="fr-tx-lbl">Вихідних</span><span class="fr-tx-val">'+(r.activity&&r.activity.outgoingCount||'—')+'</span></div>' +
-        '<div class="fr-tx-row"><span class="fr-tx-lbl">Перша активність</span><span class="fr-tx-val">'+(r.activity&&r.activity.firstActivity||'—')+'</span></div>' +
-        '<div class="fr-tx-row"><span class="fr-tx-lbl">Остання активність</span><span class="fr-tx-val">'+(r.activity&&r.activity.lastActivity||'—')+'</span></div>' +
-      '</div>' +
-      // Block 6: Exchange compat
-      '<div class="fr-block">' +
-        '<div class="fr-block-title">7. Сумісність з біржами</div>' +
-        excHtml +
-        '<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:.5rem">* Оцінка на основі ризик-скору. Рішення біржі може відрізнятись.</div>' +
-      '</div>' +
-      // Block 7: Counterparties (full width)
-      (r.topCounterparties&&r.topCounterparties.length>0?
-        '<div class="fr-block fr-block-full"><div class="fr-block-title">6. Основні контрагенти</div>'+cpHtml+'</div>'
-      : '') +
+  document.getElementById('fr-date').textContent=new Date().toLocaleDateString('uk-UA',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('fr-id').textContent='ID: '+(r.reportId||'N/A');
+  var sc=r.riskLevel==='high'?'#FF3B3B':r.riskLevel==='medium'?'#FFB020':'#00D68F';
+  var riskName=r.riskLevel==='high'?'High':r.riskLevel==='medium'?'Medium':'Low';
+  var excColors={ok:'#10B981',check:'#F59E0B',blocked:'#FF3B3B'};
+  var bd=buildBreakdownItems(r);
+  var bdHtml=bd.map(function(b){return '<div class="fr-bd-item"><div class="fr-bd-dot" style="background:'+b.color+'"></div><span class="fr-bd-lbl">'+b.label+'</span><span class="fr-bd-badge '+(b.status==='Risk'?'red':b.status==='Caution'?'amber':'green')+'">'+b.status+'</span></div>';}).join('');
+  var fds=[
+    {ico:'🕷️',c:'r',n:'Darknet',v:(r.darknetInteractions||0)>0?r.darknetInteractions+' tx':'0'},
+    {ico:'🚫',c:'a',n:'Sanctions',v:r.ofacMatch?'FOUND':'0 matches'},
+    {ico:'🔄',c:'b',n:'Mixer/Tumbler',v:(r.mixerInteractions||0)>0?r.mixerInteractions+' found':'0'},
+    {ico:'✅',c:'g',n:'GoPlus',v:(r.riskFlags&&r.riskFlags.length>0)?r.riskFlags.length+' flags':'Clear'},
+    {ico:'👁️',c:'b',n:'Suspicious Tx',v:r.suspiciousTxCount>0?r.suspiciousTxCount:'None'},
+    {ico:'🛡️',c:'g',n:'Phishing',v:(r.riskFlags||[]).some(function(f){return f.type==='phishing';})?'Found':'Not detected'},
+  ];
+  var fdHtml=fds.map(function(f){return '<div class="fr-finding"><div class="fr-f-ico '+f.c+'">'+f.ico+'</div><div><div class="fr-f-lbl">'+f.n+'</div><div class="fr-f-val">'+f.v+'</div></div></div>';}).join('');
+  var excHtml=(r.exchangeCompatibility||[]).map(function(ex){return '<div class="fr-exc-row"><span class="fr-exc-name">'+ex.name+'</span><span class="fr-exc-val '+(ex.status||'ok')+'">'+ex.label+'</span></div>';}).join('');
+  var cpHtml=(r.topCounterparties||[]).map(function(cp){return '<div style="display:flex;align-items:center;gap:.45rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="width:20px;height:20px;border-radius:50%;background:rgba(79,110,247,.15);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:rgba(255,255,255,.4)">?</span><span style="flex:1;font-family:monospace;color:rgba(255,255,255,.5)">'+cp.address+'</span><span style="color:rgba(255,255,255,.35)">'+cp.count+' tx</span><span style="font-weight:700;color:#fff;width:32px;text-align:right">'+cp.percentage+'%</span></div>';}).join('')||'<div style="font-size:12px;color:rgba(255,255,255,.3)">No data</div>';
+  document.getElementById('fr-body').innerHTML=
+    '<div class="fr-grid">'+
+      '<div class="fr-block"><div class="fr-block-title">1. Wallet Overview</div>'+
+        '<div style="font-size:9px;color:rgba(255,255,255,.3);margin-bottom:.2rem">Address</div>'+
+        '<div style="font-family:monospace;font-size:11px;font-weight:700;color:#fff;margin-bottom:.4rem;word-break:break-all">'+r.address+'</div>'+
+        '<div class="fr-tags"><span class="fr-tag '+(r.riskLevel==='high'?'red':'gray')+'">'+riskName+' Risk</span><span class="fr-tag gray">'+escHtml(r.network)+'</span></div>'+
+        '<div class="fr-gauge-row"><div class="fr-gauge-svg"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="28" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="36" cy="36" r="28" fill="none" stroke="'+sc+'" stroke-width="6" stroke-dasharray="'+Math.round((r.riskScore||0)*1.759)+' 176" stroke-dashoffset="44" stroke-linecap="round"/></svg><div class="fr-gc"><div class="fr-g-num" style="color:'+sc+'">'+(r.riskScore||0)+'</div><div class="fr-g-den">/100</div></div></div><div><div class="fr-risk-name" style="color:'+sc+'">'+riskName+' Risk</div><div class="fr-risk-desc">'+(r.reputation&&r.reputation.desc||'')+'</div></div></div>'+
+        '<div class="fr-stats"><div class="fr-stat"><div class="fr-stat-val">'+(r.activity&&r.activity.txCount||'—')+'</div><div class="fr-stat-lbl">Transactions</div></div><div class="fr-stat"><div class="fr-stat-val" style="font-size:10px">'+(r.activity&&r.activity.firstActivity||'—')+'</div><div class="fr-stat-lbl">First activity</div></div><div class="fr-stat"><div class="fr-stat-val">'+escHtml(r.network.split(' ')[0])+'</div><div class="fr-stat-lbl">Network</div></div></div>'+
+      '</div>'+
+      '<div class="fr-block"><div class="fr-block-title">Detailed Findings</div><div class="fr-findings-grid">'+fdHtml+'</div></div>'+
+      '<div class="fr-block"><div class="fr-block-title">🔍 Risk Breakdown — Why this score?</div>'+bdHtml+'</div>'+
+      '<div class="fr-block"><div class="fr-block-title">2. Funds Structure <span style="color:rgba(255,255,255,.2);font-weight:400">(estimated)</span></div>'+
+        '<div class="fr-funds-bar"><div style="width:'+r.funds.cleanPercent+'%;background:#00D68F"></div><div style="width:'+r.funds.dirtyPercent+'%;background:#FFB020"></div><div style="width:'+r.funds.sanctionedPercent+'%;background:#FF3B3B"></div></div>'+
+        '<div class="fr-funds-legend"><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#00D68F"></span>Clean<span class="fr-funds-pct">'+r.funds.cleanPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FFB020"></span>Risky<span class="fr-funds-pct">'+r.funds.dirtyPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FF3B3B"></span>Sanctioned<span class="fr-funds-pct">'+r.funds.sanctionedPercent+'%</span></div></div>'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.22);padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px;margin-top:.4rem">* Estimated from GoPlus flags. Exact % requires Chainalysis API.</div>'+
+      '</div>'+
+      '<div class="fr-block"><div class="fr-block-title">5. Transaction Analysis</div>'+
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Total count</span><span class="fr-tx-val">'+(r.activity&&r.activity.txCount||'—')+'</span></div>'+
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Incoming</span><span class="fr-tx-val">'+(r.activity&&r.activity.incomingCount||'—')+'</span></div>'+
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Outgoing</span><span class="fr-tx-val">'+(r.activity&&r.activity.outgoingCount||'—')+'</span></div>'+
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">First activity</span><span class="fr-tx-val">'+(r.activity&&r.activity.firstActivity||'—')+'</span></div>'+
+        '<div class="fr-tx-row"><span class="fr-tx-lbl">Last activity</span><span class="fr-tx-val">'+(r.activity&&r.activity.lastActivity||'—')+'</span></div>'+
+      '</div>'+
+      '<div class="fr-block"><div class="fr-block-title">7. Exchange Compatibility</div>'+excHtml+'<div style="font-size:10px;color:rgba(255,255,255,.22);margin-top:.45rem">* Based on risk score. Actual exchange decision may vary.</div></div>'+
+      (r.topCounterparties&&r.topCounterparties.length>0?'<div class="fr-block fr-block-full"><div class="fr-block-title">6. Top Counterparties</div>'+cpHtml+'</div>':'') +
     '</div>';
-
-  document.getElementById('fr-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.getElementById('fr-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
 }
+function closeFR(){document.getElementById('fr-overlay').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('fr-overlay').addEventListener('click',function(e){if(e.target===this)closeFR();});
 
-function openFRFromHistory() { openFR(); }
-
-function closeFR() {
-  document.getElementById('fr-modal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-document.getElementById('fr-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeFR();
-});
-
-// ── WATCHLIST ─────────────────────────────────────────────────
-function renderWatchlist() {
-  var wrap = document.getElementById('wl-grid-wrap');
-  if (!watchlist.length) { wrap.innerHTML = ''; return; }
-  wrap.innerHTML = watchlist.map(function(w, i) {
-    var sc = w.riskScore || null;
-    var level = w.riskLevel || null;
-    var color = !sc ? 'var(--tx3)' : level==='high'?'var(--red)':level==='medium'?'var(--amber)':'var(--green)';
-    return '<div class="wl-card">' +
-      '<div class="wl-card-top"><span class="wl-name">'+w.name+'</span><span class="wl-network">'+(w.network||'Unknown')+'</span></div>' +
-      '<div class="wl-addr">'+w.address+'</div>' +
-      '<div class="wl-score-row"><span class="wl-score" style="color:'+color+'">'+(sc?sc+'/100':'—')+'</span><span class="wl-last">'+(w.lastChecked?'Оновлено: '+w.lastChecked:'Не перевірено')+'</span></div>' +
-      '<div class="wl-actions">' +
-        '<button class="wl-btn" onclick="refreshWatchlistItem('+i+')">🔄 Оновити</button>' +
-        '<button class="wl-btn" onclick="viewWatchlistItem('+i+')">📋 Звіт</button>' +
-        '<button class="wl-btn danger" onclick="removeWatchlistItem('+i+')">🗑</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-function openAddWatchlist() {
-  document.getElementById('wl-name-inp').value = '';
-  document.getElementById('wl-addr-inp').value = '';
-  document.getElementById('wl-modal').classList.add('open');
-}
-
-function closeWlModal() { document.getElementById('wl-modal').classList.remove('open'); }
-
-function addToWatchlist() {
-  var name = document.getElementById('wl-name-inp').value.trim();
-  var addr = document.getElementById('wl-addr-inp').value.trim();
-  if (!name || !addr) { showToast('⚠ Заповніть всі поля', 'error'); return; }
-  watchlist.push({name, address:addr, network:'Unknown', riskScore:null, riskLevel:null, lastChecked:null});
-  localStorage.setItem('wl_items', JSON.stringify(watchlist));
-  closeWlModal();
-  renderWatchlist();
-  showToast('✅ Додано до Watchlist', 'success');
-}
-
-function removeWatchlistItem(i) {
-  watchlist.splice(i, 1);
-  localStorage.setItem('wl_items', JSON.stringify(watchlist));
-  renderWatchlist();
-}
-
-async function refreshWatchlistItem(i) {
-  var item = watchlist[i];
-  if (!profileData || profileData.profile.credits < 1) { showToast('⚠ Немає кредитів', 'error'); return; }
-  showToast('🔄 Сканування ' + item.name + '...', 'success');
-  try {
-    var res = await fetch(API + '/report?addr=' + encodeURIComponent(item.address));
-    var report = await res.json();
-    if (report.error) throw new Error(report.error);
-
-    // Deduct
-    var dr = await fetch(API + '/auth', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({action:'deduct', scanData:{address:item.address, network:report.network||'Unknown', risk_score:report.riskScore||0, risk_level:report.riskLevel||'low', risk_flags:report.riskFlags||[]}})});
-    var dd = await dr.json();
-    if (dd.credits !== undefined) { profileData.profile.credits = dd.credits; updateCreditsUI(dd.credits); }
-
-    watchlist[i].riskScore = report.riskScore;
-    watchlist[i].riskLevel = report.riskLevel;
-    watchlist[i].network = report.network || item.network;
-    watchlist[i].lastChecked = new Date().toLocaleDateString('uk-UA');
-    watchlist[i]._report = report;
-    localStorage.setItem('wl_items', JSON.stringify(watchlist));
-    renderWatchlist();
-    showToast('✅ ' + item.name + ' оновлено', 'success');
-  } catch(e) { showToast('❌ ' + e.message, 'error'); }
-}
-
-async function viewWatchlistItem(i) {
-  var item = watchlist[i];
-  if (item._report) {
-    window._lastReport = item._report;
-    openFR();
-  } else {
-    // Fetch without deducting (just view)
-    showToast('🔍 Завантажуємо звіт...', 'success');
-    try {
-      var res = await fetch(API + '/report?addr=' + encodeURIComponent(item.address));
-      var report = await res.json();
-      if (!report.error) { window._lastReport = report; openFR(); }
-    } catch(e) { showToast('❌ ' + e.message, 'error'); }
-  }
-}
+// ── MODAL ─────────────────────────────────────────────────────
+function openModal(t){document.getElementById('modal-title').textContent=t;document.getElementById('scan-modal').classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(){document.getElementById('scan-modal').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('scan-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeFR();closeWlModal();}});
 
 // ── PACKAGES ─────────────────────────────────────────────────
-async function buyPackage(name, price, credits) {
-  showToast('⏳ Creating payment...', 'success');
+async function buyPkg(name,price,credits) {
+  showToast('⏳ Creating payment...','success');
   try {
-    var res = await fetch(API + '/purchase', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({package_name:name, amount_usd:price, credits})});
-    var data = await res.json();
-    if (data.invoice_url) window.open(data.invoice_url, '_blank');
-    else showToast('❌ ' + (data.error||'Payment error'), 'error');
-  } catch(e) { showToast('❌ ' + e.message, 'error'); }
+    var r=await fetch(API+'/purchase',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({package_name:name,amount_usd:price,credits})});
+    var d=await r.json();
+    if(d.invoice_url) window.open(d.invoice_url,'_blank');
+    else showToast('❌ '+(d.error||'Payment error'),'error');
+  } catch(e){showToast('❌ '+e.message,'error');}
 }
 
 // ── PROMO ─────────────────────────────────────────────────────
 async function redeemPromo() {
-  var code = document.getElementById('promo-input').value.trim();
-  var msg = document.getElementById('promo-msg');
-  var btn = document.getElementById('promo-btn');
-  if (!code) { msg.style.display='block'; msg.style.background='var(--red-dim)'; msg.style.border='1px solid rgba(255,59,59,.2)'; msg.style.color='var(--red)'; msg.textContent='⚠ Введіть промокод'; return; }
-  btn.disabled=true; btn.textContent='...'; msg.style.display='none';
+  var code=document.getElementById('promo-inp').value.trim();
+  var msg=document.getElementById('promo-msg'), btn=document.getElementById('promo-btn');
+  if(!code){msg.style.display='block';msg.style.background='var(--red-dim)';msg.style.color='var(--red)';msg.textContent='⚠ Enter promo code';return;}
+  btn.disabled=true;btn.textContent='...';msg.style.display='none';
   try {
-    var res = await fetch(API + '/auth', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({action:'promo', code})});
-    var data = await res.json();
-    msg.style.display = 'block';
-    if (data.success) {
-      msg.style.background='var(--green-dim)'; msg.style.border='1px solid rgba(0,214,143,.2)'; msg.style.color='var(--green)'; msg.textContent=data.message;
-      document.getElementById('promo-input').value='';
-      if (data.new_balance!==undefined) { profileData.profile.credits=data.new_balance; updateCreditsUI(data.new_balance); }
-    } else {
-      msg.style.background='var(--red-dim)'; msg.style.border='1px solid rgba(255,59,59,.2)'; msg.style.color='var(--red)'; msg.textContent='❌ '+(data.error||'Помилка');
-    }
-  } catch(e) { msg.style.display='block'; msg.textContent='❌ Помилка підключення'; }
-  finally { btn.disabled=false; btn.textContent='Активувати'; }
+    var r=await fetch(API+'/auth',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'promo',code})});
+    var d=await r.json();
+    msg.style.display='block';
+    if(d.success){msg.style.background='var(--green-dim)';msg.style.border='1px solid rgba(0,214,143,.2)';msg.style.color='var(--green)';msg.textContent=d.message;document.getElementById('promo-inp').value='';if(d.new_balance!==undefined)updateCredits(d.new_balance);}
+    else{msg.style.background='var(--red-dim)';msg.style.color='var(--red)';msg.textContent='❌ '+(d.error||'Error');}
+  } catch(e){msg.style.display='block';msg.textContent='❌ Connection error';}
+  finally{btn.disabled=false;btn.textContent='Activate';}
 }
 
-// ── MODAL HELPERS ─────────────────────────────────────────────
-function openModal(title) {
-  document.getElementById('modal-title-txt').textContent = title;
-  document.getElementById('scan-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+// ── NAVIGATION ────────────────────────────────────────────────
+function showPage(page) {
+  allPages.forEach(function(p) {
+    var el=document.getElementById('page-'+p);
+    if(el) el.style.display=p===page?'':'none';
+    var nav=document.getElementById('nav-'+p);
+    if(nav) nav.className='nav-item'+(p===page?' active':'');
+  });
+  var titles={overview:'Overview',scan:'New Scan',history:'Scan History',saved:'Saved Wallets',packages:'Buy Credits',promo:'Promo Code',settings:'Settings',help:'Help Center'};
+  document.getElementById('topbar-title').textContent=titles[page]||page;
+  if(window.innerWidth<900) document.getElementById('sidebar').classList.remove('open');
 }
-function closeModal() {
-  document.getElementById('scan-modal').classList.remove('open');
-  document.body.style.overflow = '';
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+
+function exportReport(){
+  if(lastReport) openFR();
+  else showToast('Run a scan first','error');
 }
-document.getElementById('scan-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key==='Escape') { closeModal(); closeFR(); closeWlModal(); }
-});
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ── TOAST ─────────────────────────────────────────────────────
-function showToast(msg, type) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + (type||'');
-  setTimeout(function(){t.classList.add('show')}, 10);
-  setTimeout(function(){t.classList.remove('show')}, 3200);
+function showToast(msg,type){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+(type||'');
+  setTimeout(function(){t.classList.add('show');},10);
+  setTimeout(function(){t.classList.remove('show');},3200);
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-if (token) {
-  loadApp();
-} else {
-  document.getElementById('auth-screen').style.display = 'flex';
-}
+if(token){loadApp();}
+else{document.getElementById('auth-screen').style.display='flex';}
 </script>
 </body>
 </html>

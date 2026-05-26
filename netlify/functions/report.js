@@ -117,6 +117,36 @@ async function fetchTronReport(addr) {
       name: 'Невідомий',
     }));
 
+  // Real last 3 transactions
+  const recentTxs = txList.slice(0, 10).map(tx => {
+    const contract = tx.raw_data?.contract?.[0];
+    const val = contract?.parameter?.value;
+    if (!val) return null;
+    const isIncoming = val.to_address === addr;
+    const other = isIncoming ? val.owner_address : val.to_address;
+    const shortOther = other ? (other.slice(0,6) + '...' + other.slice(-4)) : '—';
+    // amount: TRX transfer or TRC20
+    let amount = '—';
+    let symbol = 'TRX';
+    if (val.amount) {
+      amount = (val.amount / 1e6).toFixed(2);
+    } else if (val.data) {
+      // TRC20 token transfer - approximate
+      amount = '—';
+      symbol = 'USDT';
+    }
+    return {
+      hash: tx.txID ? tx.txID.slice(0,10) + '...' : '—',
+      from: isIncoming ? shortOther : addr.slice(0,6)+'...'+addr.slice(-4),
+      to: isIncoming ? addr.slice(0,6)+'...'+addr.slice(-4) : shortOther,
+      counterparty: shortOther,
+      direction: isIncoming ? 'in' : 'out',
+      amount: amount,
+      symbol: symbol,
+      timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toLocaleDateString('uk-UA') : '—',
+    };
+  }).filter(Boolean).slice(0, 3);
+
   // GoPlus flags
   const gpResult = gp?.result?.[addr.toLowerCase()] || gp?.result || {};
   const riskFlags = [];
@@ -177,6 +207,7 @@ async function fetchTronReport(addr) {
     riskDistribution,
     topCounterparties,
     tokens: tokens.slice(0, 10).map(t => ({ symbol: t.tokenAbbr || t.tokenName, balance: (parseInt(t.balance || 0) / 1e6).toFixed(2) })),
+    recentTxs,
   };
 }
 
@@ -250,6 +281,25 @@ async function fetchEvmReport(addr, chainId = '0x1') {
       name: 'Невідомий',
     }));
 
+  // Real last 3 transactions
+  const recentTxs = txList.slice(0, 10).map(tx => {
+    if (!tx.from_address || !tx.to_address) return null;
+    const isIncoming = tx.to_address.toLowerCase() === addrLower;
+    const other = isIncoming ? tx.from_address : tx.to_address;
+    const shortOther = other ? (other.slice(0,6) + '...' + other.slice(-4)) : '—';
+    const ethVal = tx.value ? (parseInt(tx.value) / 1e18) : 0;
+    const amount = ethVal > 0 ? ethVal.toFixed(4) : '0';
+    const sym = symbol || 'ETH';
+    return {
+      hash: tx.hash ? tx.hash.slice(0,10)+'...' : '—',
+      counterparty: shortOther,
+      direction: isIncoming ? 'in' : 'out',
+      amount: amount,
+      symbol: sym,
+      timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toLocaleDateString('uk-UA') : '—',
+    };
+  }).filter(t => t && t.amount !== '0').slice(0, 3);
+
   // GoPlus
   const gpResult = gp?.result?.[addrLower] || {};
   const riskFlags = [];
@@ -305,6 +355,7 @@ async function fetchEvmReport(addr, chainId = '0x1') {
     funds: { cleanPercent: cleanPercent.toFixed(1), dirtyPercent: dirtyPercent.toFixed(1), sanctionedPercent: sanctionedPercent.toFixed(1) },
     riskDistribution,
     topCounterparties,
+    recentTxs,
   };
 }
 

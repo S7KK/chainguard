@@ -16,31 +16,25 @@ exports.handler = async (event) => {
   const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const body = JSON.parse(event.body || '{}');
-  const { action, email, password } = body;
+  const { action, email, password, code } = body;
 
   try {
-    // REGISTER
+
+    // ── REGISTER ──────────────────────────────────────────────
     if (action === 'register') {
-      const { data, error } = await supabaseAdmin.auth.admin.createUser({
-        email, password,
-        email_confirm: false,
-      });
-      if (error) return { statusCode: 400, headers, body: JSON.stringify({ error: error.message }) };
-      
-      // Send confirmation email via Supabase built-in
-      await supabaseClient.auth.signUp({
+      const { data, error } = await supabaseClient.auth.signUp({
         email, password,
         options: { emailRedirectTo: SITE_URL + '/dashboard' }
       });
-
+      if (error) return { statusCode: 400, headers, body: JSON.stringify({ error: error.message }) };
       return { statusCode: 200, headers, body: JSON.stringify({
         success: true,
         message: 'Check your email to confirm your account.',
-        userId: data.user.id
+        userId: data.user?.id
       })};
     }
 
-    // LOGIN
+    // ── LOGIN ─────────────────────────────────────────────────
     if (action === 'login') {
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid email or password' }) };
@@ -64,7 +58,7 @@ exports.handler = async (event) => {
       })};
     }
 
-    // GET PROFILE + HISTORY
+    // ── GET PROFILE ───────────────────────────────────────────
     if (action === 'profile') {
       const authHeader = event.headers.authorization || event.headers.Authorization || '';
       const jwt = authHeader.replace('Bearer ', '');
@@ -87,7 +81,7 @@ exports.handler = async (event) => {
       })};
     }
 
-    // FORGOT PASSWORD
+    // ── FORGOT PASSWORD ───────────────────────────────────────
     if (action === 'forgot') {
       await supabaseClient.auth.resetPasswordForEmail(email, {
         redirectTo: SITE_URL + '/?reset=1',
@@ -95,14 +89,14 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
     }
 
-    // DEDUCT CREDIT (after scan)
+    // ── DEDUCT CREDIT ─────────────────────────────────────────
     if (action === 'deduct') {
       const authHeader = event.headers.authorization || event.headers.Authorization || '';
       const jwt = authHeader.replace('Bearer ', '');
       const { data: { user } } = await supabaseClient.auth.getUser(jwt);
       if (!user) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
 
-      const { data: profile } = await supabaseAdmin.from('profiles').select('credits').eq('id', user.id).single();
+      const { data: profile } = await supabaseAdmin.from('profiles').select('credits, total_scans').eq('id', user.id).single();
       if (!profile || profile.credits < 1) return { statusCode: 402, headers, body: JSON.stringify({ error: 'Insufficient credits' }) };
 
       await supabaseAdmin.from('profiles').update({
@@ -110,7 +104,6 @@ exports.handler = async (event) => {
         total_scans: (profile.total_scans || 0) + 1,
       }).eq('id', user.id);
 
-      // Save scan record
       const { scanData } = body;
       if (scanData) {
         await supabaseAdmin.from('scans').insert({
@@ -120,14 +113,13 @@ exports.handler = async (event) => {
           risk_score: scanData.risk_score || 0,
           risk_level: scanData.risk_level || 'unknown',
           risk_flags: scanData.risk_flags || [],
-          chain_data: scanData.chain_data || {},
         });
       }
 
       return { statusCode: 200, headers, body: JSON.stringify({ success: true, credits: profile.credits - 1 }) };
     }
 
-    // REDEEM PROMO CODE
+    // ── PROMO CODE ────────────────────────────────────────────
     if (action === 'promo') {
       const authHeader = event.headers.authorization || event.headers.Authorization || '';
       const jwt = authHeader.replace('Bearer ', '');
@@ -136,51 +128,34 @@ exports.handler = async (event) => {
       const { data: { user }, error: authErr } = await supabaseClient.auth.getUser(jwt);
       if (authErr || !user) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid token' }) };
 
-      const code = (body.code || '').toUpperCase().trim();
-      if (!code) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Промокод не вказано' }) };
+      const promoCode = (code || '').toUpperCase().trim();
+      if (!promoCode) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Промокод не вказано' }) };
 
-      // Check promo exists
       const { data: promo, error: promoErr } = await supabaseAdmin
-        .from('promo_codes')
-        .select('*')
-        .eq('code', code)
-        .single();
+        .from('promo_codes').select('*').eq('code', promoCode).single();
 
-      if (promoErr || !promo) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Промокод не знайдено або вже недійсний' }) };
+      if (promoErr || !promo) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Промокод не знайдено' }) };
 
-      // Check expiry
       if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Термін дії промокоду закінчився' }) };
       }
 
-      // Check max uses
       if (promo.max_uses !== null && promo.used_count >= promo.max_uses) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Промокод вже використано максимальну кількість разів' }) };
       }
 
-      // Check if user already used this code
       const { data: alreadyUsed } = await supabaseAdmin
-        .from('promo_uses')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('code', code)
-        .single();
+        .from('promo_uses').select('id').eq('user_id', user.id).eq('code', promoCode).single();
 
       if (alreadyUsed) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ви вже використовували цей промокод' }) };
 
-      // Add credits to user
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
-
+      const { data: profile } = await supabaseAdmin.from('profiles').select('credits').eq('id', user.id).single();
       const newCredits = (profile?.credits || 0) + promo.credits;
 
-      const [updateRes, useRes, countRes] = await Promise.all([
+      await Promise.all([
         supabaseAdmin.from('profiles').update({ credits: newCredits }).eq('id', user.id),
-        supabaseAdmin.from('promo_uses').insert({ user_id: user.id, code, credits_added: promo.credits }),
-        supabaseAdmin.from('promo_codes').update({ used_count: promo.used_count + 1 }).eq('code', code),
+        supabaseAdmin.from('promo_uses').insert({ user_id: user.id, code: promoCode, credits_added: promo.credits }),
+        supabaseAdmin.from('promo_codes').update({ used_count: promo.used_count + 1 }).eq('code', promoCode),
       ]);
 
       return { statusCode: 200, headers, body: JSON.stringify({
@@ -192,6 +167,7 @@ exports.handler = async (event) => {
     }
 
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Unknown action' }) };
+
   } catch(e) {
     console.error(e);
     return { statusCode: 500, headers, body: JSON.stringify({ error: e.message }) };

@@ -122,6 +122,7 @@ async function fetchTronReport(addr) {
   const riskFlags = [];
   let darknetInteractions = 0;
   let sanctionedRisk = 0;
+  const mixerInteractions = 0; // TRON has no mixer tracking (EVM-only)
   if (gpResult.blacklist_doubt === '1') { riskFlags.push({ type: 'blacklist', label: 'Blacklist suspect', severity: 'high' }); }
   if (gpResult.cybercrime === '1') { riskFlags.push({ type: 'cybercrime', label: 'Cybercrime', severity: 'high' }); }
   if (gpResult.money_laundering === '1') { riskFlags.push({ type: 'money_laundering', label: 'Money laundering', severity: 'high' }); }

@@ -735,133 +735,257 @@ async function buyPackage(pkgId) {
 
 // ── MODAL ─────────────────────────────────────────────────────
 function renderReportModal(r, sc, levelLabel, level) {
-  var fundsBar = '<div style="height:8px;border-radius:4px;display:flex;overflow:hidden;margin:.5rem 0">' +
-    '<div style="width:' + r.funds.cleanPercent + '%;background:#00D68F"></div>' +
-    '<div style="width:' + r.funds.dirtyPercent + '%;background:#FFB020"></div>' +
-    '<div style="width:' + r.funds.sanctionedPercent + '%;background:#FF3B3B"></div>' +
-    '</div>';
+  // Store report globally for full view
+  window._lastReport = r;
+
+  var fundsBar =
+    '<div style="height:8px;border-radius:4px;display:flex;overflow:hidden;margin:.5rem 0;background:var(--b2)">' +
+    '<div style="width:' + r.funds.cleanPercent + '%;background:var(--green);border-radius:4px 0 0 4px"></div>' +
+    '<div style="width:' + r.funds.dirtyPercent + '%;background:var(--amber)"></div>' +
+    '<div style="width:' + r.funds.sanctionedPercent + '%;background:var(--red);border-radius:0 4px 4px 0"></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:1rem;font-size:11px;flex-wrap:wrap">' +
+    '<span style="color:var(--green)">● Чисті ' + r.funds.cleanPercent + '%</span>' +
+    '<span style="color:var(--amber)">● Ризикові ' + r.funds.dirtyPercent + '%</span>' +
+    '<span style="color:var(--red)">● Підсанкційні ' + r.funds.sanctionedPercent + '%</span>' +
+    '</div>' +
+    '<div style="font-size:10px;color:var(--tx3);margin-top:4px">* Оціночні дані на основі виявлених ризиків</div>';
 
   var flagsHtml = (r.riskFlags || []).map(function(f) {
-    return '<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
-      '<span style="color:#FF3B3B">⚠</span><span style="color:var(--tx2)">' + f.label + '</span>' +
+    return '<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
+      '<span style="color:var(--red)">⚠</span><span style="color:var(--tx2)">' + f.label + '</span>' +
+      '<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,59,59,.1);color:var(--red)">' + f.severity + '</span>' +
       '</div>';
   }).join('') || '<div style="font-size:12px;color:var(--green)">✓ Серйозних загроз не виявлено</div>';
 
   var checksHtml =
-    '<div class="mr-check"><span class="mr-check-name">OFAC / Санкції</span><span class="mr-check-val ' + (r.ofacMatch || r.sanctionedRisk > 0 ? 'found' : 'clear') + '">' + (r.ofacMatch || r.sanctionedRisk > 0 ? 'ЗНАЙДЕНО' : 'Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Міксери</span><span class="mr-check-val ' + (r.mixerInteractions > 0 ? 'found' : 'clear') + '">' + (r.mixerInteractions > 0 ? r.mixerInteractions + ' взаємодій' : 'Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Даркнет</span><span class="mr-check-val ' + (r.darknetInteractions > 0 ? 'found' : 'clear') + '">' + (r.darknetInteractions > 0 ? r.darknetInteractions + ' транзакцій' : 'Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (r.riskFlags && r.riskFlags.length > 0 ? 'found' : 'clear') + '">' + (r.riskFlags && r.riskFlags.length > 0 ? r.riskFlags.length + ' загроз' : 'Чисто') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Транзакцій</span><span class="mr-check-val clear">' + (r.activity?.txCount || 'N/A') + '</span></div>' +
-    '<div class="mr-check"><span class="mr-check-name">Перша активність</span><span class="mr-check-val clear">' + (r.activity?.firstActivity || 'N/A') + '</span></div>';
+    '<div class="mr-check"><span class="mr-check-name">OFAC / Санкції</span><span class="mr-check-val ' + (r.ofacMatch || r.sanctionedRisk > 0 ? 'found' : 'clear') + '">' + (r.ofacMatch || r.sanctionedRisk > 0 ? '⚠ ЗНАЙДЕНО' : '✓ Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Міксери</span><span class="mr-check-val ' + (r.mixerInteractions > 0 ? 'found' : 'clear') + '">' + (r.mixerInteractions > 0 ? '⚠ ' + r.mixerInteractions + ' взаємодій' : '✓ Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Даркнет</span><span class="mr-check-val ' + (r.darknetInteractions > 0 ? 'found' : 'clear') + '">' + (r.darknetInteractions > 0 ? '⚠ ' + r.darknetInteractions + ' транзакцій' : '✓ Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">GoPlus Security</span><span class="mr-check-val ' + (r.riskFlags && r.riskFlags.length > 0 ? 'found' : 'clear') + '">' + (r.riskFlags && r.riskFlags.length > 0 ? '⚠ ' + r.riskFlags.length + ' загроз' : '✓ Чисто') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Транзакцій</span><span class="mr-check-val clear">' + (r.activity && r.activity.txCount || 'N/A') + '</span></div>' +
+    '<div class="mr-check"><span class="mr-check-name">Перша активність</span><span class="mr-check-val clear">' + (r.activity && r.activity.firstActivity || 'N/A') + '</span></div>';
 
-  var exchangeHtml = (r.exchangeCompatibility || []).slice(0, 3).map(function(ex) {
-    var color = ex.status === 'ok' ? 'var(--green)' : ex.status === 'check' ? 'var(--amber)' : 'var(--red)';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
+  var excColors = { ok: 'var(--green)', check: 'var(--amber)', blocked: 'var(--red)' };
+  var exchangeHtml = (r.exchangeCompatibility || []).map(function(ex) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
       '<span style="color:var(--tx2)">' + ex.name + '</span>' +
-      '<span style="font-weight:600;color:' + color + '">' + ex.label + '</span>' +
+      '<span style="font-weight:600;color:' + (excColors[ex.status] || 'var(--tx2)') + '">' + ex.label + '</span>' +
       '</div>';
   }).join('');
 
   document.getElementById('modal-body').innerHTML =
-    // Alert header
-    '<div class="mr-alert ' + level + '" style="margin-bottom:1rem">' +
+    // Alert
+    '<div class="mr-alert ' + level + '" style="margin-bottom:.85rem">' +
       '<div style="font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;color:' + sc + ';margin-bottom:3px">' + levelLabel + '</div>' +
-      '<div style="font-size:15px;font-weight:700">' + (r.reputation?.label || 'Аналіз завершено') + '</div>' +
-      '<div style="font-size:12px;color:var(--tx2);margin-top:3px">' + (r.reputation?.desc || '') + '</div>' +
+      '<div style="font-size:15px;font-weight:700">' + (r.reputation && r.reputation.label || 'Аналіз завершено') + '</div>' +
+      '<div style="font-size:12px;color:var(--tx2);margin-top:2px">' + (r.reputation && r.reputation.desc || '') + '</div>' +
     '</div>' +
     // Score + address
-    '<div class="mr-score" style="margin-bottom:.85rem">' +
-      '<div class="mr-ring" style="border-color:' + sc + ';box-shadow:0 0 14px ' + sc + '30"><div class="mr-num" style="color:' + sc + '">' + r.riskScore + '</div><div class="mr-max">/100</div></div>' +
+    '<div class="mr-score" style="margin-bottom:.75rem">' +
+      '<div class="mr-ring" style="border-color:' + sc + ';box-shadow:0 0 14px ' + sc + '20">' +
+        '<div class="mr-num" style="color:' + sc + '">' + r.riskScore + '</div>' +
+        '<div class="mr-max">/100</div>' +
+      '</div>' +
       '<div class="mr-info">' +
-        '<div class="mr-addr">' + r.address + '</div>' +
-        '<div class="mr-net" style="font-size:11px;margin-top:2px">' + r.network + ' · ID: <span style="color:var(--cyan);font-family:var(--mono)">' + (r.reportId || '') + '</span></div>' +
-        (r.balance ? '<div style="font-size:11px;color:var(--tx3);margin-top:3px">Баланс: ' + (r.balance.trx ? r.balance.trx + ' TRX' + (r.balance.usdt > 0 ? ' + ' + r.balance.usdt + ' USDT' : '') : r.balance.native || '') + '</div>' : '') +
+        '<div class="mr-addr" style="word-break:break-all">' + r.address + '</div>' +
+        '<div style="font-size:11px;color:var(--tx3);margin-top:3px">' + r.network + ' · ID: <span style="color:var(--cyan);font-family:var(--mono)">' + (r.reportId || '') + '</span></div>' +
+        (r.balance ? '<div style="font-size:11px;color:var(--tx3);margin-top:2px">Баланс: ' +
+          (r.balance.trx !== undefined ? r.balance.trx + ' TRX' + (parseFloat(r.balance.usdt) > 0 ? ' + ' + r.balance.usdt + ' USDT' : '') :
+           r.balance.native || '') + '</div>' : '') +
       '</div>' +
     '</div>' +
-    // Funds structure
-    '<div style="margin-bottom:.85rem;background:var(--s2);border-radius:10px;padding:10px 12px">' +
-      '<div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.35rem;text-transform:uppercase">Структура коштів</div>' +
+    // Funds
+    '<div style="margin-bottom:.75rem;background:var(--s2);border-radius:10px;padding:10px 12px">' +
+      '<div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em">Структура коштів</div>' +
       fundsBar +
-      '<div style="display:flex;gap:1rem;font-size:10px">' +
-        '<span style="color:var(--green)">● Чисті ' + r.funds.cleanPercent + '%</span>' +
-        '<span style="color:var(--amber)">● Ризикові ' + r.funds.dirtyPercent + '%</span>' +
-        '<span style="color:var(--red)">● Підсанкційні ' + r.funds.sanctionedPercent + '%</span>' +
-      '</div>' +
     '</div>' +
     // Checks
-    '<div class="mr-checks" style="margin-bottom:.85rem">' + checksHtml + '</div>' +
-    // GoPlus flags
-    (r.riskFlags && r.riskFlags.length > 0 ? '<div style="background:rgba(255,59,59,.06);border:1px solid rgba(255,59,59,.15);border-radius:10px;padding:10px 12px;margin-bottom:.85rem"><div style="font-size:10px;font-family:var(--mono);color:var(--red);margin-bottom:.35rem;text-transform:uppercase">Виявлені загрози</div>' + flagsHtml + '</div>' : '') +
-    // Exchange compat
-    (exchangeHtml ? '<div style="background:var(--s2);border-radius:10px;padding:10px 12px;margin-bottom:.85rem"><div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.35rem;text-transform:uppercase">Сумісність з біржами</div>' + exchangeHtml + '</div>' : '') +
+    '<div class="mr-checks" style="margin-bottom:.75rem">' + checksHtml + '</div>' +
+    // Flags
+    (r.riskFlags && r.riskFlags.length > 0 ?
+      '<div style="background:rgba(255,59,59,.05);border:1px solid rgba(255,59,59,.15);border-radius:10px;padding:10px 12px;margin-bottom:.75rem">' +
+      '<div style="font-size:10px;font-family:var(--mono);color:var(--red);margin-bottom:.4rem;text-transform:uppercase">Виявлені загрози</div>' +
+      flagsHtml + '</div>' : '') +
+    // Exchange
+    (exchangeHtml ?
+      '<div style="background:var(--s2);border-radius:10px;padding:10px 12px;margin-bottom:.75rem">' +
+      '<div style="font-size:10px;font-family:var(--mono);color:var(--tx3);margin-bottom:.4rem;text-transform:uppercase">Сумісність з біржами</div>' +
+      exchangeHtml + '</div>' : '') +
     // Buttons
-    '<button class="save-btn" onclick="getPdfReport()" style="margin-bottom:8px">📄 Зберегти PDF звіт</button>' +
-    '<button onclick="closeModal();loadDashboard()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Закрити</button>';
+    '<button onclick="openFullReportDash()" style="width:100%;background:var(--s2);border:1.5px solid var(--cyan2);border-radius:10px;padding:11px;color:var(--cyan);font-family:var(--head);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">📋 Дивитись повний звіт</button>' +
+      '📋 Дивитись повний звіт' +
+    '</button>' +
+    '<button onclick="closeModal()" style="width:100%;background:none;border:1px solid var(--b2);border-radius:10px;padding:10px;color:var(--tx3);cursor:pointer;font-size:13px">Закрити</button>';
+}
+function openFullReportDash() {
+  var r = window._lastReport;
+  if (!r) return;
+  closeModal();
+  renderFullReportModal(r);
 }
 
-async function redeemPromo() {
-  var code = document.getElementById('promo-input').value.trim();
-  var msg = document.getElementById('promo-msg');
-  var btn = document.getElementById('promo-btn');
-
-  if (!code) {
-    msg.style.display = 'block';
-    msg.style.background = 'var(--red-dim)';
-    msg.style.color = 'var(--red)';
-    msg.style.border = '1px solid rgba(255,59,59,.2)';
-    msg.textContent = '⚠ Введіть промокод';
-    return;
+function renderFullReportModal(r) {
+  // Check if full report modal exists, create if not
+  var modal = document.getElementById('full-report-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'full-report-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;background:rgba(0,0,0,.8);backdrop-filter:blur(6px)';
+    modal.onclick = function(e) { if(e.target===modal) closeFull(); };
+    document.body.appendChild(modal);
   }
 
-  btn.disabled = true;
-  btn.textContent = '...';
-  msg.style.display = 'none';
+  var sc = r.riskLevel === 'high' ? '#FF3B3B' : r.riskLevel === 'medium' ? '#FFB020' : '#00D68F';
+  var riskName = r.riskLevel === 'high' ? 'Високий' : r.riskLevel === 'medium' ? 'Середній' : 'Низький';
+  var excColors = { ok: '#00D68F', check: '#FFB020', blocked: '#FF3B3B' };
 
-  try {
-    var res = await fetch(API + '/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ action: 'promo', code: code }),
-    });
-    var data = await res.json();
+  // Build findings grid
+  var findingsItems = [
+    { icon: '🕷️', color: 'rgba(255,59,59,.15)', name: 'Даркнет', val: (r.darknetInteractions > 0 ? r.darknetInteractions + ' транзакцій' : '0') },
+    { icon: '🚫', color: 'rgba(249,115,22,.15)', name: 'Санкційний список', val: (r.ofacMatch ? 'ЗНАЙДЕНО' : '0 збігів') },
+    { icon: '👁️', color: 'rgba(79,110,247,.12)', name: 'Підозрілий обмінник', val: (r.suspiciousTxCount > 0 ? r.suspiciousTxCount + ' взаємодій' : '0') },
+    { icon: '🔄', color: 'rgba(16,185,129,.1)', name: 'Міксер / Тумблер', val: (r.mixerInteractions > 0 ? r.mixerInteractions + ' взаємодій' : '0') },
+    { icon: '📊', color: 'rgba(16,185,129,.1)', name: 'GoPlus перевірка', val: (r.riskFlags && r.riskFlags.length > 0 ? r.riskFlags.length + ' загроз' : 'Чисто') },
+    { icon: '✅', color: 'rgba(16,185,129,.1)', name: 'Фішинг', val: (r.riskFlags && r.riskFlags.find(function(f){return f.type==='phishing';}) ? 'Знайдено' : 'Не виявлено') },
+  ];
 
-    msg.style.display = 'block';
+  var findingsHtml = findingsItems.map(function(f) {
+    return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:9px">' +
+      '<div style="width:28px;height:28px;border-radius:8px;background:' + f.color + ';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">' + f.icon + '</div>' +
+      '<div><div style="font-size:11px;color:rgba(255,255,255,.45)">' + f.name + '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:#fff">' + f.val + '</div></div>' +
+      '</div>';
+  }).join('');
 
-    if (data.success) {
-      msg.style.background = 'rgba(0,214,143,.08)';
-      msg.style.color = 'var(--green)';
-      msg.style.border = '1px solid rgba(0,214,143,.2)';
-      msg.textContent = data.message;
-      document.getElementById('promo-input').value = '';
-      // Update credits
-      if (data.new_balance !== undefined) {
-        profileData.profile.credits = data.new_balance;
-        updateCreditsUI(data.new_balance);
-      }
-      loadPromoHistory();
-    } else {
-      msg.style.background = 'var(--red-dim)';
-      msg.style.color = 'var(--red)';
-      msg.style.border = '1px solid rgba(255,59,59,.2)';
-      msg.textContent = '❌ ' + (data.error || 'Помилка активації');
-    }
-  } catch(e) {
-    msg.style.display = 'block';
-    msg.style.background = 'var(--red-dim)';
-    msg.style.color = 'var(--red)';
-    msg.style.border = '1px solid rgba(255,59,59,.2)';
-    msg.textContent = '❌ Помилка підключення';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Активувати';
-  }
+  var excHtml = (r.exchangeCompatibility || []).map(function(ex) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
+      '<span style="color:rgba(255,255,255,.65)">' + ex.name + '</span>' +
+      '<span style="font-weight:700;color:' + (excColors[ex.status] || '#fff') + '">' + ex.label + '</span>' +
+      '</div>';
+  }).join('');
+
+  var cpHtml = (r.topCounterparties || []).map(function(cp) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">' +
+      '<div style="width:22px;height:22px;border-radius:50%;background:rgba(79,110,247,.15);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">?</div>' +
+      '<span style="flex:1;color:rgba(255,255,255,.65);font-family:var(--mono)">' + cp.address + '</span>' +
+      '<span style="color:rgba(255,255,255,.4)">' + cp.count + ' tx</span>' +
+      '<span style="font-weight:700;color:#fff;width:36px;text-align:right">' + cp.percentage + '%</span>' +
+      '</div>';
+  }).join('') || '<div style="font-size:12px;color:rgba(255,255,255,.35)">Немає даних</div>';
+
+  modal.innerHTML =
+    '<div style="background:#0D1028;border:1px solid rgba(79,110,247,.2);border-radius:20px;width:100%;max-width:840px;position:relative;overflow:hidden;margin:auto">' +
+      // Header
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)">' +
+        '<div style="display:flex;align-items:center;gap:.75rem">' +
+          '<div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#4F6EF7,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:13px">🛡️</div>' +
+          '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.5)">Детальний звіт — Crypto Scanner</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:1rem">' +
+          '<span style="font-size:11px;color:rgba(255,255,255,.35)">ID: <span style="color:#4F6EF7;font-family:monospace">' + (r.reportId||'N/A') + '</span></span>' +
+          '<button onclick="closeFull()" style="background:rgba(255,255,255,.08);border:none;border-radius:7px;width:28px;height:28px;color:rgba(255,255,255,.6);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✕</button>' +
+        '</div>' +
+      '</div>' +
+      // Body
+      '<div style="padding:1.25rem 1.5rem;overflow-y:auto;max-height:80vh">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">' +
+          // Block 1: Wallet overview
+          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
+            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">1. Огляд гаманця</div>' +
+            '<div style="font-size:10px;color:rgba(255,255,255,.35);margin-bottom:.2rem">Адреса</div>' +
+            '<div style="font-family:monospace;font-size:12px;font-weight:700;color:#fff;margin-bottom:.5rem;word-break:break-all">' + r.address + '</div>' +
+            '<div style="display:flex;gap:.35rem;margin-bottom:.75rem;flex-wrap:wrap">' +
+              '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;background:rgba(255,59,59,.15);color:#EF4444;border:1px solid rgba(255,59,59,.2)">' + (r.riskLevel === 'high' ? 'High Risk' : r.riskLevel === 'medium' ? 'Medium Risk' : 'Low Risk') + '</span>' +
+              '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08)">' + r.network + '</span>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">' +
+              '<div style="position:relative;width:72px;height:72px;flex-shrink:0">' +
+                '<svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="28" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="36" cy="36" r="28" fill="none" stroke="' + sc + '" stroke-width="6" stroke-dasharray="' + Math.round(r.riskScore * 1.76) + ' 176" stroke-dashoffset="44" stroke-linecap="round"/></svg>' +
+                '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">' +
+                  '<span style="font-size:20px;font-weight:900;color:#fff;line-height:1">' + r.riskScore + '</span>' +
+                  '<span style="font-size:9px;color:rgba(255,255,255,.35)">/100</span>' +
+                '</div>' +
+              '</div>' +
+              '<div>' +
+                '<div style="font-size:14px;font-weight:800;color:' + sc + '">' + riskName + '</div>' +
+                '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.4">' + (r.reputation && r.reputation.desc || '') + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem">' +
+              '<div style="background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .6rem;text-align:center">' +
+                '<div style="font-size:12px;font-weight:700;color:#fff">' + (r.activity && r.activity.txCount || '—') + '</div>' +
+                '<div style="font-size:9px;color:rgba(255,255,255,.35)">Транзакцій</div>' +
+              '</div>' +
+              '<div style="background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .6rem;text-align:center">' +
+                '<div style="font-size:11px;font-weight:700;color:#fff">' + (r.activity && r.activity.firstActivity || '—') + '</div>' +
+                '<div style="font-size:9px;color:rgba(255,255,255,.35)">1-а активність</div>' +
+              '</div>' +
+              '<div style="background:rgba(255,255,255,.03);border-radius:7px;padding:.4rem .6rem;text-align:center">' +
+                '<div style="font-size:12px;font-weight:700;color:#fff">' + r.network.split(' ')[0] + '</div>' +
+                '<div style="font-size:9px;color:rgba(255,255,255,.35)">Мережа</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          // Block 2: Findings
+          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
+            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">Деталізовані знахідки</div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem">' + findingsHtml + '</div>' +
+          '</div>' +
+          // Block 3: Funds
+          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
+            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">2. Структура коштів <span style="color:rgba(255,255,255,.2);font-weight:400">(оцінка)</span></div>' +
+            '<div style="height:10px;border-radius:5px;display:flex;overflow:hidden;margin-bottom:.5rem;background:rgba(255,255,255,.05)">' +
+              '<div style="width:' + r.funds.cleanPercent + '%;background:#00D68F"></div>' +
+              '<div style="width:' + r.funds.dirtyPercent + '%;background:#FFB020"></div>' +
+              '<div style="width:' + r.funds.sanctionedPercent + '%;background:#FF3B3B"></div>' +
+            '</div>' +
+            '<div style="display:flex;gap:1rem;margin-bottom:.5rem;flex-wrap:wrap">' +
+              '<div style="display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)"><span style="width:8px;height:8px;border-radius:50%;background:#00D68F;flex-shrink:0"></span>Чисті <span style="font-weight:700;color:#fff">' + r.funds.cleanPercent + '%</span></div>' +
+              '<div style="display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)"><span style="width:8px;height:8px;border-radius:50%;background:#FFB020;flex-shrink:0"></span>Ризикові <span style="font-weight:700;color:#fff">' + r.funds.dirtyPercent + '%</span></div>' +
+              '<div style="display:flex;align-items:center;gap:.4rem;font-size:11px;color:rgba(255,255,255,.55)"><span style="width:8px;height:8px;border-radius:50%;background:#FF3B3B;flex-shrink:0"></span>Підсанкційні <span style="font-weight:700;color:#fff">' + r.funds.sanctionedPercent + '%</span></div>' +
+            '</div>' +
+            '<div style="font-size:10px;color:rgba(255,255,255,.25);padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px;line-height:1.5">* Оціночні дані на основі виявлених GoPlus флагів. Точний % потребує Chainalysis API.</div>' +
+          '</div>' +
+          // Block 4: Exchanges
+          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem">' +
+            '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">7. Сумісність з біржами</div>' +
+            excHtml +
+            '<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:.5rem;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px;line-height:1.5">* Оцінка на основі ризик-скору. Фактичне рішення залежить від внутрішньої AML системи біржі.</div>' +
+          '</div>' +
+        '</div>' +
+        // Block 5: Counterparties full width
+        (r.topCounterparties && r.topCounterparties.length > 0 ?
+          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem;margin-bottom:1rem">' +
+          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">6. Основні контрагенти</div>' +
+          cpHtml +
+          '</div>' : '') +
+        // Block 6: TX analysis
+        '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem;margin-bottom:1rem">' +
+          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.75rem">5. Аналіз транзакцій</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">' +
+            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:rgba(255,255,255,.5)">Загальна кількість</span><span style="font-weight:700">' + (r.activity && r.activity.txCount || '—') + '</span></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:rgba(255,255,255,.5)">Вхідних</span><span style="font-weight:700">' + (r.activity && r.activity.incomingCount || '—') + '</span></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:rgba(255,255,255,.5)">Вихідних</span><span style="font-weight:700">' + (r.activity && r.activity.outgoingCount || '—') + '</span></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:12px;padding:.3rem 0"><span style="color:rgba(255,255,255,.5)">Остання активність</span><span style="font-weight:700">' + (r.activity && r.activity.lastActivity || '—') + '</span></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      // Footer
+      '<div style="padding:.85rem 1.5rem;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.01)">' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.25)">ⓘ Не є фінансовою порадою. Тільки для ознайомлення.</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.25)">' + new Date().toLocaleDateString('uk-UA') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 }
 
-async function loadPromoHistory() {
-  // Load from Supabase via profile endpoint (promo_uses)
-  // For now show placeholder - TODO: add to profile endpoint
-  document.getElementById('promo-empty').style.display = '';
+function closeFull() {
+  var modal = document.getElementById('full-report-modal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 function getPdfReport() {

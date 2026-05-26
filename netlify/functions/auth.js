@@ -127,6 +127,70 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify({ success: true, credits: profile.credits - 1 }) };
     }
 
+    // REDEEM PROMO CODE
+    if (action === 'promo') {
+      const authHeader = event.headers.authorization || event.headers.Authorization || '';
+      const jwt = authHeader.replace('Bearer ', '');
+      if (!jwt) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
+
+      const { data: { user }, error: authErr } = await supabaseClient.auth.getUser(jwt);
+      if (authErr || !user) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid token' }) };
+
+      const code = (body.code || '').toUpperCase().trim();
+      if (!code) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Промокод не вказано' }) };
+
+      // Check promo exists
+      const { data: promo, error: promoErr } = await supabaseAdmin
+        .from('promo_codes')
+        .select('*')
+        .eq('code', code)
+        .single();
+
+      if (promoErr || !promo) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Промокод не знайдено або вже недійсний' }) };
+
+      // Check expiry
+      if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Термін дії промокоду закінчився' }) };
+      }
+
+      // Check max uses
+      if (promo.max_uses !== null && promo.used_count >= promo.max_uses) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Промокод вже використано максимальну кількість разів' }) };
+      }
+
+      // Check if user already used this code
+      const { data: alreadyUsed } = await supabaseAdmin
+        .from('promo_uses')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('code', code)
+        .single();
+
+      if (alreadyUsed) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ви вже використовували цей промокод' }) };
+
+      // Add credits to user
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('credits')
+        .eq('id', user.id)
+        .single();
+
+      const newCredits = (profile?.credits || 0) + promo.credits;
+
+      const [updateRes, useRes, countRes] = await Promise.all([
+        supabaseAdmin.from('profiles').update({ credits: newCredits }).eq('id', user.id),
+        supabaseAdmin.from('promo_uses').insert({ user_id: user.id, code, credits_added: promo.credits }),
+        supabaseAdmin.from('promo_codes').update({ used_count: promo.used_count + 1 }).eq('code', code),
+      ]);
+
+      return { statusCode: 200, headers, body: JSON.stringify({
+        success: true,
+        credits_added: promo.credits,
+        new_balance: newCredits,
+        message: `✅ Промокод активовано! +${promo.credits} кредитів нараховано.`,
+      })};
+    }
+
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Unknown action' }) };
   } catch(e) {
     console.error(e);

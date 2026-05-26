@@ -55,19 +55,22 @@ function detectNetwork(addr) {
 async function fetchTronReport(addr) {
   const h = { 'TRON-PRO-API-KEY': TRON_KEY };
   
-  const [accRes, txRes, trc20Res, goplusRes] = await Promise.allSettled([
+  const [accRes, txRes, trc20Res, goplusRes, txDetailRes] = await Promise.allSettled([
     fetch(`https://apilist.tronscanapi.com/api/accountv2?address=${addr}`, { headers: h }),
     fetch(`https://api.trongrid.io/v1/accounts/${addr}/transactions?limit=200&only_confirmed=true`, { headers: h }),
     fetch(`https://apilist.tronscanapi.com/api/account/tokens?address=${addr}&start=0&limit=50&token_type=trc20`, { headers: h }),
     fetch(`https://api.gopluslabs.io/api/v1/address_security/${addr}?chain_id=tron`),
+    fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=10&start=0&count=true`, { headers: h }),
   ]);
 
   const acc = accRes.status === 'fulfilled' && accRes.value.ok ? await accRes.value.json() : null;
   const txData = txRes.status === 'fulfilled' && txRes.value.ok ? await txRes.value.json() : null;
   const trc20Data = trc20Res.status === 'fulfilled' && trc20Res.value.ok ? await trc20Res.value.json() : null;
   const gp = goplusRes.status === 'fulfilled' && goplusRes.value.ok ? await goplusRes.value.json() : null;
+  const txDetailData = txDetailRes.status === 'fulfilled' && txDetailRes.value.ok ? await txDetailRes.value.json() : null;
 
   const txList = txData?.data || [];
+  const txDetailList = txDetailData?.data || [];
   const tokens = trc20Data?.data || acc?.trc20token_balances || [];
 
   // Balance
@@ -117,35 +120,40 @@ async function fetchTronReport(addr) {
       name: 'Невідомий',
     }));
 
-  // Real last 3 transactions
-  const recentTxs = txList.slice(0, 10).map(tx => {
-    const contract = tx.raw_data?.contract?.[0];
-    const val = contract?.parameter?.value;
-    if (!val) return null;
-    const isIncoming = val.to_address === addr;
-    const other = isIncoming ? val.owner_address : val.to_address;
-    const shortOther = other ? (other.slice(0,6) + '...' + other.slice(-4)) : '—';
-    // amount: TRX transfer or TRC20
+  // Real last 3 transactions from Tronscan
+  const recentTxs = txDetailList.slice(0, 10).map(tx => {
+    if (!tx.ownerAddress) return null;
+    const isIncoming = tx.toAddress === addr;
+    const other = isIncoming ? tx.ownerAddress : tx.toAddress;
+    if (!other || other === addr) return null;
+    const shortOther = other.slice(0, 8) + '...' + other.slice(-5);
+
+    // Amount and symbol
     let amount = '—';
     let symbol = 'TRX';
-    if (val.amount) {
-      amount = (val.amount / 1e6).toFixed(2);
-    } else if (val.data) {
-      // TRC20 token transfer - approximate
-      amount = '—';
-      symbol = 'USDT';
+    if (tx.tokenInfo && tx.amount) {
+      const dec = tx.tokenInfo.tokenDecimal || 6;
+      const raw = parseFloat(tx.amount) / Math.pow(10, dec);
+      if (raw > 0) {
+        amount = raw > 1 ? raw.toFixed(2) : raw.toFixed(6);
+        symbol = tx.tokenInfo.tokenAbbr || tx.tokenInfo.tokenName || 'TOKEN';
+      }
+    } else if (tx.amount && tx.contractType === 1) {
+      // TRX transfer: amount in SUN (1 TRX = 1,000,000 SUN)
+      const trxAmt = parseFloat(tx.amount) / 1e6;
+      if (trxAmt > 0) { amount = trxAmt.toFixed(2); symbol = 'TRX'; }
     }
+
+    const date = tx.timestamp ? new Date(tx.timestamp).toLocaleDateString('uk-UA') : '—';
     return {
-      hash: tx.txID ? tx.txID.slice(0,10) + '...' : '—',
-      from: isIncoming ? shortOther : addr.slice(0,6)+'...'+addr.slice(-4),
-      to: isIncoming ? addr.slice(0,6)+'...'+addr.slice(-4) : shortOther,
+      hash: tx.hash ? tx.hash.slice(0, 10) + '...' : '—',
       counterparty: shortOther,
       direction: isIncoming ? 'in' : 'out',
-      amount: amount,
-      symbol: symbol,
-      timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toLocaleDateString('uk-UA') : '—',
+      amount,
+      symbol,
+      timestamp: date,
     };
-  }).filter(Boolean).slice(0, 3);
+  }).filter(t => t && t.amount !== '—').slice(0, 3);
 
   // GoPlus flags
   const gpResult = gp?.result?.[addr.toLowerCase()] || gp?.result || {};
@@ -281,24 +289,25 @@ async function fetchEvmReport(addr, chainId = '0x1') {
       name: 'Невідомий',
     }));
 
-  // Real last 3 transactions
-  const recentTxs = txList.slice(0, 10).map(tx => {
+  // Real last 3 transactions (EVM)
+  const recentTxs = txList.slice(0, 20).map(tx => {
     if (!tx.from_address || !tx.to_address) return null;
-    const isIncoming = tx.to_address.toLowerCase() === addrLower;
+    const isIncoming = tx.to_address?.toLowerCase() === addrLower;
     const other = isIncoming ? tx.from_address : tx.to_address;
-    const shortOther = other ? (other.slice(0,6) + '...' + other.slice(-4)) : '—';
+    if (!other || other.toLowerCase() === addrLower) return null;
+    const shortOther = other.slice(0, 6) + '...' + other.slice(-4);
     const ethVal = tx.value ? (parseInt(tx.value) / 1e18) : 0;
-    const amount = ethVal > 0 ? ethVal.toFixed(4) : '0';
-    const sym = symbol || 'ETH';
+    const amount = ethVal > 0.000001 ? ethVal.toFixed(4) : null;
+    if (!amount) return null; // skip zero-value txs (contract calls)
     return {
-      hash: tx.hash ? tx.hash.slice(0,10)+'...' : '—',
+      hash: tx.hash ? tx.hash.slice(0, 10) + '...' : '—',
       counterparty: shortOther,
       direction: isIncoming ? 'in' : 'out',
-      amount: amount,
-      symbol: sym,
+      amount,
+      symbol: symbol || 'ETH',
       timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toLocaleDateString('uk-UA') : '—',
     };
-  }).filter(t => t && t.amount !== '0').slice(0, 3);
+  }).filter(Boolean).slice(0, 3);
 
   // GoPlus
   const gpResult = gp?.result?.[addrLower] || {};

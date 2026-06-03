@@ -293,6 +293,25 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
 .fr-block{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.9rem 1rem}
 .fr-block-full{grid-column:1/-1}
 .fr-block-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.65rem}
+/* interactive: collapsible blocks */
+.fr-block.collapsible .fr-block-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:color .15s}
+.fr-block.collapsible .fr-block-title:hover{color:rgba(255,255,255,.6)}
+.fr-block.collapsible .fr-block-title::after{content:'▼';font-size:8px;transition:transform .2s;opacity:.5}
+.fr-block.collapsed .fr-block-title::after{transform:rotate(-90deg)}
+.fr-block .fr-collapse-body{transition:opacity .2s,max-height .25s ease;overflow:hidden}
+.fr-block.collapsed .fr-collapse-body{max-height:0!important;opacity:0;margin:0;padding:0}
+/* interactive: connection graph */
+.fr-graph{display:flex;align-items:stretch;gap:.4rem;flex-wrap:nowrap;overflow-x:auto;padding:.3rem 0}
+.fr-graph-node{flex:1;min-width:92px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.6rem .5rem;text-align:center;transition:transform .15s,border-color .15s}
+.fr-graph-node:hover{transform:translateY(-2px);border-color:rgba(79,110,247,.4)}
+.fr-graph-node.you{border-color:rgba(79,110,247,.35)}
+.fr-gn-dot{width:12px;height:12px;border-radius:50%;margin:0 auto .35rem;box-shadow:0 0 8px currentColor}
+.fr-gn-lbl{font-size:11px;font-weight:700;color:#fff}
+.fr-gn-sub{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.3}
+.fr-graph-arrow{display:flex;align-items:center;color:rgba(255,255,255,.25);font-size:14px;flex-shrink:0}
+.fr-cp-clickable{cursor:pointer;border-radius:6px;transition:background .15s}
+.fr-cp-clickable:hover{background:rgba(255,255,255,.04)}
+.fr-copied{color:#10B981!important}
 .fr-gauge-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
 .fr-gauge-svg{position:relative;width:72px;height:72px;flex-shrink:0}
 .fr-gc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -1255,7 +1274,7 @@ function openFR() {
     var col=cpRiskColor[cp.risk]||'rgba(255,255,255,.4)';
     var dot=cp.risk==='sanctioned'||cp.risk==='sanctioned_geo'||cp.risk==='mixer'||cp.risk==='scam'?'⚠':cp.risk==='exchange'?'✓':'?';
     var nm=cp.name&&cp.name!=='Невідомий'&&cp.name!=='Unknown'?'<span style="color:'+col+';font-weight:600;font-size:10px">'+escHtml(cp.name)+'</span>':'';
-    return '<div style="display:flex;align-items:center;gap:.45rem;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:'+col+'">'+dot+'</span><span style="flex:1;font-family:monospace;color:rgba(255,255,255,.5)">'+escHtml(cp.address)+(nm?'<br>'+nm:'')+'</span><span style="color:rgba(255,255,255,.35)">'+cp.count+' tx</span><span style="font-weight:700;color:#fff;width:32px;text-align:right">'+cp.percentage+'%</span></div>';
+    return '<div class="fr-cp-clickable" data-addr="'+escHtml(cp.address)+'" title="Натисніть, щоб скопіювати" style="display:flex;align-items:center;gap:.45rem;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:'+col+'">'+dot+'</span><span style="flex:1;font-family:monospace;color:rgba(255,255,255,.5)"><span class="fr-cp-addr">'+escHtml(cp.address)+'</span>'+(nm?'<br>'+nm:'')+'</span><span style="color:rgba(255,255,255,.35)">'+cp.count+' tx</span><span style="font-weight:700;color:#fff;width:32px;text-align:right">'+cp.percentage+'%</span></div>';
   }).join('')||'<div style="font-size:12px;color:rgba(255,255,255,.3)">No data</div>';
 
   // ── Geographic & category risk (NEW) ──
@@ -1275,8 +1294,49 @@ function openFR() {
   if(pf.p2p)patRows.push({lbl:'Висока P2P / OTC активність',d:'',col:'#F59E0B'});
   var patHtml=patRows.length?patRows.map(function(p){return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#fff"><span style="color:'+p.col+'">●</span>'+escHtml(p.lbl)+'</div>'+(p.d?'<div style="font-size:10px;color:rgba(255,255,255,.3);padding-left:14px;margin-top:2px">'+escHtml(p.d)+'</div>':'')+'</div>';}).join(''):'<div style="font-size:12px;color:#10B981">✓ Аномальних поведінкових патернів не виявлено</div>';
 
-  // ── Honest limitations (NEW) ──
-  var limHtml=(r.limitations&&r.limitations.length)?'<div class="fr-block fr-block-full" style="border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.04)"><div class="fr-block-title" style="color:#F59E0B">⚠ Обмеження аналізу</div>'+r.limitations.map(function(l){return '<div style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;padding:3px 0">• '+escHtml(l)+'</div>';}).join('')+'</div>':'';
+  // ── Honest limitations (full report context) ──
+  // This IS the full report — so we reframe preview-oriented wording into honest
+  // constatation + a Deep Scan+ upsell instead of "available in full report" loop.
+  var limItems=(r.limitations||[]).map(function(l){
+    return String(l)
+      .replace(/\s*\(доступний?[^)]*\)/gi,'')
+      .replace(/доступн[аеій][^.]*повн[оому]+ звіт[іе][^.]*/gi,'потребує ручного поглибленого трасування')
+      .replace(/у повному звіті/gi,'через ручний поглиблений аналіз');
+  });
+  var hasDefiLimit=(r.limitations||[]).some(function(l){return /DeFi|смарт-контракт/i.test(l);});
+  var limHtml=limItems.length?'<div class="fr-block fr-block-full" style="border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.04)"><div class="fr-block-title" style="color:#F59E0B">⚠ Межі автоматичного аналізу</div>'+
+    limItems.map(function(l){return '<div style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;padding:3px 0">• '+escHtml(l)+'</div>';}).join('')+
+    (hasDefiLimit?'<div style="margin-top:.7rem;padding:.7rem .85rem;background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap"><div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.5;flex:1;min-width:180px"><strong style="color:#fff">Deep Scan+</strong> — ручне трасування коштів через DeFi-протоколи та міксери на 5-10 рівнів вглиб нашим AML-аналітиком.</div><button onclick="requestDeepScan()" style="background:#4F6EF7;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Замовити Deep Scan+ →</button></div>':'')+
+    '</div>':'';
+
+  // ── Gas Source Tracker (Item 3) ──
+  var gasHtml='';
+  if(r.gasSource){
+    var g=r.gasSource;
+    var gc=g.dirty?'#FF3B3B':'#10B981';
+    var gname=g.name?' · '+escHtml(g.name):'';
+    var gcls={sanctioned:'санкційне джерело',sanctioned_geo:'підсанкційний обмінник',mixer:'міксер',scam:'скам/хакер',exchange:'біржа',gambling:'гемблінг',unknown:'невідоме джерело'}[g.class]||g.class;
+    gasHtml='<div class="fr-block"><div class="fr-block-title">⛽ Gas Source — активація гаманця</div>'+
+      '<div style="display:flex;align-items:center;gap:.6rem;padding:6px 0"><span style="width:30px;height:30px;border-radius:8px;background:'+(g.dirty?'rgba(255,59,59,.12)':'rgba(16,214,143,.12)')+';display:flex;align-items:center;justify-content:center;font-size:14px">'+(g.dirty?'⚠':'✓')+'</span>'+
+      '<div style="flex:1"><div style="font-size:12px;color:#fff;font-weight:600">'+(g.dirty?'Гаманець активовано з ризикового джерела':'Джерело активації виглядає чистим')+'</div>'+
+      '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace;margin-top:2px">'+escHtml(g.funder)+gname+' · '+escHtml(gcls)+' · '+escHtml(g.date||'—')+'</div></div></div>'+
+      (g.dirty?'<div style="font-size:10px;color:#F59E0B;padding:5px 7px;background:rgba(245,158,11,.06);border-radius:5px;margin-top:.3rem">⚠ Це сигнал, а не доказ — перше поповнення прийшло з позначеної адреси. Потребує ручної перевірки.</div>':'')+
+      '</div>';
+  }
+
+  // ── Connection graph: You → counterparties → hop-2 → hop-3 (Item 4 + interactivity) ──
+  var h2=r.hop2Analysis||{},h3=r.hop3Analysis||{};
+  var h2hits=(h2.sanctioned||0)+(h2.mixer||0), h3hits=(h3.sanctioned||0)+(h3.mixer||0);
+  var graphHtml='<div class="fr-block fr-block-full"><div class="fr-block-title">🕸 Граф зв\'язків (глибина трасування)</div>'+
+    '<div class="fr-graph">'+
+      '<div class="fr-graph-node you"><div class="fr-gn-dot" style="background:'+sc+'"></div><div class="fr-gn-lbl">Гаманець</div><div class="fr-gn-sub">'+(r.activity&&r.activity.uniqueCounterparties||0)+' контрагентів</div></div>'+
+      '<div class="fr-graph-arrow">→</div>'+
+      '<div class="fr-graph-node"><div class="fr-gn-dot" style="background:'+(h2hits>0?'#FF3B3B':'#10B981')+'"></div><div class="fr-gn-lbl">Hop-2</div><div class="fr-gn-sub">'+(h2.checked||0)+' перевірено'+(h2hits>0?' · '+h2hits+' ⚠':' · чисто')+'</div></div>'+
+      '<div class="fr-graph-arrow">→</div>'+
+      '<div class="fr-graph-node"><div class="fr-gn-dot" style="background:'+(h3hits>0?'#FF3B3B':(h3.checked>0?'#10B981':'rgba(255,255,255,.2)'))+'"></div><div class="fr-gn-lbl">Hop-3</div><div class="fr-gn-sub">'+(h3.checked>0?(h3.checked+' перевірено'+(h3hits>0?' · '+h3hits+' ⚠':' · чисто')):'не потрібно')+'</div></div>'+
+    '</div>'+
+    '<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:.5rem">Hop-3 запускається лише коли на Hop-2 виявлено ризик (точкове трасування).</div>'+
+  '</div>';
 
   document.getElementById('fr-body').innerHTML=
     '<div class="fr-grid">'+
@@ -1303,14 +1363,51 @@ function openFR() {
       '</div>'+
       '<div class="fr-block"><div class="fr-block-title">3. Geographic & Category Risk</div>'+geoHtml+'</div>'+
       '<div class="fr-block"><div class="fr-block-title">4. Behavioral Patterns</div>'+patHtml+'</div>'+
+      gasHtml+
       '<div class="fr-block"><div class="fr-block-title">7. Exchange Compatibility</div>'+excHtml+'<div style="font-size:10px;color:rgba(255,255,255,.22);margin-top:.45rem">* Based on risk score. Actual exchange decision may vary.</div></div>'+
       (r.topCounterparties&&r.topCounterparties.length>0?'<div class="fr-block fr-block-full"><div class="fr-block-title">6. Top Counterparties</div>'+cpHtml+'</div>':'') +
+      graphHtml +
       limHtml +
     '</div>';
   document.getElementById('fr-overlay').classList.add('open');
   document.body.style.overflow='hidden';
+  wireFRInteractivity();
 }
 function closeFR(){document.getElementById('fr-overlay').classList.remove('open');document.body.style.overflow='';}
+// ── Interactivity: make report blocks collapsible + counterparties copyable ──
+function wireFRInteractivity(){
+  // Collapsible: wrap each block body and toggle on title click
+  var blocks=document.querySelectorAll('#fr-body .fr-block');
+  blocks.forEach(function(blk){
+    var title=blk.querySelector('.fr-block-title');
+    if(!title||blk.dataset.wired)return;
+    blk.dataset.wired='1';
+    // wrap everything after the title into a collapse-body
+    var body=document.createElement('div');
+    body.className='fr-collapse-body';
+    var n=title.nextSibling;
+    while(n){var next=n.nextSibling;body.appendChild(n);n=next;}
+    blk.appendChild(body);
+    blk.classList.add('collapsible');
+    title.addEventListener('click',function(){blk.classList.toggle('collapsed');});
+  });
+  // Copyable counterparties / addresses
+  document.querySelectorAll('#fr-body .fr-cp-clickable').forEach(function(el){
+    el.addEventListener('click',function(e){
+      e.stopPropagation();
+      var full=el.dataset.addr||'';
+      if(!full)return;
+      navigator.clipboard&&navigator.clipboard.writeText(full);
+      var hint=el.querySelector('.fr-cp-addr');
+      if(hint){var old=hint.textContent;hint.textContent='✓ Скопійовано';hint.classList.add('fr-copied');setTimeout(function(){hint.textContent=old;hint.classList.remove('fr-copied');},1100);}
+    });
+  });
+}
+function requestDeepScan(){
+  var addr=lastReport&&lastReport.address?lastReport.address:'';
+  var msg='🔍 Deep Scan+ — ручне поглиблене трасування\n\nНаш AML-аналітик вручну простежить рух коштів через DeFi-протоколи та міксери на 5-10 рівнів вглиб і підготує розширений висновок.\n\nГаманець: '+(addr?addr.slice(0,10)+'...'+addr.slice(-6):'—')+'\n\nЦя послуга скоро буде доступна. Напишіть у підтримку, щоб замовити вже зараз.';
+  alert(msg);
+}
 document.getElementById('fr-overlay').addEventListener('click',function(e){if(e.target===this)closeFR();});
 
 // ── MODAL ─────────────────────────────────────────────────────

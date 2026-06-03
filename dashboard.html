@@ -1175,11 +1175,21 @@ function renderResultModal(r) {
 }
 
 function buildBreakdownItems(r) {
+  // Prefer the engine's real explainable scoreBreakdown (each item has points + detail)
+  if (r.scoreBreakdown && r.scoreBreakdown.length) {
+    return r.scoreBreakdown.map(function(b){
+      var c = b.type==='danger'?'var(--red)':b.type==='warn'?'var(--amber)':'var(--green)';
+      var pts = (b.points>0?'+':'')+b.points;
+      var s = b.points>0 ? pts : (b.type==='safe'?'Clear':pts);
+      return { label:b.label, color:c, status:s, detail:b.detail||'' };
+    });
+  }
+  // Legacy fallback for saved scans without breakdown
   var items=[];
   function add(label,type,active){
     var c=type==='danger'?'var(--red)':type==='warn'?'var(--amber)':'var(--green)';
     var s=type==='danger'?'Risk':type==='warn'?'Caution':'Clear';
-    if(active) items.push({label,color:c,status:s});
+    if(active) items.push({label:label,color:c,status:s,detail:''});
   }
   add('OFAC sanctions list',r.ofacMatch?'danger':'safe',true);
   add('Mixer/Tornado Cash interactions',(r.mixerInteractions||0)>0?'danger':'safe',true);
@@ -1230,7 +1240,7 @@ function openFR() {
   var riskName=r.riskLevel==='high'?'High':r.riskLevel==='medium'?'Medium':'Low';
   var excColors={ok:'#10B981',check:'#F59E0B',blocked:'#FF3B3B'};
   var bd=buildBreakdownItems(r);
-  var bdHtml=bd.map(function(b){return '<div class="fr-bd-item"><div class="fr-bd-dot" style="background:'+b.color+'"></div><span class="fr-bd-lbl">'+b.label+'</span><span class="fr-bd-badge '+(b.status==='Risk'?'red':b.status==='Caution'?'amber':'green')+'">'+b.status+'</span></div>';}).join('');
+  var bdHtml=bd.map(function(b){return '<div class="fr-bd-item" style="flex-wrap:wrap"><div class="fr-bd-dot" style="background:'+b.color+'"></div><span class="fr-bd-lbl">'+escHtml(b.label)+'</span><span class="fr-bd-badge '+(/Risk|^\+/.test(b.status)?'red':b.status==='Caution'?'amber':'green')+'">'+escHtml(b.status)+'</span>'+(b.detail?'<div style="flex-basis:100%;font-size:10px;color:rgba(255,255,255,.3);padding-left:16px;margin-top:2px">'+escHtml(b.detail)+'</div>':'')+'</div>';}).join('');
   var fds=[
     {ico:'🕷️',c:'r',n:'Darknet',v:(r.darknetInteractions||0)>0?r.darknetInteractions+' tx':'0'},
     {ico:'🚫',c:'a',n:'Sanctions',v:r.ofacMatch?'FOUND':'0 matches'},
@@ -1241,7 +1251,34 @@ function openFR() {
   ];
   var fdHtml=fds.map(function(f){return '<div class="fr-finding"><div class="fr-f-ico '+f.c+'">'+f.ico+'</div><div><div class="fr-f-lbl">'+f.n+'</div><div class="fr-f-val">'+f.v+'</div></div></div>';}).join('');
   var excHtml=(r.exchangeCompatibility||[]).map(function(ex){return '<div class="fr-exc-row"><span class="fr-exc-name">'+ex.name+'</span><span class="fr-exc-val '+(ex.status||'ok')+'">'+ex.label+'</span></div>';}).join('');
-  var cpHtml=(r.topCounterparties||[]).map(function(cp){return '<div style="display:flex;align-items:center;gap:.45rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="width:20px;height:20px;border-radius:50%;background:rgba(79,110,247,.15);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:rgba(255,255,255,.4)">?</span><span style="flex:1;font-family:monospace;color:rgba(255,255,255,.5)">'+cp.address+'</span><span style="color:rgba(255,255,255,.35)">'+cp.count+' tx</span><span style="font-weight:700;color:#fff;width:32px;text-align:right">'+cp.percentage+'%</span></div>';}).join('')||'<div style="font-size:12px;color:rgba(255,255,255,.3)">No data</div>';
+  var cpRiskColor={sanctioned:'#FF3B3B',sanctioned_geo:'#FF3B3B',mixer:'#FF3B3B',scam:'#FF3B3B',gambling:'#F59E0B',exchange:'#10B981',unknown:'rgba(255,255,255,.4)'};
+  var cpHtml=(r.topCounterparties||[]).map(function(cp){
+    var col=cpRiskColor[cp.risk]||'rgba(255,255,255,.4)';
+    var dot=cp.risk==='sanctioned'||cp.risk==='sanctioned_geo'||cp.risk==='mixer'||cp.risk==='scam'?'⚠':cp.risk==='exchange'?'✓':'?';
+    var nm=cp.name&&cp.name!=='Невідомий'&&cp.name!=='Unknown'?'<span style="color:'+col+';font-weight:600;font-size:10px">'+escHtml(cp.name)+'</span>':'';
+    return '<div style="display:flex;align-items:center;gap:.45rem;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:'+col+'">'+dot+'</span><span style="flex:1;font-family:monospace;color:rgba(255,255,255,.5)">'+escHtml(cp.address)+(nm?'<br>'+nm:'')+'</span><span style="color:rgba(255,255,255,.35)">'+cp.count+' tx</span><span style="font-weight:700;color:#fff;width:32px;text-align:right">'+cp.percentage+'%</span></div>';
+  }).join('')||'<div style="font-size:12px;color:rgba(255,255,255,.3)">No data</div>';
+
+  // ── Geographic & category risk (NEW) ──
+  var geoRows=[];
+  if(parseFloat(r.sanctionedGeoPercent||0)>0){geoRows.push({lbl:'Підсанкційні обмінники (РФ): '+(r.sanctionedGeoHits||[]).join(', '),val:r.sanctionedGeoPercent+'%',col:'#FF3B3B'});}
+  if(parseFloat(r.gamblingPercent||0)>0){geoRows.push({lbl:'Гемблінг: '+((r.gamblingHits||[]).join(', ')||'гральні платформи'),val:r.gamblingPercent+'%',col:'#F59E0B'});}
+  if(parseFloat(r.funds&&r.funds.sanctionedPercent||0)>0){geoRows.push({lbl:'Санкційні адреси (OFAC)',val:r.funds.sanctionedPercent+'%',col:'#FF3B3B'});}
+  if(parseFloat(r.incomingDirtyPercent||0)>0){geoRows.push({lbl:'Вхідні з ризикових джерел',val:r.incomingDirtyPercent+'%',col:'#FF3B3B'});}
+  var geoHtml=geoRows.length?geoRows.map(function(g){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--tx2);flex:1;padding-right:8px">'+escHtml(g.lbl)+'</span><span style="font-weight:700;color:'+g.col+'">'+escHtml(g.val)+'</span></div>';}).join(''):'<div style="font-size:12px;color:#10B981">✓ Підсанкційної географії та гемблінгу не виявлено</div>';
+
+  // ── Behavioral patterns (NEW) ──
+  var pf=r.patternFlags||{};
+  var patRows=[];
+  if(pf.velocity)patRows.push({lbl:'Висока швидкість обігу (транзитний вузол)',d:pf.velocityDetail||'',col:'#F59E0B'});
+  if(pf.burst)patRows.push({lbl:'Вибухова активність (burst)',d:pf.burstDetail||'',col:'#F59E0B'});
+  if(pf.peelingSuspicion)patRows.push({lbl:'Підозра на Peeling Chain',d:pf.peelingDetail||'потребує ручної перевірки',col:'#F59E0B'});
+  if(pf.p2p)patRows.push({lbl:'Висока P2P / OTC активність',d:'',col:'#F59E0B'});
+  var patHtml=patRows.length?patRows.map(function(p){return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#fff"><span style="color:'+p.col+'">●</span>'+escHtml(p.lbl)+'</div>'+(p.d?'<div style="font-size:10px;color:rgba(255,255,255,.3);padding-left:14px;margin-top:2px">'+escHtml(p.d)+'</div>':'')+'</div>';}).join(''):'<div style="font-size:12px;color:#10B981">✓ Аномальних поведінкових патернів не виявлено</div>';
+
+  // ── Honest limitations (NEW) ──
+  var limHtml=(r.limitations&&r.limitations.length)?'<div class="fr-block fr-block-full" style="border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.04)"><div class="fr-block-title" style="color:#F59E0B">⚠ Обмеження аналізу</div>'+r.limitations.map(function(l){return '<div style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;padding:3px 0">• '+escHtml(l)+'</div>';}).join('')+'</div>':'';
+
   document.getElementById('fr-body').innerHTML=
     '<div class="fr-grid">'+
       '<div class="fr-block"><div class="fr-block-title">1. Wallet Overview</div>'+
@@ -1256,7 +1293,7 @@ function openFR() {
       '<div class="fr-block"><div class="fr-block-title">2. Funds Structure <span style="color:rgba(255,255,255,.2);font-weight:400">(estimated)</span></div>'+
         '<div class="fr-funds-bar"><div style="width:'+r.funds.cleanPercent+'%;background:#00D68F"></div><div style="width:'+r.funds.dirtyPercent+'%;background:#FFB020"></div><div style="width:'+r.funds.sanctionedPercent+'%;background:#FF3B3B"></div></div>'+
         '<div class="fr-funds-legend"><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#00D68F"></span>Clean<span class="fr-funds-pct">'+r.funds.cleanPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FFB020"></span>Risky<span class="fr-funds-pct">'+r.funds.dirtyPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FF3B3B"></span>Sanctioned<span class="fr-funds-pct">'+r.funds.sanctionedPercent+'%</span></div></div>'+
-        '<div style="font-size:10px;color:rgba(255,255,255,.22);padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px;margin-top:.4rem">* Estimated from GoPlus flags. Exact % requires Chainalysis API.</div>'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.22);padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px;margin-top:.4rem">'+(r.fundsMethod==='volume'?'✓ Розраховано за реальним обсягом транзакцій (volume-based).':'* Оцінка за базами ризику. Точний % за обсягом доступний за наявності даних про суми.')+'</div>'+
       '</div>'+
       '<div class="fr-block"><div class="fr-block-title">5. Transaction Analysis</div>'+
         '<div class="fr-tx-row"><span class="fr-tx-lbl">Total count</span><span class="fr-tx-val">'+(r.activity&&r.activity.txCount||'—')+'</span></div>'+
@@ -1265,8 +1302,11 @@ function openFR() {
         '<div class="fr-tx-row"><span class="fr-tx-lbl">First activity</span><span class="fr-tx-val">'+(r.activity&&r.activity.firstActivity||'—')+'</span></div>'+
         '<div class="fr-tx-row"><span class="fr-tx-lbl">Last activity</span><span class="fr-tx-val">'+(r.activity&&r.activity.lastActivity||'—')+'</span></div>'+
       '</div>'+
+      '<div class="fr-block"><div class="fr-block-title">3. Geographic & Category Risk</div>'+geoHtml+'</div>'+
+      '<div class="fr-block"><div class="fr-block-title">4. Behavioral Patterns</div>'+patHtml+'</div>'+
       '<div class="fr-block"><div class="fr-block-title">7. Exchange Compatibility</div>'+excHtml+'<div style="font-size:10px;color:rgba(255,255,255,.22);margin-top:.45rem">* Based on risk score. Actual exchange decision may vary.</div></div>'+
       (r.topCounterparties&&r.topCounterparties.length>0?'<div class="fr-block fr-block-full"><div class="fr-block-title">6. Top Counterparties</div>'+cpHtml+'</div>':'') +
+      limHtml +
     '</div>';
   document.getElementById('fr-overlay').classList.add('open');
   document.body.style.overflow='hidden';

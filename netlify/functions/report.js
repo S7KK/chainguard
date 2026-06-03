@@ -20,13 +20,13 @@ const ETHERSCAN_KEY = 'PQBSB54WJ3DR6IIAVEBE3IHHKSRMMHQUJK';
 let _riskCache = { ofac: null, mixers: null, scam: null, ts: 0 };
 const CACHE_TTL = 1000 * 60 * 60 * 6; // 6 hours
 
-const OFAC_SOURCES = [
-  'https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_ETH.txt',
-  'https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_USDT.txt',
-  'https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_USDC.txt',
-  'https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_TRX.txt',
-  'https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_XBT.txt',
+const OFAC_BASE = 'https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_';
+const OFAC_ASSETS = [
+  'ETH','USDT','USDC','TRX','XBT',   // core (existing)
+  'ARB','BSC','ETC',                  // EVM-compatible 0x addresses (Item 1: expand)
+  'LTC','DASH','BCH','BTG','BSV',     // BTC-like address formats
 ];
+const OFAC_SOURCES = OFAC_ASSETS.map(a => OFAC_BASE + a + '.txt');
 
 // Scam / hacker / phishing address feeds (community-maintained, JSON)
 // Parsed defensively — we extract any 0x.. / T.. address-like keys & values
@@ -223,6 +223,68 @@ async function fetchEvmLabels(addresses) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// ITEM 3: GAS SOURCE TRACKER
+// Finds the FIRST funding tx (wallet activation) and checks if the
+// funder is dirty. HONEST: this is a SIGNAL, not 100% proof — a clean
+// wallet funded from a mixer is suspicious, but legitimate funders exist.
+// ═══════════════════════════════════════════════════════════════════
+async function checkTronGasSource(addr, risk, labels) {
+  try {
+    // Oldest-first: the very first incoming tx that activated the wallet
+    const r = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=1&start=0&sort=timestamp`,
+      { headers: { 'TRON-PRO-API-KEY': TRON_KEY } });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const total = (d && d.total) || 0;
+    if (!total) return null;
+    // Fetch the earliest tx (start = total-1)
+    const start = Math.max(0, total - 1);
+    const r2 = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=1&start=${start}`,
+      { headers: { 'TRON-PRO-API-KEY': TRON_KEY } });
+    if (!r2.ok) return null;
+    const d2 = await r2.json();
+    const first = (d2 && d2.data && d2.data[0]) || null;
+    if (!first) return null;
+    const funder = first.toAddress === addr ? first.ownerAddress : null;
+    if (!funder || funder === addr) return null;
+    const cls = classifyAddress(funder, risk, labels);
+    const dirty = ['sanctioned','sanctioned_geo','mixer','scam'].includes(cls);
+    return {
+      funder: funder.slice(0,6) + '...' + funder.slice(-4),
+      class: cls,
+      name: resolveEntityName(funder, labels),
+      dirty,
+      date: first.timestamp ? new Date(first.timestamp).toLocaleDateString('uk-UA') : '—',
+    };
+  } catch (e) { return null; }
+}
+
+async function checkEvmGasSource(addr, risk, labels) {
+  try {
+    // Etherscan: oldest-first, first inbound tx funds the wallet
+    const r = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${addr}&page=1&offset=10&sort=asc&apikey=${ETHERSCAN_KEY}`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    const list = (d && d.result) || [];
+    if (!Array.isArray(list) || !list.length) return null;
+    const al = addr.toLowerCase();
+    const firstIn = list.find(t => (t.to || '').toLowerCase() === al && parseFloat(t.value) > 0);
+    if (!firstIn) return null;
+    const funder = firstIn.from;
+    if (!funder || funder.toLowerCase() === al) return null;
+    const cls = classifyAddress(funder, risk, labels);
+    const dirty = ['sanctioned','sanctioned_geo','mixer','scam'].includes(cls);
+    return {
+      funder: funder.slice(0,6) + '...' + funder.slice(-4),
+      class: cls,
+      name: resolveEntityName(funder, labels),
+      dirty,
+      date: firstIn.timeStamp ? new Date(parseInt(firstIn.timeStamp)*1000).toLocaleDateString('uk-UA') : '—',
+    };
+  } catch (e) { return null; }
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // LAYER 3+4: VOLUME-BASED % ENGINE + WEIGHTED SCORE
 // Takes classified transactions, computes real exposure %
 // ═══════════════════════════════════════════════════════════════════
@@ -399,6 +461,15 @@ function computeScore(exposure, flags, patterns) {
       detail: patterns.peelingDetail || 'Послідовне зняття невеликих сум — потребує ручної перевірки' });
   }
 
+  // Item 3: Gas source — wallet activated from a dirty funder (SIGNAL, not proof)
+  if (patterns.gasSource && patterns.gasSource.dirty) {
+    const gs = patterns.gasSource;
+    score += 12;
+    const nm = gs.name ? ' (' + gs.name + ')' : '';
+    breakdown.push({ key: 'gas', label: 'Гаманець активовано з ризикового джерела', points: 12, type: 'warn',
+      detail: 'Перше поповнення від ' + gs.funder + nm + ' · сигнал, потребує перевірки' });
+  }
+
   // Positive: regulated exchange interaction
   if (exposure.exchangeCount > 0) {
     score = Math.max(0, score - 10);
@@ -532,27 +603,57 @@ async function fetchTronReport(addr, risk) {
   const labels = await fetchTronLabels(topCps);
 
   let hop2Sanctioned = 0, hop2Mixer = 0;
+  const riskyHop2 = []; // counterparties whose graph showed risk → candidates for hop-3
   const hop2Results = await Promise.allSettled(topCps.map(cp =>
     fetch(`https://apilist.tronscanapi.com/api/transaction?address=${cp}&limit=20&start=0`, { headers: h })
-      .then(r => r.ok ? r.json() : null)
+      .then(r => r.ok ? r.json() : null).then(j => ({ cp, j }))
   ));
   hop2Results.forEach(res => {
-    if (res.status !== 'fulfilled' || !res.value || !res.value.data) return;
-    res.value.data.forEach(tx => {
+    if (res.status !== 'fulfilled' || !res.value || !res.value.j || !res.value.j.data) return;
+    let cpRisky = false;
+    res.value.j.data.forEach(tx => {
       const other = (tx.toAddress === tx.ownerAddress) ? null : [tx.toAddress, tx.ownerAddress];
       if (!other) return;
       other.forEach(o => {
         const cls = classifyAddress(o, risk, labels);
-        if (cls === 'sanctioned') hop2Sanctioned++;
-        else if (cls === 'mixer') hop2Mixer++;
+        if (cls === 'sanctioned') { hop2Sanctioned++; cpRisky = true; }
+        else if (cls === 'mixer') { hop2Mixer++; cpRisky = true; }
       });
     });
+    if (cpRisky) riskyHop2.push(res.value.cp);
   });
+
+  // Item 4: TARGETED hop-3 — only follow counterparties that ALREADY showed risk
+  // at hop-2 (keeps it fast + meaningful, avoids Netlify timeout from full hop-3).
+  let hop3Sanctioned = 0, hop3Mixer = 0, hop3Checked = 0;
+  if (riskyHop2.length > 0) {
+    const hop3Targets = riskyHop2.slice(0, 3); // cap breadth
+    hop3Checked = hop3Targets.length;
+    const hop3Results = await Promise.allSettled(hop3Targets.map(cp =>
+      fetch(`https://apilist.tronscanapi.com/api/transaction?address=${cp}&limit=15&start=0`, { headers: h })
+        .then(r => r.ok ? r.json() : null)
+    ));
+    hop3Results.forEach(res => {
+      if (res.status !== 'fulfilled' || !res.value || !res.value.data) return;
+      res.value.data.forEach(tx => {
+        const other = (tx.toAddress === tx.ownerAddress) ? null : [tx.toAddress, tx.ownerAddress];
+        if (!other) return;
+        other.forEach(o => {
+          const cls = classifyAddress(o, risk, labels);
+          if (cls === 'sanctioned') hop3Sanctioned++;
+          else if (cls === 'mixer') hop3Mixer++;
+        });
+      });
+    });
+  }
+
+  // Item 3: gas source (wallet activation funder)
+  const gasSource = await checkTronGasSource(addr, risk, labels);
 
   // Layer 3: exposure
   const exposure = computeExposure(txs, risk, labels);
-  // Add indirect (hop-2) exposure as a flag
-  const indirectExposure = hop2Sanctioned > 0 || hop2Mixer > 0;
+  // Add indirect (hop-2 + hop-3) exposure as a flag
+  const indirectExposure = hop2Sanctioned > 0 || hop2Mixer > 0 || hop3Sanctioned > 0 || hop3Mixer > 0;
 
   // GoPlus flags
   const gpRes = gp?.result || {};
@@ -573,6 +674,7 @@ async function fetchTronReport(addr, risk) {
     if (_u) _usdtBal = parseInt(_u.balance || 0) / Math.pow(10, _u.tokenDecimal || 6);
   }
   const patterns = analyzePatterns(txs, _trxBal * 0.12 + _usdtBal);
+  patterns.gasSource = gasSource; // Item 3
   const scoring = computeScore(exposure, flags, patterns);
   if (indirectExposure && scoring.score < 65) {
     scoring.score = Math.min(scoring.score + 12, 74);
@@ -597,6 +699,8 @@ async function fetchTronReport(addr, risk) {
     txCount,
     txs, exposure, flags, scoring, patterns, indirectExposure, labels,
     hop2: { sanctioned: hop2Sanctioned, mixer: hop2Mixer, checked: topCps.length },
+    hop3: { sanctioned: hop3Sanctioned, mixer: hop3Mixer, checked: hop3Checked },
+    gasSource,
   });
 }
 
@@ -666,24 +770,51 @@ async function fetchEvmReport(addr, risk) {
   const labels = await fetchEvmLabels(topCps);
 
   let hop2Sanctioned = 0, hop2Mixer = 0;
+  const riskyHop2 = [];
   // Deep hop-2 via API
   const hop2 = await Promise.allSettled(topCps.slice(0,8).map(cp =>
     fetch(`https://deep-index.moralis.io/api/v2.2/${cp}?chain=eth&limit=15`, { headers: mh })
-      .then(r => r.ok ? r.json() : null)
+      .then(r => r.ok ? r.json() : null).then(j => ({ cp, j }))
   ));
   hop2.forEach(res => {
-    if (res.status !== 'fulfilled' || !res.value || !res.value.result) return;
-    res.value.result.forEach(tx => {
+    if (res.status !== 'fulfilled' || !res.value || !res.value.j || !res.value.j.result) return;
+    let cpRisky = false;
+    res.value.j.result.forEach(tx => {
       [tx.from_address, tx.to_address].forEach(o => {
         const cls = classifyAddress(o, risk, labels);
-        if (cls === 'sanctioned') hop2Sanctioned++;
-        else if (cls === 'mixer') hop2Mixer++;
+        if (cls === 'sanctioned') { hop2Sanctioned++; cpRisky = true; }
+        else if (cls === 'mixer') { hop2Mixer++; cpRisky = true; }
       });
     });
+    if (cpRisky) riskyHop2.push(res.value.cp);
   });
 
+  // Item 4: TARGETED hop-3 — only follow already-risky hop-2 counterparties
+  let hop3Sanctioned = 0, hop3Mixer = 0, hop3Checked = 0;
+  if (riskyHop2.length > 0) {
+    const hop3Targets = riskyHop2.slice(0, 3);
+    hop3Checked = hop3Targets.length;
+    const hop3 = await Promise.allSettled(hop3Targets.map(cp =>
+      fetch(`https://deep-index.moralis.io/api/v2.2/${cp}?chain=eth&limit=12`, { headers: mh })
+        .then(r => r.ok ? r.json() : null)
+    ));
+    hop3.forEach(res => {
+      if (res.status !== 'fulfilled' || !res.value || !res.value.result) return;
+      res.value.result.forEach(tx => {
+        [tx.from_address, tx.to_address].forEach(o => {
+          const cls = classifyAddress(o, risk, labels);
+          if (cls === 'sanctioned') hop3Sanctioned++;
+          else if (cls === 'mixer') hop3Mixer++;
+        });
+      });
+    });
+  }
+
+  // Item 3: gas source
+  const gasSource = await checkEvmGasSource(addr, risk, labels);
+
   const exposure = computeExposure(txs, risk, labels);
-  const indirectExposure = hop2Sanctioned > 0 || hop2Mixer > 0;
+  const indirectExposure = hop2Sanctioned > 0 || hop2Mixer > 0 || hop3Sanctioned > 0 || hop3Mixer > 0;
 
   const gpRes = gp?.result?.[addrLower] || gp?.result || {};
   const flags = {
@@ -702,6 +833,7 @@ async function fetchEvmReport(addr, risk) {
 
   const _ethBal = balData && balData.balance ? parseInt(balData.balance) / 1e18 : 0;
   const patterns = analyzePatterns(txs, _ethBal * 3000);
+  patterns.gasSource = gasSource; // Item 3
   const scoring = computeScore(exposure, flags, patterns);
   if (indirectExposure && scoring.score < 65) {
     scoring.score = Math.min(scoring.score + 12, 74);
@@ -718,6 +850,8 @@ async function fetchEvmReport(addr, risk) {
     txCount: rawTxs.length + erc20Txs.length,
     txs, exposure, flags, scoring, patterns, indirectExposure, labels,
     hop2: { sanctioned: hop2Sanctioned, mixer: hop2Mixer, checked: topCps.length },
+    hop3: { sanctioned: hop3Sanctioned, mixer: hop3Mixer, checked: hop3Checked },
+    gasSource,
   });
 }
 
@@ -759,7 +893,7 @@ async function fetchBitcoinReport(addr, risk) {
 // Converts engine output → client-facing report structure
 // ═══════════════════════════════════════════════════════════════════
 function assembleReport(d) {
-  const { addr, network, balance, txCount, txs, exposure, flags, scoring, patterns, indirectExposure, hop2, labels } = d;
+  const { addr, network, balance, txCount, txs, exposure, flags, scoring, patterns, indirectExposure, hop2, hop3, gasSource, labels } = d;
 
   // Funds structure (real volume-based %)
   const funds = {
@@ -869,6 +1003,8 @@ function assembleReport(d) {
     darknetInteractions: flags.darknet ? 1 : 0,
     indirectExposure,
     hop2Analysis: hop2,                   // ← Layer 1 hop-2 graph result
+    hop3Analysis: hop3 || { sanctioned: 0, mixer: 0, checked: 0 },  // Item 4 targeted hop-3
+    gasSource: gasSource || null,         // Item 3 gas source tracker
     suspiciousTxCount: exposure.sanctionedCount + exposure.mixerCount + exposure.scamCount + exposure.geoCount,
     incomingDirtyPercent: exposure.incomingDirtyPercent.toFixed(1),
     patternFlags: {

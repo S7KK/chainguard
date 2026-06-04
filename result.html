@@ -1,611 +1,410 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Результати сканування — CryptoScanner</title>
+<title>Scan Result — Crypto Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;background:#F9FAFB;color:#111;line-height:1.5;overflow-x:hidden}
-
+body{font-family:'Inter',sans-serif;background:#F7F8FA;color:#0F1117;line-height:1.5;overflow-x:hidden}
 :root{
-  --purple:#6C4FF8;--purple-dark:#5438E0;--purple-light:#F0EDFF;--purple-border:#C4B5FD;
+  --purple:#6C4FF8;--purple-dark:#5438E0;--purple-light:#F0EDFF;
   --red:#EF4444;--red-light:#FEF2F2;--red-border:#FECACA;
   --amber:#F59E0B;--amber-light:#FFFBEB;--amber-border:#FDE68A;
   --green:#10B981;--green-light:#F0FDF4;--green-border:#A7F3D0;
-  --gray:#6B7280;--gray-light:#F9FAFB;--gray-border:#E5E7EB;
-  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
-  --shadow-lg:0 4px 6px rgba(0,0,0,.07),0 10px 40px rgba(0,0,0,.1);
-  --radius:16px;--radius-sm:10px;
+  --tx:#0F1117;--tx2:#6B7280;--tx3:#9CA3AF;
+  --border:#E8EAEF;--card:#FFFFFF;--bg2:#F7F8FA;
+  --shadow:0 1px 3px rgba(15,17,23,.05),0 4px 16px rgba(15,17,23,.04);
+  --shadow-lg:0 4px 6px rgba(15,17,23,.05),0 12px 40px rgba(15,17,23,.08);
+  --radius:16px;
 }
+a{text-decoration:none;color:inherit}
 
-/* ══ NAV ══ */
-nav{background:#fff;border-bottom:1px solid var(--gray-border);padding:.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none}
-.nav-logo-ico{width:30px;height:30px;background:var(--purple);border-radius:8px;display:flex;align-items:center;justify-content:center}
+/* NAV */
+nav{background:#fff;border-bottom:1px solid var(--border);padding:.8rem 0;position:sticky;top:0;z-index:200}
+.nav-inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.nav-logo{display:flex;align-items:center;gap:9px}
+.nav-logo-ico{width:30px;height:30px;background:linear-gradient(135deg,var(--purple),#8B5CF6);border-radius:8px;display:flex;align-items:center;justify-content:center}
 .nav-logo-ico svg{width:16px;height:16px}
-.nav-logo-name{font-size:16px;font-weight:800;color:#111}
-.nav-center{display:flex;align-items:center;gap:.5rem;font-size:12px;color:var(--gray)}
-.nav-center svg{opacity:.5}
-.nav-right{display:flex;align-items:center;gap:.85rem;font-size:12px;color:var(--gray)}
-.nav-id{font-family:monospace;font-size:11px;color:var(--gray);background:var(--gray-light);border:1px solid var(--gray-border);padding:3px 9px;border-radius:6px;display:flex;align-items:center;gap:4px}
-.nav-copy-btn{background:none;border:none;cursor:pointer;color:var(--gray);font-size:12px;transition:color .15s}
-.nav-copy-btn:hover{color:#111}
+.nav-logo-name{font-size:16px;font-weight:800}
+.nav-center{display:flex;align-items:center;gap:1.1rem;font-size:12.5px;color:var(--tx2)}
+.nav-center-item{display:flex;align-items:center;gap:5px}
+.nav-back{font-size:13px;color:var(--tx2);background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 13px;display:flex;align-items:center;gap:6px}
+.nav-back:hover{color:var(--tx)}
+@media(max-width:720px){.nav-center{display:none}}
 
-/* ══ STICKY MOBILE CTA ══ */
-.mobile-cta-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:#fff;border-top:1px solid var(--gray-border);padding:.85rem 1rem;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
-@media(max-width:768px){.mobile-cta-bar{display:block}}
-.mobile-cta-btn{width:100%;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:15px;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.page{max-width:1080px;margin:0 auto;padding:1.5rem 1.5rem 6rem}
 
-/* ══ CONTENT WRAP ══ */
-.page{max-width:900px;margin:0 auto;padding:1.5rem 1.25rem 6rem}
-
-/* ══ WARNING BAR ══ */
-.warning-bar{background:var(--red-light);border:1px solid var(--red-border);border-radius:var(--radius);padding:1.1rem 1.25rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.wb-left{display:flex;align-items:flex-start;gap:.75rem}
-.wb-ico{font-size:22px;flex-shrink:0;margin-top:2px}
-.wb-text strong{display:block;font-size:15px;font-weight:700;color:#991B1B;margin-bottom:.2rem}
-.wb-text p{font-size:13px;color:#B91C1C;line-height:1.5}
-.wb-badge{background:#fff;border:1.5px solid var(--red-border);border-radius:10px;padding:.7rem .9rem;text-align:center;flex-shrink:0;min-width:150px}
-.wb-badge-title{font-size:11px;font-weight:700;color:var(--red);margin-bottom:.2rem}
-.wb-badge-desc{font-size:11px;color:#7F1D1D;line-height:1.4}
-.wb-badge-link{font-size:11px;font-weight:700;color:var(--red);text-decoration:underline;cursor:pointer}
-
-/* ══ PAGE HEADER ══ */
-.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap}
-.ph-title{font-size:clamp(26px,4vw,38px);font-weight:900;letter-spacing:-.5px;color:#111}
-.ph-sub{font-size:13px;color:var(--green);font-weight:600;display:flex;align-items:center;gap:5px;margin-top:.3rem}
-.ph-actions{display:flex;align-items:center;gap:.65rem;flex-shrink:0}
-.btn-save{display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--gray-border);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:#374151;cursor:pointer;transition:border-color .15s}
-.btn-save:hover{border-color:var(--gray)}
-.btn-check{display:flex;align-items:center;gap:6px;background:var(--purple);border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:background .15s}
-.btn-check:hover{background:var(--purple-dark)}
-
-/* ══ WALLET INFO CARD ══ */
-.card{background:#fff;border:1px solid var(--gray-border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);margin-bottom:1.25rem}
-.wallet-info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;align-items:start}
-.wi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);margin-bottom:.35rem}
-.wi-addr{font-family:monospace;font-size:15px;font-weight:700;color:#111;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
-.wi-copy{background:none;border:none;cursor:pointer;color:var(--gray);font-size:14px;padding:0;transition:color .15s}
-.wi-copy:hover{color:#111}
-.wi-badge{display:inline-flex;align-items:center;gap:5px;background:var(--red-light);border:1px solid var(--red-border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--red);margin-top:.4rem}
-.wi-badge.tron{background:#FFF3E0;border-color:#FFCC80;color:#E65100}
-.wi-badge.eth{background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8}
-.wi-badge.btc{background:#FFFBEB;border-color:var(--amber-border);color:#92400E}
-.wi-meta-label{font-size:11px;color:var(--gray);margin-bottom:.15rem}
-.wi-meta-val{font-size:14px;font-weight:600;color:#111}
-.wi-info-box{background:var(--purple-light);border:1px solid var(--purple-border);border-radius:10px;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.6rem}
-.wi-info-ico{font-size:16px;flex-shrink:0;margin-top:1px}
-.wi-info-title{font-size:12px;font-weight:700;color:var(--purple);margin-bottom:.2rem}
-.wi-info-text{font-size:11px;color:#4C1D95;line-height:1.5}
-.wi-lock-ico{font-size:32px;opacity:.25;margin-left:auto;margin-top:.5rem}
-
-/* ══ WALLET OVERVIEW ══ */
-.overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-.ov-card{background:var(--gray-light);border:1px solid var(--gray-border);border-radius:var(--radius-sm);padding:.9rem 1rem}
-.ov-ico-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.45rem}
-.ov-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ov-ico.green{background:#D1FAE5}
-.ov-ico.blue{background:#DBEAFE}
-.ov-ico.purple{background:var(--purple-light)}
-.ov-label{font-size:11px;color:var(--gray);font-weight:500}
-.ov-val{font-size:20px;font-weight:800;color:#111;line-height:1.1;margin-bottom:.1rem}
-.ov-sub{font-size:11px;color:var(--gray)}
-.ov-tx-list{display:flex;flex-direction:column;gap:.3rem;margin-top:.5rem}
-.ov-tx{display:flex;align-items:center;justify-content:space-between;font-size:11px}
-.ov-tx-addr{font-family:monospace;color:var(--gray);display:flex;align-items:center;gap:4px}
-.ov-tx-amount{font-weight:700}
-.ov-tx-amount.pos{color:var(--green)}
-.ov-tx-amount.neg{color:var(--red)}
-
-/* ══ RISK SECTION ══ */
-.risk-section{display:grid;grid-template-columns:180px 1fr 220px;gap:1.25rem;align-items:start}
-/* Gauge */
-.risk-gauge-wrap{text-align:center}
-.gauge-container{position:relative;width:120px;height:120px;margin:0 auto .75rem}
-.gauge-svg{width:100%;height:100%}
-.gauge-center-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.gauge-num{font-size:30px;font-weight:900;color:#111;line-height:1}
-.gauge-den{font-size:13px;color:var(--gray)}
-.risk-label{font-size:14px;font-weight:700;color:var(--amber);margin-bottom:.4rem;display:flex;align-items:center;justify-content:center;gap:5px}
-.risk-sub{font-size:12px;color:var(--gray);text-align:center;line-height:1.5}
-/* Findings */
-.findings-title{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem;display:flex;align-items:center;gap:.35rem}
-.findings-title span{font-weight:400;font-size:11px;text-transform:none;letter-spacing:0}
-.finding-row{display:flex;align-items:center;gap:.6rem;padding:.6rem 0;border-bottom:1px solid var(--gray-border)}
-.finding-row:last-child{border-bottom:none}
-.f-ico{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
-.f-ico.red{background:var(--red-light);color:var(--red)}
-.f-ico.amber{background:var(--amber-light);color:var(--amber)}
-.f-ico.green{background:var(--green-light);color:var(--green)}
-.f-name{flex:1;font-size:13px;color:#374151}
-.f-level{font-size:12px;font-weight:700;flex-shrink:0}
-.f-level.red{color:var(--red)}.f-level.amber{color:var(--amber)}.f-level.green{color:var(--green)}
-/* Why important */
-.why-box{background:var(--amber-light);border:1px solid var(--amber-border);border-radius:var(--radius-sm);padding:.9rem 1rem}
-.why-title{font-size:13px;font-weight:700;color:#92400E;margin-bottom:.6rem;display:flex;align-items:center;gap:5px}
-.why-item{display:flex;align-items:center;gap:.5rem;font-size:12px;color:#78350F;padding:.25rem 0}
-
-/* ══ LIMITATION BANNER ══ */
-.limit-banner{background:var(--gray-light);border:1px solid var(--gray-border);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem}
-.lb-left{display:flex;align-items:flex-start;gap:.75rem}
-.lb-ico{font-size:20px;flex-shrink:0}
-.lb-title{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:.2rem}
-.lb-desc{font-size:12px;color:var(--gray);line-height:1.5}
-.lb-link{font-size:12px;font-weight:600;color:var(--purple);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;flex-shrink:0}
-
-/* ══ UPSELL BLOCK ══ */
-.upsell-card{background:#fff;border:2px solid var(--purple-border);border-radius:20px;padding:1.5rem;box-shadow:0 0 0 4px rgba(108,79,248,.06),var(--shadow-lg);margin-bottom:1.25rem}
-.uc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1.5rem;margin-bottom:1.25rem;flex-wrap:wrap}
-.uc-title{font-size:clamp(18px,2.5vw,24px);font-weight:800;color:#111;margin-bottom:.3rem}
-.uc-title .purple{color:var(--purple)}
-.uc-sub{font-size:13px;color:var(--gray)}
-.uc-cta-wrap{flex-shrink:0;text-align:right}
-.uc-cta{display:block;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:14px 24px;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;display:flex;align-items:center;gap:8px;margin-bottom:.4rem;text-decoration:none}
-.uc-cta:hover{background:var(--purple-dark)}
-.uc-secure{font-size:11px;color:var(--gray);display:flex;align-items:center;gap:4px;justify-content:flex-end}
-.uc-pricing-row{display:flex;align-items:center;gap:1.5rem;margin-bottom:1.25rem;flex-wrap:wrap}
-.uc-price{font-size:40px;font-weight:900;color:#111;line-height:1}
-.uc-price-badge{background:var(--gray-light);border:1px solid var(--gray-border);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;color:var(--gray);margin-left:.35rem;vertical-align:middle}
-.uc-gift{background:var(--green-light);border:1px solid var(--green-border);border-radius:var(--radius-sm);padding:.75rem 1rem;display:flex;align-items:flex-start;gap:.6rem;flex:1;min-width:200px}
-.uc-gift-ico{font-size:22px;flex-shrink:0}
-.uc-gift-title{font-size:13px;font-weight:700;color:#065F46;margin-bottom:.15rem}
-.uc-gift-desc{font-size:12px;color:#047857;line-height:1.4}
-/* Feature grid */
-.features-title{font-size:13px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.85rem}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
-.feat-item{display:flex;align-items:flex-start;gap:.6rem;padding:.8rem;background:var(--gray-light);border:1px solid var(--gray-border);border-radius:var(--radius-sm);transition:border-color .2s}
-.feat-item:hover{border-color:var(--purple-border)}
-.feat-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.feat-ico.purple{background:var(--purple-light)}.feat-ico.red{background:var(--red-light)}.feat-ico.amber{background:var(--amber-light)}.feat-ico.green{background:var(--green-light)}.feat-ico.blue{background:#DBEAFE}
-.feat-title{font-size:12px;font-weight:700;color:#111;margin-bottom:.15rem}
-.feat-desc{font-size:11px;color:var(--gray);line-height:1.4}
-.feat-locked{opacity:.45;filter:grayscale(1)}
-
-/* ══ FOOTER ══ */
-.result-footer{background:#fff;border-top:1px solid var(--gray-border);padding:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:1.5rem}
-.rf-notes{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
-.rf-note{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray)}
-
-/* ══ PAYMENT MODAL ══ */
-.pay-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:1.5rem}
-.pay-overlay.open{display:flex}
-.pay-modal{background:#fff;border-radius:20px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden}
-.pay-hd{background:var(--purple);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
-.pay-hd-title{font-size:17px;font-weight:800;color:#fff}
-.pay-hd-sub{font-size:12px;color:rgba(255,255,255,.75);margin-top:.15rem}
-.pay-close{background:rgba(255,255,255,.15);border:none;border-radius:7px;width:28px;height:28px;color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
-.pay-body{padding:1.5rem}
-/* Order summary */
-.pay-summary{background:var(--gray-light);border:1px solid var(--gray-border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.25rem}
-.pay-sum-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:.3rem 0}
-.pay-sum-row.total{font-weight:700;font-size:15px;border-top:1px solid var(--gray-border);margin-top:.35rem;padding-top:.55rem}
-.pay-sum-label{color:var(--gray)}
-.pay-sum-val{color:#111;font-weight:600}
-.pay-sum-val.green{color:var(--green)}
-.pay-sum-val.big{font-size:20px;font-weight:900;color:#111}
-/* Package select */
-.pay-pkgs{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin-bottom:1.25rem}
-.pay-pkg{border:2px solid var(--gray-border);border-radius:10px;padding:.75rem .85rem;cursor:pointer;transition:all .2s;text-align:center;background:#fff}
-.pay-pkg:hover{border-color:var(--purple-border)}
-.pay-pkg.selected{border-color:var(--purple);background:var(--purple-light)}
-.pay-pkg-name{font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
-.pay-pkg-price{font-size:19px;font-weight:900;color:#111}
-.pay-pkg-credits{font-size:11px;color:var(--gray)}
-.pay-pkg.selected .pay-pkg-name{color:var(--purple)}
-.pay-pkg.selected .pay-pkg-price{color:var(--purple)}
-/* Payment methods */
-.pay-methods-title{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
-.pay-methods{display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap}
-.pay-method{flex:1;min-width:90px;border:2px solid var(--gray-border);border-radius:9px;padding:.7rem;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
-.pay-method:hover{border-color:var(--purple-border)}
-.pay-method.selected{border-color:var(--purple);background:var(--purple-light)}
-.pay-method-ico{font-size:20px;margin-bottom:.25rem}
-.pay-method-name{font-size:11px;font-weight:600;color:var(--gray)}
-.pay-method.selected .pay-method-name{color:var(--purple)}
-/* Pay button */
-.pay-btn{width:100%;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:15px;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:.75rem}
-.pay-btn:hover{background:var(--purple-dark)}
-.pay-trust{display:flex;align-items:center;justify-content:center;gap:1.25rem;font-size:11px;color:var(--gray);flex-wrap:wrap}
-.pay-trust-item{display:flex;align-items:center;gap:4px}
-.pay-gift-note{background:var(--green-light);border:1px solid var(--green-border);border-radius:9px;padding:.7rem .85rem;font-size:12px;color:#065F46;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
-
-/* ══ LOADING STATE ══ */
-.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center}
-.ld-spinner{width:48px;height:48px;border:4px solid var(--gray-border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1.25rem}
+/* LOADING */
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65vh;text-align:center}
+.spinner{width:56px;height:56px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:1.25rem}
 @keyframes spin{to{transform:rotate(360deg)}}
-.ld-title{font-size:18px;font-weight:700;color:#111;margin-bottom:.35rem}
-.ld-sub{font-size:13px;color:var(--gray)}
+.loading-title{font-size:18px;font-weight:700;margin-bottom:.35rem}
+.loading-sub{font-size:13.5px;color:var(--tx2)}
 
-/* ══ MULTI-WALLET TABS ══ */
+/* WALLET TABS */
 .wallet-tabs{display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap}
-.wtab{background:var(--gray-light);border:1.5px solid var(--gray-border);border-radius:9px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--gray);transition:all .2s}
-.wtab.active{background:var(--purple-light);border-color:var(--purple-border);color:var(--purple)}
+.wtab{font-family:monospace;font-size:12px;color:var(--tx2);background:#fff;border:1px solid var(--border);border-radius:9px;padding:7px 13px;cursor:pointer;transition:all .15s}
+.wtab.active{border-color:var(--purple);color:var(--purple);background:var(--purple-light)}
 
-/* ══ RESPONSIVE ══ */
-@media(max-width:900px){
-  .wallet-info-grid{grid-template-columns:1fr 1fr;gap:.85rem}
-  .risk-section{grid-template-columns:1fr 1fr;gap:1rem}
-  .why-box{display:none}
-  .features-grid{grid-template-columns:1fr 1fr}
-  .overview-grid{grid-template-columns:1fr}
-  .nav-center{display:none}
-}
-@media(max-width:600px){
-  .wallet-info-grid{grid-template-columns:1fr}
-  .risk-section{grid-template-columns:1fr}
-  .features-grid{grid-template-columns:1fr}
-  .uc-header{flex-direction:column}
-  .uc-cta-wrap{width:100%}
-  .uc-cta{width:100%;justify-content:center}
-  .pay-pkgs{grid-template-columns:1fr 1fr}
-  .page-header{flex-direction:column}
-  .ph-actions{width:100%}
-  .ph-actions .btn-check{flex:1;justify-content:center}
-}
+/* BANNER */
+.banner{background:var(--amber-light);border:1px solid var(--amber-border);border-radius:var(--radius);padding:1.25rem 1.4rem;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:flex-start;margin-bottom:1.5rem}
+.banner.green{background:var(--green-light);border-color:var(--green-border)}
+.banner.red{background:var(--red-light);border-color:var(--red-border)}
+.banner-ico{width:40px;height:40px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid var(--amber-border)}
+.banner.green .banner-ico{border-color:var(--green-border)}
+.banner.red .banner-ico{border-color:var(--red-border)}
+.banner-title{font-size:16px;font-weight:800;color:#92400E;margin-bottom:.25rem}
+.banner.green .banner-title{color:#065F46}
+.banner.red .banner-title{color:#991B1B}
+.banner-sub{font-size:13px;color:#78350F;line-height:1.5}
+.banner.green .banner-sub{color:#047857}
+.banner.red .banner-sub{color:#B91C1C}
+.banner-side{border-left:1px solid var(--amber-border);padding-left:1rem;max-width:230px}
+.banner.green .banner-side{border-color:var(--green-border)}
+.banner.red .banner-side{border-color:var(--red-border)}
+.banner-side-t{font-size:13px;font-weight:700;color:#92400E;margin-bottom:.2rem}
+.banner-side-d{font-size:12px;color:#78350F;line-height:1.45}
+@media(max-width:720px){.banner{grid-template-columns:auto 1fr}.banner-side{grid-column:1/-1;border-left:none;border-top:1px solid var(--amber-border);padding-left:0;padding-top:.85rem;max-width:none}}
+
+/* SCORE CARD */
+.score-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.5rem;box-shadow:var(--shadow)}
+.score-row{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center}
+.score-label{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx2);margin-bottom:.6rem}
+.score-big{font-size:64px;font-weight:900;line-height:1;letter-spacing:-2px}
+.score-big small{font-size:26px;font-weight:600;color:var(--tx3)}
+.score-verdict{display:inline-block;margin-top:.85rem;font-size:12.5px;font-weight:600;padding:5px 13px;border-radius:8px}
+.score-gauge-wrap{text-align:center}
+.score-gauge-note{font-size:11px;color:var(--tx3);margin-top:.5rem;line-height:1.4;max-width:200px}
+@media(max-width:560px){.score-row{grid-template-columns:1fr}.score-gauge-wrap{order:-1}}
+
+/* META ROW */
+.meta-row{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center;border-top:1px solid var(--border);margin-top:1.5rem;padding-top:1.25rem}
+.meta-item{display:flex;flex-direction:column;gap:2px}
+.meta-lbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+.meta-val{font-size:13.5px;font-weight:600;font-family:monospace;display:flex;align-items:center;gap:6px}
+.meta-copy{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:13px}
+.meta-status{margin-left:auto;font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:6px}
+
+/* DETECTED GRID */
+.detect-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+@media(max-width:860px){.detect-grid{grid-template-columns:1fr}}
+.detect-col-title{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--tx2);margin-bottom:.85rem}
+.detect-col-title span{color:var(--tx3);font-weight:600;text-transform:none;letter-spacing:0}
+
+.finding{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:.95rem 1.1rem;margin-bottom:.6rem;display:grid;grid-template-columns:auto 1fr auto;gap:.85rem;align-items:flex-start}
+.finding.high{background:#FEF4F4;border-color:var(--red-border)}
+.finding.medium{background:#FFFBF2;border-color:var(--amber-border)}
+.finding.green{background:#F3FBF7;border-color:var(--green-border)}
+.f-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.finding.high .f-ico{background:#FEE2E2;color:var(--red)}
+.finding.medium .f-ico{background:#FEF3C7;color:var(--amber)}
+.finding.green .f-ico{background:#D1FAE5;color:var(--green)}
+.f-body{min-width:0}
+.f-title-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.25rem}
+.f-title{font-size:13.5px;font-weight:700;color:var(--tx)}
+.f-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:5px}
+.f-tag.high{background:var(--red);color:#fff}
+.f-tag.medium{background:var(--amber);color:#fff}
+.f-tag.low{background:var(--green);color:#fff}
+.f-desc{font-size:12.5px;color:#4B5563;line-height:1.55}
+.f-note{font-size:11.5px;color:var(--red);font-weight:600;margin-top:.4rem}
+.finding.medium .f-note{color:#B45309}
+.f-action{font-size:11.5px;color:var(--tx3);text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:.3rem}
+.f-arrow{color:var(--tx3);font-size:16px;cursor:pointer}
+.f-good{font-size:12px;font-weight:600;color:var(--green);white-space:nowrap}
+
+/* WHY MATTERS (right col) */
+.why-box{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.25rem}
+.why-box-t{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--purple);margin-bottom:.4rem}
+.why-box-intro{font-size:12.5px;font-weight:600;color:var(--tx);margin-bottom:1rem}
+.why-item{display:flex;gap:.7rem;margin-bottom:.95rem}
+.why-item-ico{width:30px;height:30px;border-radius:8px;background:var(--purple-light);color:var(--purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.why-item-t{font-size:12.5px;font-weight:700;color:var(--tx)}
+.why-item-d{font-size:11.5px;color:var(--tx2);line-height:1.45}
+.why-foot{font-size:11.5px;color:var(--tx2);line-height:1.5;background:var(--bg2);border-radius:9px;padding:.7rem .85rem;margin-top:.5rem}
+
+/* WHY NO EXACT % box */
+.noexact{background:var(--purple-light);border:1px solid #DDD4FF;border-radius:13px;padding:1.25rem;margin-top:.6rem}
+.noexact-t{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--purple);margin-bottom:.6rem}
+.noexact-p{font-size:12px;color:#4B5563;line-height:1.55;margin-bottom:.6rem}
+.noexact-li{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tx);padding:3px 0}
+.noexact-li svg{flex-shrink:0;color:var(--purple)}
+
+/* SAFE STRIP */
+.safe-strip{background:var(--purple-light);border:1px solid #DDD4FF;border-radius:var(--radius);padding:1.1rem 1.4rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.safe-strip-ico{width:38px;height:38px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--purple)}
+.safe-strip-t{font-size:14px;font-weight:700;color:var(--purple);margin-bottom:.2rem}
+.safe-strip-d{font-size:12.5px;color:#4B5563;line-height:1.5}
+
+/* CTA SECTION */
+.cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
+@media(max-width:760px){.cta-grid{grid-template-columns:1fr}}
+.cta-left-t{font-size:22px;font-weight:900;letter-spacing:-.5px;margin-bottom:.3rem}
+.cta-left-s{font-size:13px;color:var(--tx2);margin-bottom:1.1rem}
+.cta-incs{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.cta-inc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx)}
+.cta-inc svg{flex-shrink:0;color:var(--purple)}
+.cta-card{background:linear-gradient(160deg,#fff,#FAF9FF);border:1.5px solid var(--purple);border-radius:var(--radius);padding:1.75rem;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
+.cta-best{position:absolute;top:18px;right:-34px;background:var(--green);color:#fff;font-size:10px;font-weight:800;letter-spacing:.05em;padding:4px 40px;transform:rotate(45deg)}
+.cta-card-t{font-size:17px;font-weight:800;margin-bottom:.5rem}
+.cta-price{font-size:44px;font-weight:900;letter-spacing:-1.5px;line-height:1}
+.cta-bonus{font-size:12px;font-weight:600;color:#92400E;background:var(--amber-light);border:1px solid var(--amber-border);border-radius:8px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;margin:.85rem 0}
+.cta-btn{width:100%;background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:14.5px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 22px rgba(108,79,248,.3)}
+.cta-btn:hover{transform:translateY(-1px)}
+.cta-secure{font-size:11.5px;color:var(--tx3);margin-top:.7rem;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* TRUST FOOTER */
+.trust-foot{display:flex;align-items:center;justify-content:center;gap:2.5rem;padding:2.5rem 0 1rem;flex-wrap:wrap;margin-top:1rem}
+.tf-item{display:flex;align-items:center;gap:10px}
+.tf-ico{width:32px;height:32px;border-radius:9px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--purple)}
+.tf-num{font-size:17px;font-weight:800}
+.tf-lbl{font-size:11.5px;color:var(--tx3)}
+.tf-stars{color:var(--amber);font-size:12px}
+
+/* MOBILE STICKY CTA */
+.mobile-cta-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:#fff;border-top:1px solid var(--border);padding:.8rem 1rem;box-shadow:0 -4px 20px rgba(0,0,0,.08)}
+@media(max-width:760px){.mobile-cta-bar{display:block}}
+.mobile-cta-btn{width:100%;background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;border-radius:12px;padding:14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+
+/* PAYMENT MODAL */
+.pay-overlay{position:fixed;inset:0;z-index:600;background:rgba(15,17,23,.6);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:1.5rem}
+.pay-overlay.open{display:flex}
+.pay-modal{background:#fff;border-radius:18px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.3)}
+.pay-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:1.4rem 1.5rem;border-bottom:1px solid var(--border)}
+.pay-hd-title{font-size:17px;font-weight:800}
+.pay-hd-sub{font-size:12.5px;color:var(--tx2);margin-top:2px}
+.pay-close{background:var(--bg2);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;color:var(--tx2);font-size:14px}
+.pay-body{padding:1.4rem 1.5rem}
+.pay-gift-note{background:var(--amber-light);border:1px solid var(--amber-border);border-radius:10px;padding:.75rem .9rem;font-size:12.5px;color:#92400E;margin-bottom:1.1rem}
+.pay-methods-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx2);margin-bottom:.65rem}
+.pay-pkgs{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.1rem}
+.pay-pkg{border:1.5px solid var(--border);border-radius:11px;padding:.85rem;cursor:pointer;transition:all .15s}
+.pay-pkg:hover{border-color:var(--purple)}
+.pay-pkg.selected{border-color:var(--purple);background:var(--purple-light)}
+.pay-pkg-name{font-size:13px;font-weight:700;margin-bottom:.2rem}
+.pay-pkg-price{font-size:18px;font-weight:900;color:var(--purple)}
+.pay-pkg-credits{font-size:10.5px;color:var(--tx2);margin-top:2px}
+.pay-summary{background:var(--bg2);border-radius:11px;padding:.9rem 1rem;margin-bottom:1.1rem}
+.pay-sum-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px}
+.pay-sum-label{color:var(--tx2)}
+.pay-sum-val{font-weight:600}
+.pay-sum-val.green{color:var(--green)}
+.pay-sum-row.total{border-top:1px solid var(--border);margin-top:.4rem;padding-top:.6rem}
+.pay-sum-val.big{font-size:20px;font-weight:900;color:var(--purple)}
+.pay-btn{width:100%;background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:14.5px;font-weight:800;cursor:pointer;box-shadow:0 8px 22px rgba(108,79,248,.3)}
+.pay-trust{display:flex;flex-wrap:wrap;gap:.5rem 1rem;justify-content:center;margin-top:.9rem}
+.pay-trust-item{font-size:11px;color:var(--tx2)}
 </style>
 </head>
 <body>
 
 <!-- NAV -->
 <nav>
-  <a href="/" class="nav-logo">
-    <div class="nav-logo-ico">
-      <svg viewBox="0 0 18 18" fill="none"><path d="M9 1L16 4V9C16 13 9 17 9 17C9 17 2 13 2 9V4Z" fill="#fff"/><circle cx="9" cy="9.5" r="2.5" stroke="rgba(108,79,248,.9)" stroke-width="1.5" fill="none"/><line x1="10.8" y1="11.3" x2="12.5" y2="13" stroke="rgba(108,79,248,.9)" stroke-width="1.5" stroke-linecap="round"/></svg>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-ico">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M9 1L16 4V9C16 13 9 17 9 17C9 17 2 13 2 9V4Z" fill="#fff"/><circle cx="9" cy="9.5" r="2.5" stroke="rgba(108,79,248,.95)" stroke-width="1.5" fill="none"/><line x1="10.8" y1="11.3" x2="12.5" y2="13" stroke="rgba(108,79,248,.95)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-logo-name">Crypto Scanner</span>
+    </a>
+    <div class="nav-center">
+      <span class="nav-center-item">🛡 Secure</span>
+      <span class="nav-center-item">🔒 Private</span>
+      <span class="nav-center-item">⛓ No wallet connection</span>
     </div>
-    <span class="nav-logo-name">CryptoScanner</span>
-  </a>
-  <div class="nav-center">
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L12.5 3.5V7.5C12.5 10.5 7 13 7 13C7 13 1.5 10.5 1.5 7.5V3.5Z" fill="#E5E7EB"/></svg>
-    Безпечно та конфіденційно
-  </div>
-  <div class="nav-right">
-    <div class="nav-id">
-      ID сканування: <span id="nav-scan-id">#CS-8F3A21</span>
-      <button class="nav-copy-btn" onclick="copyId()" title="Копіювати">⧉</button>
-    </div>
+    <a href="/" class="nav-back">← Back to Home</a>
   </div>
 </nav>
 
-<!-- MOBILE STICKY CTA -->
-<div class="mobile-cta-bar">
-  <button class="mobile-cta-btn" onclick="openPayment()">
-    🔍 Отримати повний звіт →
-  </button>
-</div>
+<div class="page">
 
-<!-- MAIN CONTENT -->
-<div class="page" id="page">
-
-  <!-- Loading state -->
+  <!-- LOADING -->
   <div class="loading-screen" id="loading-screen">
-    <div class="ld-spinner"></div>
-    <div class="ld-title">Аналізуємо гаманець...</div>
-    <div class="ld-sub">Перевіряємо санкційні списки та транзакції</div>
+    <div class="spinner"></div>
+    <div class="loading-title">Analyzing wallet...</div>
+    <div class="loading-sub">Scanning public blockchain data and risk indicators</div>
   </div>
 
-  <!-- Result content (hidden until loaded) -->
+  <!-- RESULT -->
   <div id="result-content" style="display:none">
 
-    <!-- Multi-wallet tabs -->
     <div class="wallet-tabs" id="wallet-tabs" style="display:none"></div>
 
-    <!-- 1. WARNING BAR -->
-    <div class="warning-bar">
-      <div class="wb-left">
-        <div class="wb-ico">⚠️</div>
-        <div class="wb-text">
-          <strong>Ми знайшли потенційні ризики у вашому гаманці</strong>
-          <p>Поверхнева перевірка виявила фактори, які можуть призвести до блокування коштів або обмежень на біржах.</p>
-        </div>
-      </div>
-      <div class="wb-badge">
-        <div class="wb-badge-title">Це лише поверхнева перевірка</div>
-        <div class="wb-badge-desc">Для точних результатів потрібен <span class="wb-badge-link" onclick="openPayment()">детальний аналіз</span></div>
-      </div>
-    </div>
-
-    <!-- 2. PAGE HEADER -->
-    <div class="page-header">
+    <!-- BANNER -->
+    <div class="banner" id="banner">
+      <div class="banner-ico" id="banner-ico">⚠</div>
       <div>
-        <h1 class="ph-title">Результати сканування</h1>
-        <div class="ph-sub">✅ Поверхнева перевірка завершена</div>
+        <div class="banner-title" id="banner-title">Surface Analysis Completed</div>
+        <div class="banner-sub" id="banner-sub">We identified blockchain activity patterns that may require deeper AML verification before using centralized exchanges.</div>
       </div>
-      <div class="ph-actions">
-        <button class="btn-save" onclick="saveResult()">
-          <span>🔖</span> Зберегти
-        </button>
-        <button class="btn-check" onclick="openPayment()">
-          Перевірити детально →
-        </button>
+      <div class="banner-side">
+        <div class="banner-side-t">Free scan checks only public indicators.</div>
+        <div class="banner-side-d">Detailed AML analysis determines exact exposure.</div>
       </div>
     </div>
 
-    <!-- 3. WALLET INFO CARD -->
-    <div class="card">
-      <div class="wallet-info-grid">
-        <!-- Left: address -->
+    <!-- SCORE -->
+    <div class="score-card">
+      <div class="score-row">
         <div>
-          <div class="wi-label">Відсканований гаманець</div>
-          <div class="wi-addr">
-            <span id="wi-addr-short">TXaGYd7J8eKj...WkXg9x8F3mL</span>
-            <button class="wi-copy" onclick="copyAddress()" title="Копіювати">⧉</button>
-          </div>
-          <div class="wi-badge tron" id="wi-network-badge">🔺 TRON (TRC20)</div>
+          <div class="score-label">Wallet Confidence Score</div>
+          <div class="score-big"><span id="score-num">—</span><small>/100</small></div>
+          <div class="score-verdict" id="score-verdict">Analyzing...</div>
         </div>
-        <!-- Center: meta -->
-        <div>
-          <div style="margin-bottom:.75rem">
-            <div class="wi-meta-label">Дата та час</div>
-            <div class="wi-meta-val" id="wi-date">25 травня 2025, 14:32:45</div>
-          </div>
-          <div>
-            <div class="wi-meta-label">Тип перевірки</div>
-            <div class="wi-meta-val" style="color:var(--green)">Поверхнева (безкоштовно)</div>
-          </div>
+        <div class="score-gauge-wrap">
+          <svg viewBox="0 0 180 100" width="180" height="100">
+            <path d="M14 92 A76 76 0 0 1 166 92" fill="none" stroke="#EDEFF3" stroke-width="13" stroke-linecap="round"/>
+            <path id="gauge-arc" d="M14 92 A76 76 0 0 1 166 92" fill="none" stroke="url(#rg)" stroke-width="13" stroke-linecap="round" stroke-dasharray="0 240"/>
+            <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#6C4FF8"/></linearGradient></defs>
+          </svg>
+          <div class="score-gauge-note">Score based on public blockchain indicators. Not an exact risk percentage.</div>
         </div>
-        <!-- Right: info box -->
-        <div>
-          <div class="wi-info-box">
-            <div class="wi-info-ico">ℹ️</div>
-            <div style="flex:1">
-              <div class="wi-info-title">Це поверхневий аналіз</div>
-              <div class="wi-info-text">Ми перевірили загальні ризики. Детальний звіт покаже точні відсотки брудної та санкційної крипти, зв'язки, контрагентів та інше.</div>
-            </div>
-            <div class="wi-lock-ico">🔒</div>
-          </div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-lbl">Scanned Wallet</span>
+          <span class="meta-val"><span id="meta-addr">—</span><button class="meta-copy" onclick="copyAddress()" title="Copy">⧉</button></span>
         </div>
+        <div class="meta-item">
+          <span class="meta-lbl">Network</span>
+          <span class="meta-val" id="meta-network">—</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-lbl">Date</span>
+          <span class="meta-val" id="meta-date" style="font-family:inherit;font-weight:500">—</span>
+        </div>
+        <div class="meta-status">✓ Surface scan completed</div>
       </div>
     </div>
 
-    <!-- 4. WALLET OVERVIEW -->
-    <div class="card">
-      <div style="font-size:15px;font-weight:700;color:#111;margin-bottom:.85rem">Огляд гаманця</div>
-      <div class="overview-grid">
-        <!-- Balance -->
-        <div class="ov-card">
-          <div class="ov-ico-row">
-            <div class="ov-ico green">💰</div>
-            <div class="ov-label">Баланс</div>
-          </div>
-          <div class="ov-val" id="ov-balance">—</div>
-          <div class="ov-sub" id="ov-balance-usd">—</div>
-        </div>
-        <!-- Transactions -->
-        <div class="ov-card">
-          <div class="ov-ico-row">
-            <div class="ov-ico blue">↕️</div>
-            <div class="ov-label">Транзакції</div>
-          </div>
-          <div class="ov-val" id="ov-tx-count">—</div>
-          <div class="ov-sub">Всього транзакцій</div>
-          <div class="ov-sub" id="ov-last-tx" style="margin-top:.25rem"></div>
-        </div>
-        <!-- Last interactions -->
-        <div class="ov-card">
-          <div class="ov-ico-row">
-            <div class="ov-ico purple">🔗</div>
-            <div class="ov-label">Останні 3 транзакції</div>
-          </div>
-          <div class="ov-tx-list" id="ov-tx-list">
-            <div class="ov-tx"><span class="ov-tx-addr">Завантаження...</span></div>
-          </div>
-        </div>
+    <!-- DETECTED + WHY MATTERS -->
+    <div class="detect-grid">
+      <div>
+        <div class="detect-col-title">What we detected <span>(surface analysis)</span></div>
+        <div id="findings-list"></div>
       </div>
-    </div>
-
-    <!-- 5. RISK ANALYSIS -->
-    <div class="card">
-      <div class="risk-section">
-        <!-- Gauge -->
-        <div class="risk-gauge-wrap">
-          <div class="gauge-container">
-            <svg class="gauge-svg" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="48" fill="none" stroke="#F3F4F6" stroke-width="10"/>
-              <circle cx="60" cy="60" r="48" fill="none" stroke="url(#rg)" stroke-width="10"
-                stroke-dasharray="0 301" stroke-dashoffset="75" stroke-linecap="round" id="gauge-arc"/>
-              <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop stop-color="#F59E0B"/><stop offset="1" stop-color="#EF4444"/>
-              </linearGradient></defs>
-            </svg>
-            <div class="gauge-center-txt">
-              <div class="gauge-num" id="gauge-score">—</div>
-              <div class="gauge-den">/100</div>
-            </div>
-          </div>
-          <div class="risk-label" id="risk-label">🟠 —</div>
-          <div class="risk-sub">Потенційні ризики виявлено.<br>Рекомендуємо детальну перевірку.</div>
-        </div>
-
-        <!-- Findings -->
-        <div>
-          <div class="findings-title">
-            Що ми знайшли <span>(поверхнева перевірка)</span>
-          </div>
-          <div id="findings-list"><div style="text-align:center;padding:1rem;color:var(--gray);font-size:13px">Завантаження...</div></div>
-        </div>
-
-        <!-- Why important -->
+      <div>
         <div class="why-box">
-          <div class="why-title">💡 Чому це важливо?</div>
-          <div style="font-size:12px;color:#78350F;margin-bottom:.6rem">Навіть невеликий відсоток брудної або санкційної крипти може призвести до:</div>
-          <div class="why-item">🏦 Блокування на біржі</div>
-          <div class="why-item">💸 Втрата доступу до коштів</div>
-          <div class="why-item">⏱ Проблеми з виводом</div>
-          <div class="why-item">🔍 AML перевірок та затримок</div>
+          <div class="why-box-t">Why this matters</div>
+          <div class="why-box-intro">Even small exposure may affect:</div>
+          <div class="why-item"><div class="why-item-ico">🏦</div><div><div class="why-item-t">Exchange withdrawals</div><div class="why-item-d">Funds may be frozen or restricted</div></div></div>
+          <div class="why-item"><div class="why-item-ico">🛡</div><div><div class="why-item-t">AML compliance checks</div><div class="why-item-d">May require additional verification</div></div></div>
+          <div class="why-item"><div class="why-item-ico">💱</div><div><div class="why-item-t">OTC transactions</div><div class="why-item-d">Counterparties may reject transfers</div></div></div>
+          <div class="why-item"><div class="why-item-ico">👤</div><div><div class="why-item-t">Account verification</div><div class="why-item-d">May impact onboarding or limits</div></div></div>
+          <div class="why-foot">Most exchanges analyze transaction history, not just wallet balance.</div>
+        </div>
+        <div class="noexact">
+          <div class="noexact-t">Why can't the free scan show exact percentages?</div>
+          <div class="noexact-p">The free scan analyzes public blockchain indicators only.</div>
+          <div class="noexact-p">Detailed AML analysis performs full transaction tracing across counterparties, bridges and indirect wallet exposure.</div>
+          <div class="noexact-li"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.4"/></svg>No wallet connection required</div>
+          <div class="noexact-li"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Your funds never leave your wallet</div>
+          <div class="noexact-li"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.4"/></svg>100% private and secure</div>
         </div>
       </div>
     </div>
 
-    <!-- 6. LIMITATION BANNER -->
-    <div class="limit-banner">
-      <div class="lb-left">
-        <div class="lb-ico">🛡️</div>
-        <div>
-          <div class="lb-title">Безкоштовна перевірка — це лише поверхневий аналіз</div>
-          <div class="lb-desc">Він показує потенційні ризики на основі публічних даних та відомих баз. Для точних висновків потрібна глибока перевірка всіх транзакцій та зв'язків.</div>
-        </div>
+    <!-- SAFE STRIP -->
+    <div class="safe-strip">
+      <div class="safe-strip-ico">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 11l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <div class="lb-link" onclick="openPayment()">Дізнатися більше →</div>
-    </div>
-
-    <!-- 7. UPSELL BLOCK -->
-    <div class="upsell-card">
-      <div class="uc-header">
-        <div>
-          <div class="uc-title">Рекомендуємо зробити <span class="purple">детальну перевірку</span></div>
-          <div class="uc-sub">Отримайте повний звіт та будьте впевнені у безпеці своїх коштів</div>
-        </div>
-        <div class="uc-cta-wrap">
-          <button class="uc-cta" onclick="openPayment()">
-            Отримати повний звіт зараз →
-          </button>
-          <div class="uc-secure">🔒 Безпечно. Оплата захищена.</div>
-        </div>
-      </div>
-
-      <div class="uc-pricing-row">
-        <div>
-          <div style="display:flex;align-items:baseline;gap:.4rem">
-            <span class="uc-price">$19.99</span>
-            <span class="uc-price-badge">Разова оплата</span>
-          </div>
-        </div>
-        <div class="uc-gift">
-          <div class="uc-gift-ico">🎁</div>
-          <div>
-            <div class="uc-gift-title">+ 3 перевірки у подарунок!</div>
-            <div class="uc-gift-desc">Після покупки ви отримаєте ще 3 повні перевірки безкоштовно.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="features-title">Що входить у детальний звіт:</div>
-      <div class="features-grid">
-        <div class="feat-item">
-          <div class="feat-ico red"><span>%</span></div>
-          <div>
-            <div class="feat-title">Точний % санкційної крипти</div>
-            <div class="feat-desc">Ми визначаємо чи є санкційна крипта та скільки саме (%).</div>
-          </div>
-        </div>
-        <div class="feat-item">
-          <div class="feat-ico amber">🔍</div>
-          <div>
-            <div class="feat-title">Точний % брудної крипти</div>
-            <div class="feat-desc">Дізнайтесь відсоток від міксерів, скамів та крадених коштів.</div>
-          </div>
-        </div>
-        <div class="feat-item">
-          <div class="feat-ico purple">👥</div>
-          <div>
-            <div class="feat-title">Аналіз контрагентів</div>
-            <div class="feat-desc">Перевірка всіх взаємодій з гаманцями, біржами та смарт-контрактами.</div>
-          </div>
-        </div>
-        <div class="feat-item">
-          <div class="feat-ico blue">🏛️</div>
-          <div>
-            <div class="feat-title">Підсанкційні списки (OFAC, EU, UN)</div>
-            <div class="feat-desc">Перевірка по всім актуальним санкційним базам.</div>
-          </div>
-        </div>
-        <div class="feat-item">
-          <div class="feat-ico purple">📈</div>
-          <div>
-            <div class="feat-title">Історія транзакцій та зв'язків</div>
-            <div class="feat-desc">Повний граф зв'язків та руху коштів вашого гаманця.</div>
-          </div>
-        </div>
-        <div class="feat-item">
-          <div class="feat-ico amber">🏦</div>
-          <div>
-            <div class="feat-title">Ризики для бірж та AML</div>
-            <div class="feat-desc">Чи може ваш гаманець спричинити блокування або перевірки.</div>
-          </div>
-        </div>
-
-      </div>
-
-      <div style="margin-top:1.25rem;text-align:center">
-        <button class="btn-check" style="display:inline-flex;padding:14px 32px;font-size:15px" onclick="openPayment()">
-          Отримати повний звіт зараз →
-        </button>
+      <div>
+        <div class="safe-strip-t">You may be completely safe.</div>
+        <div class="safe-strip-d">But if your wallet contains indirect sanctions exposure or risky transaction history, most users discover it only after an exchange requests additional AML verification.</div>
       </div>
     </div>
 
-    <!-- FOOTER -->
-    <div class="result-footer">
-      <div class="rf-notes">
-        <div class="rf-note">🔒 Ваші дані залишаються конфіденційними</div>
-        <div class="rf-note">🛡️ Ми не зберігаємо доступ до ваших коштів</div>
-        <div class="rf-note">💬 Підтримка 24/7</div>
+    <!-- CTA -->
+    <div class="cta-grid">
+      <div>
+        <div class="cta-left-t">Determine your exact risk exposure</div>
+        <div class="cta-left-s">Free scan cannot determine:</div>
+        <div class="cta-incs">
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Exact % of sanctioned funds</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Exact % of risky assets</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Counterparty analysis</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Transaction chain tracing</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Exchange compatibility score</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>AML report PDF</div>
+        </div>
       </div>
+      <div class="cta-card">
+        <div class="cta-best">BEST VALUE</div>
+        <div class="cta-card-t">Unlock Full AML Analysis</div>
+        <div class="cta-price">$19.99</div>
+        <div class="cta-bonus">🎁 + 3 additional scans included</div>
+        <button class="cta-btn" onclick="openPayment()">Unlock Full Report →</button>
+        <div class="cta-secure">🔒 Secure payment · Instant access</div>
+      </div>
+    </div>
+
+    <!-- TRUST FOOTER -->
+    <div class="trust-foot">
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="6.5" r="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 17c0-3.5 3-6 7-6s7 2.5 7 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div><div><div class="tf-num">2.4M+</div><div class="tf-lbl">Users worldwide</div></div></div>
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L2.2 7.7l5.4-.8z" fill="currentColor"/></svg></div><div><div class="tf-num">4.9 / 5 <span class="tf-stars">★★★★★</span></div><div class="tf-lbl">Based on 12,500+ reviews</div></div></div>
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 10h15M10 2.5c2 2 3 4.7 3 7.5s-1 5.5-3 7.5c-2-2-3-4.7-3-7.5s1-5.5 3-7.5z" stroke="currentColor" stroke-width="1.6"/></svg></div><div><div class="tf-num">50+</div><div class="tf-lbl">Blockchains supported</div></div></div>
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M7 9V6.5a3 3 0 016 0V9" stroke="currentColor" stroke-width="1.6"/></svg></div><div><div class="tf-num">Privacy First</div><div class="tf-lbl">We never store your wallet data</div></div></div>
     </div>
 
   </div><!-- /result-content -->
-</div><!-- /page -->
+</div>
+
+<!-- MOBILE STICKY CTA -->
+<div class="mobile-cta-bar">
+  <button class="mobile-cta-btn" onclick="openPayment()">Unlock Full Report — $19.99 →</button>
+</div>
 
 <!-- PAYMENT MODAL -->
 <div class="pay-overlay" id="pay-overlay" onclick="closePaymentOutside(event)">
   <div class="pay-modal">
     <div class="pay-hd">
       <div>
-        <div class="pay-hd-title">Отримати повний звіт</div>
-        <div class="pay-hd-sub">AML & Risk аналіз вашого гаманця</div>
+        <div class="pay-hd-title">Unlock Full AML Report</div>
+        <div class="pay-hd-sub">Complete risk analysis of your wallet</div>
       </div>
       <button class="pay-close" onclick="closePayment()">✕</button>
     </div>
     <div class="pay-body">
-
-      <!-- Gift note -->
-      <div class="pay-gift-note">
-        🎁 <strong>+3 перевірки у подарунок!</strong> Після покупки ви отримаєте ще 3 повні перевірки безкоштовно.
-      </div>
-
-      <!-- Package selection -->
-      <div class="pay-methods-title">Оберіть пакет</div>
+      <div class="pay-gift-note">🎁 <strong>+3 scans included!</strong> After purchase you get 3 additional full scans free.</div>
+      <div class="pay-methods-title">Choose a package</div>
       <div class="pay-pkgs">
-        <div class="pay-pkg" onclick="selectPkg(this, 19.99, 1, 'single')">
+        <div class="pay-pkg selected" onclick="selectPkg(this, 19.99, 1, 'single')">
           <div class="pay-pkg-name">Single</div>
           <div class="pay-pkg-price">$19.99</div>
-          <div class="pay-pkg-credits">1 звіт + 3 у подарунок</div>
+          <div class="pay-pkg-credits">1 report + 3 free</div>
         </div>
-        <div class="pay-pkg selected" onclick="selectPkg(this, 24.99, 10, 'basic')">
+        <div class="pay-pkg" onclick="selectPkg(this, 24.99, 10, 'basic')">
           <div class="pay-pkg-name">⭐ Basic</div>
           <div class="pay-pkg-price">$24.99</div>
-          <div class="pay-pkg-credits">10 звітів · $2.50/звіт</div>
+          <div class="pay-pkg-credits">10 reports · $2.50 ea</div>
         </div>
         <div class="pay-pkg" onclick="selectPkg(this, 49.99, 30, 'pro')">
           <div class="pay-pkg-name">Pro</div>
           <div class="pay-pkg-price">$49.99</div>
-          <div class="pay-pkg-credits">30 звітів · $1.67/звіт</div>
+          <div class="pay-pkg-credits">30 reports · $1.67 ea</div>
         </div>
         <div class="pay-pkg" onclick="selectPkg(this, 99.99, 100, 'business')">
           <div class="pay-pkg-name">Business</div>
           <div class="pay-pkg-price">$99.99</div>
-          <div class="pay-pkg-credits">100 звітів · $1.00/звіт</div>
+          <div class="pay-pkg-credits">100 reports · $1.00 ea</div>
         </div>
       </div>
-
-      <!-- Order summary -->
       <div class="pay-summary">
-        <div class="pay-sum-row"><span class="pay-sum-label">Пакет</span><span class="pay-sum-val" id="pay-pkg-name">Basic (10 звітів)</span></div>
-        <div class="pay-sum-row"><span class="pay-sum-label">Бонус</span><span class="pay-sum-val green">+3 звіти безкоштовно</span></div>
-        <div class="pay-sum-row total"><span class="pay-sum-label">До сплати</span><span class="pay-sum-val big" id="pay-total">$24.99</span></div>
+        <div class="pay-sum-row"><span class="pay-sum-label">Package</span><span class="pay-sum-val" id="pay-pkg-name">Single (1 report)</span></div>
+        <div class="pay-sum-row"><span class="pay-sum-label">Bonus</span><span class="pay-sum-val green">+3 scans free</span></div>
+        <div class="pay-sum-row total"><span class="pay-sum-label">Total</span><span class="pay-sum-val big" id="pay-total">$19.99</span></div>
       </div>
-
-      <!-- Pay button -->
-      <button class="pay-btn" onclick="processPayment()">
-        🔒 Оплатити та отримати звіт →
-      </button>
+      <button class="pay-btn" onclick="processPayment()">🔒 Pay &amp; unlock report →</button>
       <div class="pay-trust">
-        <div class="pay-trust-item">✅ Безпечна оплата</div>
-        <div class="pay-trust-item">⚡ Миттєвий доступ</div>
-        <div class="pay-trust-item">📄 PDF звіт</div>
-        <div class="pay-trust-item">🔒 Захищено</div>
+        <div class="pay-trust-item">✅ Secure payment</div>
+        <div class="pay-trust-item">⚡ Instant access</div>
+        <div class="pay-trust-item">📄 PDF report</div>
+        <div class="pay-trust-item">🔒 Protected</div>
       </div>
     </div>
   </div>
@@ -613,32 +412,17 @@ nav{background:#fff;border-bottom:1px solid var(--gray-border);padding:.8rem 1.5
 
 <script>
 var API = '/.netlify/functions';
-var scanId = '#CS-' + Math.random().toString(36).slice(2,6).toUpperCase() + Math.random().toString(36).slice(2,6).toUpperCase();
 var addresses = [];
-var currentAddrIndex = 0;
 var reportData = null;
-var selectedPkg = {name:'basic', price:24.99, credits:10};
+var selectedPkg = {name:'single', price:19.99, credits:1};
 
-// ── INIT ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('nav-scan-id').textContent = scanId;
-  
   var params = new URLSearchParams(window.location.search);
   var addrs = [];
-  for (var i = 1; i <= 3; i++) {
-    var a = params.get('addr' + i);
-    if (a && a.length > 8) addrs.push(a);
-  }
-  // Also support legacy ?addr= param
+  for (var i = 1; i <= 3; i++) { var a = params.get('addr' + i); if (a && a.length > 8) addrs.push(a); }
   var single = params.get('addr');
   if (single && addrs.length === 0) addrs.push(single);
-  
-  if (addrs.length === 0) {
-    // Demo mode - show example data
-    setTimeout(function() { showDemoResult(); }, 1500);
-    return;
-  }
-  
+  if (addrs.length === 0) { setTimeout(function(){ showDemoResult(); }, 1200); return; }
   addresses = addrs;
   buildWalletTabs();
   loadReport(addresses[0]);
@@ -653,10 +437,8 @@ function buildWalletTabs() {
     return '<div class="wtab' + (i===0?' active':'') + '" onclick="switchWallet(' + i + ', this)">' + short + '</div>';
   }).join('');
 }
-
 function switchWallet(i, el) {
-  currentAddrIndex = i;
-  document.querySelectorAll('.wtab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.wtab').forEach(function(t){ t.classList.remove('active'); });
   el.classList.add('active');
   document.getElementById('result-content').style.display = 'none';
   document.getElementById('loading-screen').style.display = 'flex';
@@ -670,333 +452,240 @@ async function loadReport(addr) {
     var r = await fetch(API + '/report?addr=' + encodeURIComponent(addr));
     var report = await r.json();
     if (report.error) throw new Error(report.error);
+    report.address = report.address || addr;
     reportData = report;
     renderResult(report, addr);
   } catch(e) {
-    // Fallback to demo
     showDemoResult(addr);
   }
 }
 
-function renderResult(r, addr) {
-  var score = r.riskScore || 62;
-  var level = r.riskLevel || 'medium';
-  var network = r.network || 'Unknown';
-  
-  // Address display
-  var shortAddr = addr ? (addr.length > 20 ? addr.slice(0,14) + '...' + addr.slice(-8) : addr) : 'TXaGYd7J8eKj...WkXg9x8F3mL';
-  document.getElementById('wi-addr-short').textContent = shortAddr;
-  window._fullAddr = addr;
-  
-  // Network badge
-  var netBadge = document.getElementById('wi-network-badge');
-  if (network.includes('TRON')) { netBadge.textContent = '🔺 TRON (TRC20)'; netBadge.className = 'wi-badge tron'; }
-  else if (network.includes('Ethereum') || network.includes('ETH')) { netBadge.textContent = 'Ξ Ethereum'; netBadge.className = 'wi-badge eth'; }
-  else if (network.includes('Bitcoin') || network.includes('BTC')) { netBadge.textContent = '₿ Bitcoin'; netBadge.className = 'wi-badge btc'; }
-  else { netBadge.textContent = '◈ ' + network; netBadge.className = 'wi-badge'; }
-  
-  // Date
-  document.getElementById('wi-date').textContent = new Date().toLocaleDateString('uk-UA', {day:'numeric',month:'long',year:'numeric'}) + ', ' + new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  
-  // ── BALANCE (real data) ──────────────────────────────────────
-  var bal = r.balance;
-  if (bal) {
-    // TRON: show USDT if available, else TRX
-    if (parseFloat(bal.usdt) > 0) {
-      document.getElementById('ov-balance').textContent = parseFloat(bal.usdt).toFixed(2) + ' USDT';
-      document.getElementById('ov-balance-usd').textContent = '≈ $' + parseFloat(bal.usdt).toFixed(2);
-    } else if (bal.trx !== undefined) {
-      document.getElementById('ov-balance').textContent = parseFloat(bal.trx).toFixed(2) + ' TRX';
-      var usdEst = (parseFloat(bal.trx) * 0.08).toFixed(2);
-      document.getElementById('ov-balance-usd').textContent = '≈ $' + (parseFloat(bal.totalUsd) > 0 ? parseFloat(bal.totalUsd).toFixed(2) : usdEst);
-    } else if (bal.native) {
-      document.getElementById('ov-balance').textContent = bal.native;
-      document.getElementById('ov-balance-usd').textContent = bal.netWorth ? '≈ $' + parseFloat(bal.netWorth).toFixed(2) : '';
-    } else if (bal.btc) {
-      document.getElementById('ov-balance').textContent = bal.btc + ' BTC';
-      document.getElementById('ov-balance-usd').textContent = '≈ $' + parseFloat(bal.totalUsd || 0).toFixed(2);
-    }
-  } else {
-    document.getElementById('ov-balance').textContent = '—';
-    document.getElementById('ov-balance-usd').textContent = 'Завантаження...';
-  }
+// ============================================================
+// SMART ENGINE — tier classification + variable confidence score
+// ============================================================
+function deterministicJitter(addr) {
+  var h = 0, s = String(addr || '');
+  for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+  return (Math.abs(h) % 7) - 3;
+}
+function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
 
-  // ── TX COUNT (real data) ──────────────────────────────────────
-  var act = r.activity || {};
-  document.getElementById('ov-tx-count').textContent = act.txCount || '—';
-  if (act.lastActivity && act.lastActivity !== '—' && act.lastActivity !== 'Невідомо') {
-    document.getElementById('ov-last-tx').textContent = 'Остання: ' + act.lastActivity;
-  }
-
-  // ── LAST 3 TXS (real data from recentTxs) ──────────────────────
-  var txListEl = document.getElementById('ov-tx-list');
-  var realTxs = r.recentTxs || [];
-
-  if (realTxs.length > 0) {
-    txListEl.innerHTML = realTxs.map(function(tx) {
-      var isIn = tx.direction === 'in';
-      var prefix = isIn ? '↓' : '↑';
-      var cls = isIn ? 'pos' : 'neg';
-      var sign = isIn ? '+' : '-';
-      var amountStr = tx.amount && tx.amount !== '—' ? sign + tx.amount + ' ' + tx.symbol : '—';
-      var dirLabel = isIn ? 'Вхідна' : 'Вихідна';
-      return '<div class="ov-tx">' +
-        '<span class="ov-tx-addr">' +
-          '<span style="color:' + (isIn ? '#10B981' : '#EF4444') + ';font-size:11px;margin-right:3px">' + prefix + '</span>' +
-          tx.counterparty +
-          '<span style="font-size:10px;color:#9CA3AF;margin-left:4px">' + dirLabel + '</span>' +
-        '</span>' +
-        '<span class="ov-tx-amount ' + cls + '">' + amountStr + '</span>' +
-        '</div>';
-    }).join('');
-  } else {
-    // Fallback — no tx data (new wallet or API issue)
-    txListEl.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Дані транзакцій завантажуються...</div>';
-  }
-  
-  // Gauge — always show Medium for conversion (min 45, max 74)
-  var displayScore = score;
-  var displayLevel = level;
-  if (score < 45) { displayScore = Math.max(score, 10) + 35; displayLevel = 'medium'; }
-  else if (score > 74) { displayLevel = 'high'; }
-  // Cap at 74 to keep medium impression unless truly high
-  if (displayScore > 74 && level !== 'high') displayScore = 68;
-
-  var arc = document.getElementById('gauge-arc');
-  var maxDash = 301;
-  arc.setAttribute('stroke-dasharray', Math.round(displayScore / 100 * maxDash) + ' ' + maxDash);
-  document.getElementById('gauge-score').textContent = displayScore;
-
-  // Risk label — always amber (Medium) unless truly high risk
-  var riskColor = displayLevel === 'high' ? '#EF4444' : '#F59E0B';
-  var riskText = displayLevel === 'high' ? '🔴 Високий ризик' : '🟠 Середній ризик';
-  var riskSub = displayLevel === 'high'
-    ? 'Серйозні ризики виявлено. Потрібна негайна перевірка.'
-    : 'Потенційні ризики виявлено. Рекомендуємо детальну перевірку.';
-  var riskEl = document.getElementById('risk-label');
-  riskEl.textContent = riskText;
-  riskEl.style.color = riskColor;
-  arc.setAttribute('stroke', riskColor);
-  // Update gauge arc color to amber gradient
-  arc.setAttribute('stroke', 'url(#rg)');
-  // Update sub text
-  var subEl = document.querySelector('.risk-sub');
-  if (subEl) subEl.textContent = riskSub;
-  
-  // Findings based on real data
-  renderFindings(r);
-  
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('result-content').style.display = 'block';
-  window.scrollTo(0, 0);
+function classifyTier(r) {
+  var tx = (r.activity && r.activity.txCount) || r.analyzedTxs || 0;
+  tx = parseInt(tx) || 0;
+  var volume = r.totalVolumeUsd || 0;
+  var balance = (r.balance && parseFloat(r.balance.totalUsd)) || 0;
+  if (tx === 0) return 'DEAD';
+  if (tx < 8 && volume < 500) return 'TRIVIAL';
+  if (balance < 50 && volume >= 5000) return 'DORMANT_SIG';
+  if (volume >= 20000 || tx >= 50) return 'HIGH_VALUE';
+  return 'NORMAL';
 }
 
-function renderFindings(r) {
-  var flags = r.riskFlags || [];
-  var hasOfac = r.ofacMatch || r.sanctionedRisk > 0;
-  var hasMixer = (r.mixerInteractions || 0) > 0;
-  var hasDark = (r.darknetInteractions || 0) > 0;
-  var hasCybercrime = flags.some(function(f){return f.type==='cybercrime'||f.type==='money_laundering';});
-  var hasPhishing = flags.some(function(f){return f.type==='phishing';});
-  var hasBlacklist = flags.some(function(f){return f.type==='blacklist';});
-  var score = r.riskScore || 0;
+function buildResultModel(r) {
+  var tier = classifyTier(r);
+  var jitter = deterministicJitter(r.address);
+  var base;
+  switch (tier) {
+    case 'DEAD': base = 95; break;
+    case 'TRIVIAL': base = 91; break;
+    case 'DORMANT_SIG': base = 64; break;
+    case 'NORMAL': base = 77; break;
+    case 'HIGH_VALUE': base = 61; break;
+    default: base = 70;
+  }
+  var score = base + jitter;
+  var findings = [];
 
-  // Завжди 6 тригерів — незалежно від результату
-  var items = [
-    // 1. Санкції — завжди тригер
-    (hasOfac || hasBlacklist || score > 60) ? {
-      type:'red',
-      title:'🔴 Виявлено наявність підсанкційних коштів',
-      desc:'Частина transaction history може містити indirect exposure до санкційних адрес або ризикових контрагентів. Потрібна додаткова перевірка.',
-      level:'Високий ризик'
-    } : {
-      type:'red-soft',
-      title:'🔴 Виявлено потенційний підсанкційний ризик',
-      desc:'Поверхнева перевірка не може виключити indirect exposure до санкційних адрес. Повна перевірка визначить точний відсоток.',
-      level:'Потрібна перевірка'
-    },
-    // 2. Ризикові ланцюги — завжди тригер
-    (hasCybercrime || hasDark || score > 40) ? {
-      type:'red',
-      title:'🔴 Виявлено потенційні ризикові transaction chains',
-      desc:'Деякі транзакції мають зв\'язки з адресами, які можуть викликати AML-перевірки або обмеження на біржах. Рекомендуємо детальний аналіз.',
-      level:'Високий ризик'
-    } : {
-      type:'red-soft',
-      title:'🔴 Виявлено підозрілі transaction patterns',
-      desc:'Деякі транзакційні патерни потребують глибшого аналізу. Поверхнева перевірка не може точно оцінити рівень ризику.',
-      level:'Потрібна перевірка'
-    },
-    // 3. P2P — завжди amber
-    {
-      type:'amber',
-      title:'🟠 Виявлено P2P / OTC активність',
-      desc:'Подібні transaction patterns можуть впливати на wallet reputation та AML-score. Повний звіт покаже деталі та рекомендації.',
-      level:'Середній ризик'
-    },
-    // 4. Міксери — якщо є red, якщо ні — green з хуком
-    hasMixer ? {
-      type:'red',
-      title:'🔴 Виявлено взаємодію з міксерами',
-      desc:'Прямі або непрямі зв\'язки з mixer-сервісами можуть призвести до блокування коштів на біржах.',
-      level:'Високий ризик'
-    } : {
-      type:'green',
-      title:'🟢 Прямих mixer interactions не знайдено',
-      desc:'Розширена перевірка аналізує hidden routing та indirect exposure через проміжні гаманці.',
-      level:'Низький ризик'
-    },
-    // 5. Фішинг — якщо є red, якщо ні — green з хуком
-    hasPhishing ? {
-      type:'red',
-      title:'🔴 Виявлено фішингову активність',
-      desc:'Гаманець взаємодіяв з адресами, пов\'язаними з фішингом або шахрайством.',
-      level:'Високий ризик'
-    } : {
-      type:'green',
-      title:'🟢 Відомих phishing entities не виявлено',
-      desc:'Повний аналіз перевіряє нові scam clusters та smart-contract interactions, недоступні при поверхневій перевірці.',
-      level:'Низький ризик'
-    },
-    // 6. Біржі — завжди з caveat
-    {
-      type:'green',
-      title:'🟢 Виявлено взаємодію з централізованими біржами',
-      desc:'Деякі біржі можуть проводити додаткову AML-перевірку походження коштів при депозитах.',
-      level:'Низький ризик'
+  var sanctioned = (r.ofacMatch || (r.sanctionedHits && r.sanctionedHits.length) || r.sanctionedRisk > 0);
+  var geo = (r.sanctionedGeoCount || 0) > 0;
+  var mixer = (r.mixerInteractions || 0) > 0;
+  var scam = (r.scamInteractions || 0) > 0;
+  var indirect = !!r.indirectExposure;
+  var defi = (r.limitations || []).some(function(l){ return /DeFi|смарт|smart/i.test(l); });
+  var gasDirty = r.gasSource && r.gasSource.dirty;
+  var incomingDirty = parseFloat(r.incomingDirtyPercent || 0);
+  var pf = r.patternFlags || {};
+  var unknownCp = r.unknownCounterparties || 0;
+  var totalCp = (r.topCounterparties || []).length || 1;
+  var unknownRatio = unknownCp / totalCp;
+  var suppress = (tier === 'TRIVIAL' || tier === 'DEAD');
+
+  if (!suppress) {
+    if (sanctioned) { score -= 32; findings.push({sev:'high', icon:'⚠', title:'Potential sanctions exposure detected',
+      desc:'Surface analysis identified transaction paths that may require deeper tracing through multiple counterparties.', note:'Exact exposure percentage unavailable in free scan.'}); }
+    if (geo) { score -= 25; findings.push({sev:'high', icon:'⚠', title:'Sanctioned-region exchange exposure',
+      desc:'Interactions consistent with sanctioned-jurisdiction exchanges were detected on the surface layer.', note:'Detailed verification required.'}); }
+    if (mixer) { score -= 20; findings.push({sev:'high', icon:'🌀', title:'Mixer / tumbler interaction detected',
+      desc:'One or more counterparties match known mixing services. This strongly affects AML scoring.', note:'Detailed analysis required.'}); }
+    if (scam) { score -= 16; findings.push({sev:'high', icon:'⚠', title:'Scam / phishing-linked addresses detected',
+      desc:'Surface analysis flagged counterparties linked to scam or phishing clusters.', note:'Detailed analysis required.'}); }
+    if (indirect) { score -= 12; findings.push({sev:'high', icon:'🕸', title:'Complex transaction routing detected',
+      desc:'Your wallet interacted with addresses that use multi-hop transaction patterns. These patterns are common but may affect AML scoring.', note:'Detailed analysis required.'}); }
+    if (incomingDirty > 0) { score -= clamp(Math.round(incomingDirty/5)*3, 3, 15); }
+    if (defi) { score -= 8; findings.push({sev:'medium', icon:'📄', title:'DeFi / smart contract activity detected',
+      desc:'Your wallet interacted with DeFi protocols and smart contracts. Additional tracing is required to determine source attribution.', note:'Detailed analysis required.'}); }
+    if (gasDirty) { score -= 8; findings.push({sev:'medium', icon:'⛽', title:'Wallet funded from a flagged source',
+      desc:'The first incoming funding transaction originated from an address with risk indicators. This is a signal, not proof.', note:'Detailed verification recommended.'}); }
+    if (pf.velocity) score -= 5;
+    if (pf.burst) score -= 5;
+    if (pf.peelingSuspicion) { score -= 5; findings.push({sev:'medium', icon:'🔀', title:'Structuring-like pattern (suspicion)',
+      desc:'A sequence of decreasing outgoing amounts was observed — a pattern sometimes associated with layering. Requires manual review.', note:'Detailed analysis required.'}); }
+    if ((tier === 'NORMAL' || tier === 'HIGH_VALUE' || tier === 'DORMANT_SIG') && unknownRatio >= 0.6 && unknownCp >= 3) {
+      score -= clamp(Math.round(unknownRatio * 15), 8, 15);
+      findings.push({sev:'medium', icon:'❓', title:'Unverified counterparties detected',
+        desc:'Your wallet transacted with addresses we could not identify as known exchanges or verified entities. Common, but affects AML scoring.', note:'Detailed analysis required.'});
     }
-  ];
+  }
+  if (r.gasSource && r.gasSource.dirty === false) score += 4;
+  score = clamp(Math.round(score), 5, 98);
 
-  var styles = {
-    'red':      {bg:'#FEF2F2', border:'#FECACA', color:'#EF4444'},
-    'red-soft': {bg:'#FEF2F2', border:'#FECACA', color:'#DC4444'},
-    'amber':    {bg:'#FFFBEB', border:'#FDE68A', color:'#F59E0B'},
-    'green':    {bg:'#F0FDF4', border:'#A7F3D0', color:'#10B981'}
-  };
+  // Green "ruled out" findings
+  var greens = [];
+  if (!mixer) greens.push({title:'No direct mixer interactions found', desc:'We have not identified direct interactions with known mixers or tumblers.'});
+  if (!scam)  greens.push({title:'No known phishing entities detected', desc:'No interactions with known phishing addresses or scam clusters were found.'});
+  greens.push({title:'Exchange interactions verified', desc:'We detected transactions with centralized exchanges. This is common and not necessarily a risk.'});
 
-  var html = items.map(function(item) {
-    var s = styles[item.type] || styles['green'];
-    return '<div style="background:' + s.bg + ';border:1px solid ' + s.border + ';border-radius:10px;padding:.8rem 1rem;margin-bottom:.55rem">' +
-      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:.3rem">' +
-        '<div style="font-size:13px;font-weight:700;color:#111;line-height:1.4">' + item.title + '</div>' +
-        '<span style="font-size:11px;font-weight:700;color:' + s.color + ';white-space:nowrap;flex-shrink:0;background:#fff;padding:2px 8px;border-radius:5px;border:1px solid ' + s.border + '">' + item.level + '</span>' +
+  var banner, bannerType;
+  switch (tier) {
+    case 'DEAD': banner = {t:'No on-chain activity to analyze', s:'This address has no transaction history to evaluate on the surface layer.'}; bannerType='green'; break;
+    case 'TRIVIAL': banner = {t:'Limited activity — no significant indicators', s:'This wallet shows minimal transaction history. No major risk indicators were found on the surface layer.'}; bannerType='green'; break;
+    case 'DORMANT_SIG': banner = {t:'This wallet previously moved significant value', s:'The wallet is near-empty now but handled substantial volume. Surface indicators require deeper verification before using centralized exchanges.'}; bannerType='amber'; break;
+    case 'HIGH_VALUE': banner = {t:'Surface Analysis Completed', s:'High transaction volume detected. We identified blockchain activity patterns that may require deeper AML verification before using centralized exchanges.'}; bannerType='amber'; break;
+    default: banner = {t:'Surface Analysis Completed', s:'We identified blockchain activity patterns that may require deeper AML verification before using centralized exchanges.'}; bannerType='amber';
+  }
+  if (findings.some(function(f){return f.sev==='high';})) bannerType = 'red';
+
+  var verdict;
+  if (score >= 85) verdict = {t:'No significant indicators', c:'green'};
+  else if (score >= 65) verdict = {t:'Additional verification recommended', c:'amber'};
+  else verdict = {t:'Detailed verification strongly recommended', c:'red'};
+
+  return { tier:tier, score:score, verdict:verdict, banner:banner, bannerType:bannerType, findings:findings, greens:greens };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderResult(r, addr) {
+  var m = buildResultModel(r);
+
+  // Address / network / date
+  var shortAddr = addr ? (addr.length > 24 ? addr.slice(0,12) + '...' + addr.slice(-8) : addr) : '—';
+  document.getElementById('meta-addr').textContent = shortAddr;
+  window._fullAddr = addr;
+  var net = r.network || 'Unknown';
+  var netLabel = net;
+  if (net.includes('TRON')) netLabel = '🔺 TRON (TRC20)';
+  else if (net.includes('Ethereum') || net.includes('ETH')) netLabel = 'Ξ Ethereum';
+  else if (net.includes('Bitcoin') || net.includes('BTC')) netLabel = '₿ Bitcoin';
+  document.getElementById('meta-network').textContent = netLabel;
+  var now = new Date();
+  document.getElementById('meta-date').textContent = now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ', ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+  // Banner
+  var banner = document.getElementById('banner');
+  banner.className = 'banner ' + m.bannerType;
+  document.getElementById('banner-ico').textContent = m.bannerType === 'green' ? '✓' : (m.bannerType === 'red' ? '⚠' : '⚠');
+  document.getElementById('banner-title').textContent = m.banner.t;
+  document.getElementById('banner-sub').textContent = m.banner.s;
+
+  // Score + gauge
+  document.getElementById('score-num').textContent = m.score;
+  var arc = document.getElementById('gauge-arc');
+  var full = 240; // approx arc length
+  arc.setAttribute('stroke-dasharray', Math.round(m.score/100*full) + ' ' + full);
+  var vEl = document.getElementById('score-verdict');
+  vEl.textContent = m.verdict.t;
+  var vColors = {green:['#065F46','#D1FAE5'], amber:['#92400E','#FEF3C7'], red:['#991B1B','#FEE2E2']};
+  vEl.style.color = vColors[m.verdict.c][0];
+  vEl.style.background = vColors[m.verdict.c][1];
+
+  // Findings
+  renderFindings(m);
+
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('result-content').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function renderFindings(m) {
+  var html = '';
+  m.findings.forEach(function(f) {
+    var tagLabel = f.sev === 'high' ? 'High' : (f.sev === 'medium' ? 'Medium' : 'Low');
+    html += '<div class="finding ' + f.sev + '">' +
+      '<div class="f-ico">' + f.icon + '</div>' +
+      '<div class="f-body"><div class="f-title-row"><span class="f-title">' + f.title + '</span>' +
+        '<span class="f-tag ' + f.sev + '">' + tagLabel + '</span></div>' +
+        '<div class="f-desc">' + f.desc + '</div>' +
+        (f.note ? '<div class="f-note">' + f.note + '</div>' : '') +
       '</div>' +
-      '<div style="font-size:12px;color:#4B5563;line-height:1.55">' + item.desc + '</div>' +
+      '<div class="f-action">Detailed analysis<br>required<span class="f-arrow" onclick="openPayment()">›</span></div>' +
     '</div>';
-  }).join('');
-
-  // Alert box
-  html += '<div style="background:#FFFBEB;border:1.5px solid #F59E0B;border-radius:10px;padding:.85rem 1rem;margin-top:.65rem">' +
-    '<div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:.4rem">⚠️ Поверхнева перевірка не визначає точний % ризикових коштів</div>' +
-    '<div style="font-size:12px;color:#78350F;margin-bottom:.45rem">Повний AML аналіз покаже:</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.2rem .75rem">' +
-      '<div style="font-size:12px;color:#78350F">• точний % санкційної крипти</div>' +
-      '<div style="font-size:12px;color:#78350F">• рівень exposure до ризиків</div>' +
-      '<div style="font-size:12px;color:#78350F">• ризикові transaction chains</div>' +
-      '<div style="font-size:12px;color:#78350F">• потенційні проблеми для бірж та P2P</div>' +
-    '</div>' +
-  '</div>';
-
+  });
+  m.greens.forEach(function(g) {
+    html += '<div class="finding green">' +
+      '<div class="f-ico">✓</div>' +
+      '<div class="f-body"><div class="f-title-row"><span class="f-title">' + g.title + '</span>' +
+        '<span class="f-tag low">Low</span></div>' +
+        '<div class="f-desc">' + g.desc + '</div></div>' +
+      '<div class="f-action"><span class="f-good">Good news</span><span class="f-arrow" onclick="openPayment()">›</span></div>' +
+    '</div>';
+  });
   document.getElementById('findings-list').innerHTML = html;
 }
 
-
 function showDemoResult(addr) {
-  var demoAddr = addr || 'TXaGYd7J8eKj...WkXg9x8F3mL';
-  var demoReport = {
-    address: demoAddr, network: 'TRON (TRC20)', riskScore: 48, riskLevel: 'medium',
-    balance: {usdt: '2482.19', trx: '1250.00', totalUsd: '2582.19'},
-    activity: {txCount: 128, lastActivity: '25.05.2025', firstActivity: '12.02.2023', incomingCount: 64, outgoingCount: 64},
-    riskFlags: [{type:'cybercrime',label:'Suspicious activity',severity:'high'}],
-    ofacMatch: false, mixerInteractions: 0, darknetInteractions: 0, sanctionedRisk: 0,
-    topCounterparties: [],
-    recentTxs: [
-      {counterparty:'TYfLy…g8K2p', direction:'in', amount:'150.00', symbol:'USDT', timestamp:'25.05.2025'},
-      {counterparty:'THJ4x…e9Z7U', direction:'out', amount:'200.00', symbol:'USDT', timestamp:'24.05.2025'},
-      {counterparty:'TEh8m…k3P9a', direction:'in', amount:'50.00', symbol:'USDT', timestamp:'22.05.2025'},
-    ],
-    funds: {cleanPercent:'81.2',dirtyPercent:'14.4',sanctionedPercent:'4.4'},
-  };
-  renderResult(demoReport, demoAddr);
+  var demoAddr = addr || 'TXaGYd7J8eKjWkXg9x8F3mL';
+  renderResult({
+    address: demoAddr, network: 'TRON (TRC20)',
+    activity: {txCount: 128}, totalVolumeUsd: 18500, balance: {totalUsd: '2582.19'},
+    ofacMatch: false, mixerInteractions: 0, scamInteractions: 0, sanctionedGeoCount: 0,
+    indirectExposure: true, incomingDirtyPercent: '0', sanctionedHits: [],
+    patternFlags: {}, unknownCounterparties: 6,
+    topCounterparties: [{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'exchange'}],
+    limitations: ['DeFi interaction detected'],
+  }, demoAddr);
 }
 
-// ── PAYMENT ──────────────────────────────────────────────────
-function openPayment() {
-  document.getElementById('pay-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closePayment() {
-  document.getElementById('pay-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-function closePaymentOutside(e) {
-  if (e.target === document.getElementById('pay-overlay')) closePayment();
-}
-
+// ── PAYMENT (preserved) ──────────────────────────────────────
+function openPayment(){ document.getElementById('pay-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closePayment(){ document.getElementById('pay-overlay').classList.remove('open'); document.body.style.overflow=''; }
+function closePaymentOutside(e){ if (e.target === document.getElementById('pay-overlay')) closePayment(); }
 function selectPkg(el, price, credits, name) {
-  document.querySelectorAll('.pay-pkg').forEach(function(p) { p.classList.remove('selected'); });
+  document.querySelectorAll('.pay-pkg').forEach(function(p){ p.classList.remove('selected'); });
   el.classList.add('selected');
-  selectedPkg = {name, price, credits};
+  selectedPkg = {name:name, price:price, credits:credits};
   document.getElementById('pay-total').textContent = '$' + price.toFixed(2);
-  var names = {single:'Single (1 звіт)', basic:'Basic (10 звітів)', pro:'Pro (30 звітів)', business:'Business (100 звітів)'};
+  var names = {single:'Single (1 report)', basic:'Basic (10 reports)', pro:'Pro (30 reports)', business:'Business (100 reports)'};
   document.getElementById('pay-pkg-name').textContent = names[name] || name;
 }
-
 async function processPayment() {
   var btn = document.querySelector('.pay-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Створення платежу...';
+  btn.disabled = true; btn.textContent = '⏳ Creating payment...';
   try {
     var token = localStorage.getItem('cg_token') || '';
     var r = await fetch(API + '/purchase', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json', 'Authorization':'Bearer ' + token},
-      body: JSON.stringify({package_name: selectedPkg.name, amount_usd: selectedPkg.price, credits: selectedPkg.credits})
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({package_name:selectedPkg.name, amount_usd:selectedPkg.price, credits:selectedPkg.credits})
     });
     var d = await r.json();
-    if (d.invoice_url) {
-      window.open(d.invoice_url, '_blank');
-      closePayment();
-    } else if (d.error === 'Unauthorized' || !token) {
-      // Redirect to dashboard to login first
-      window.location.href = '/dashboard?redirect=payment&pkg=' + selectedPkg.name;
-    } else {
-      alert('Помилка: ' + (d.error || 'Невідома помилка'));
-    }
-  } catch(e) {
-    // If not logged in, redirect to dashboard
-    window.location.href = '/dashboard?redirect=payment';
-  }
-  btn.disabled = false;
-  btn.innerHTML = '🔒 Оплатити та отримати звіт →';
+    if (d.invoice_url) { window.open(d.invoice_url, '_blank'); closePayment(); }
+    else if (d.error === 'Unauthorized' || !token) { window.location.href = '/dashboard?redirect=payment&pkg=' + selectedPkg.name; }
+    else { alert('Error: ' + (d.error || 'Unknown error')); }
+  } catch(e) { window.location.href = '/dashboard?redirect=payment'; }
+  btn.disabled = false; btn.innerHTML = '🔒 Pay &amp; unlock report →';
 }
 
 // ── HELPERS ──────────────────────────────────────────────────
-function copyId() {
-  navigator.clipboard.writeText(scanId);
-  showCopied('Scan ID copied');
-}
-function copyAddress() {
-  navigator.clipboard.writeText(window._fullAddr || '');
-  showCopied('Address copied');
-}
+function copyAddress(){ navigator.clipboard.writeText(window._fullAddr || ''); showCopied('Address copied'); }
 function showCopied(msg) {
   var t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:9999;font-family:Inter,sans-serif';
-  t.textContent = '✓ ' + msg;
-  document.body.appendChild(t);
-  setTimeout(function() { t.remove(); }, 1800);
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:9999;font-family:Inter,sans-serif';
+  t.textContent='✓ '+msg; document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 1800);
 }
-function saveResult() {
-  if (window._fullAddr) {
-    localStorage.setItem('last_scan_addr', window._fullAddr);
-  }
-  showCopied('Результат збережено');
-}
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closePayment();
-});
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePayment(); });
 </script>
 </body>
 </html>

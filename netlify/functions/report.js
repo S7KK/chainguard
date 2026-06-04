@@ -230,27 +230,30 @@ async function fetchEvmLabels(addresses) {
 // ═══════════════════════════════════════════════════════════════════
 async function checkTronGasSource(addr, risk, labels) {
   try {
-    // Oldest-first: the very first incoming tx that activated the wallet
-    const r = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=1&start=0&sort=timestamp`,
-      { headers: { 'TRON-PRO-API-KEY': TRON_KEY } });
+    const h = { 'TRON-PRO-API-KEY': TRON_KEY };
+    // Get total tx count first
+    const r = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=1&start=0`, { headers: h });
     if (!r.ok) return null;
     const d = await r.json();
-    const total = (d && d.total) || 0;
+    const total = (d && (d.total || d.rangeTotal)) || 0;
     if (!total) return null;
-    // Fetch the earliest tx (start = total-1)
-    const start = Math.max(0, total - 1);
-    const r2 = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=1&start=${start}`,
-      { headers: { 'TRON-PRO-API-KEY': TRON_KEY } });
+    // Grab the OLDEST ~20 txs (deepest page). Tronscan caps deep pagination ~10k.
+    const start = Math.max(0, Math.min(total, 10000) - 20);
+    const r2 = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=20&start=${start}`, { headers: h });
     if (!r2.ok) return null;
     const d2 = await r2.json();
-    const first = (d2 && d2.data && d2.data[0]) || null;
+    const list = (d2 && d2.data) || [];
+    if (!list.length) return null;
+    // Oldest first → find the first INCOMING tx (the funding/activation)
+    const sorted = list.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    let first = sorted.find(t => t.toAddress === addr && t.ownerAddress && t.ownerAddress !== addr);
     if (!first) return null;
-    const funder = first.toAddress === addr ? first.ownerAddress : null;
-    if (!funder || funder === addr) return null;
+    const funder = first.ownerAddress;
     const cls = classifyAddress(funder, risk, labels);
     const dirty = ['sanctioned','sanctioned_geo','mixer','scam'].includes(cls);
     return {
       funder: funder.slice(0,6) + '...' + funder.slice(-4),
+      funderFull: funder,
       class: cls,
       name: resolveEntityName(funder, labels),
       dirty,
@@ -262,13 +265,13 @@ async function checkTronGasSource(addr, risk, labels) {
 async function checkEvmGasSource(addr, risk, labels) {
   try {
     // Etherscan: oldest-first, first inbound tx funds the wallet
-    const r = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${addr}&page=1&offset=10&sort=asc&apikey=${ETHERSCAN_KEY}`);
+    const r = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${addr}&page=1&offset=20&sort=asc&apikey=${ETHERSCAN_KEY}`);
     if (!r.ok) return null;
     const d = await r.json();
     const list = (d && d.result) || [];
     if (!Array.isArray(list) || !list.length) return null;
     const al = addr.toLowerCase();
-    const firstIn = list.find(t => (t.to || '').toLowerCase() === al && parseFloat(t.value) > 0);
+    const firstIn = list.find(t => (t.to || '').toLowerCase() === al && (t.from||'').toLowerCase() !== al && parseFloat(t.value) > 0);
     if (!firstIn) return null;
     const funder = firstIn.from;
     if (!funder || funder.toLowerCase() === al) return null;
@@ -276,6 +279,7 @@ async function checkEvmGasSource(addr, risk, labels) {
     const dirty = ['sanctioned','sanctioned_geo','mixer','scam'].includes(cls);
     return {
       funder: funder.slice(0,6) + '...' + funder.slice(-4),
+      funderFull: funder,
       class: cls,
       name: resolveEntityName(funder, labels),
       dirty,

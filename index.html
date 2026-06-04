@@ -99,7 +99,30 @@ h1 .grad{background:linear-gradient(135deg,var(--purple),var(--blue));-webkit-ba
 
 /* SECTION GENERIC */
 .section{padding:4rem 0}
-.section-eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple2);text-align:center;margin-bottom:.6rem}
+.section-eyebrow{font-size:14px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--purple2);text-align:center;margin-bottom:.6rem}
+/* LIGHT SECTIONS (match mockup: middle of page is white) */
+.section-light{background:#FFFFFF;color:#0F1117}
+.section-light .section-eyebrow{color:var(--purple)}
+.section-light .section-title{color:#0F1117}
+.section-light .section-sub{color:#6B7280}
+.section-light .why-card{background:#FFFFFF;border-color:#ECEEF3;box-shadow:0 1px 3px rgba(15,17,23,.05)}
+.section-light .why-card-t{color:#0F1117}
+.section-light .why-card-d{color:#6B7280}
+.section-light .why-card-ico.red{background:#FEECEC}
+.section-light .why-card-ico.purple{background:#EEEAFE}
+.section-light .why-card-ico.amber{background:#FEF3E2}
+.section-light .why-card-ico.green{background:#E6F7F0}
+.section-light .statbar{background:#FEF2F2;border-color:#FBD5D5}
+.section-light .statbar-txt{color:#7F1D1D}
+.section-light .how-num{background:var(--purple)}
+.section-light .how-step-ico{color:var(--purple)}
+.section-light .how-step-t{color:#0F1117}
+.section-light .how-step-d{color:#6B7280}
+.section-light .we-check{background:#FFFFFF;border-color:#ECEEF3;box-shadow:0 1px 3px rgba(15,17,23,.05)}
+.section-light .we-check-t{color:#6B7280}
+.section-light .we-check-item{color:#0F1117}
+.section-light .we-check-item svg{color:var(--green)}
+.section-light .why2-d{color:#6B7280}
 .section-title{font-size:32px;font-weight:800;letter-spacing:-.5px;text-align:center;margin-bottom:.6rem}
 .section-sub{font-size:16px;color:var(--tx2);text-align:center;max-width:560px;margin:0 auto 2.5rem}
 
@@ -360,7 +383,7 @@ footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:3rem}
 </section>
 
 <!-- WHY USERS CHECK -->
-<section class="section" id="features">
+<section class="section section-light" id="features">
   <div class="wrap">
     <div class="section-eyebrow">Why users check their wallet</div>
     <div class="why-grid">
@@ -398,7 +421,7 @@ footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:3rem}
 </section>
 
 <!-- HOW IT WORKS -->
-<section class="section" id="how">
+<section class="section section-light" id="how">
   <div class="wrap">
     <div class="section-eyebrow">How it works</div>
     <div class="how-wrap">
@@ -494,14 +517,13 @@ footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:3rem}
         <div class="rep-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".18"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>AML risk score</div>
         <div class="rep-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".18"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Professional PDF report</div>
         <button class="rep-fullbtn" onclick="document.getElementById('addr-1').focus();window.scrollTo({top:0,behavior:'smooth'})">View Full Report →</button>
-        <div class="rep-price">Only $19.99</div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- WHY EVEN 1-2% MATTERS -->
-<section class="section">
+<section class="section section-light">
   <div class="wrap">
     <div class="section-eyebrow">Why even 1-2% matters</div>
     <div class="why2-grid">

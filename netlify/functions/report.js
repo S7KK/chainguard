@@ -1027,6 +1027,8 @@ function assembleReport(d) {
     reputation,
     limitations,                          // ← Improvement 3 honest wording / upsell hook
     analyzedTxs: txs.length,
+    totalVolumeUsd: Math.round(exposure.totalVolume || 0),  // lifetime volume for result-page tier logic
+    unknownCounterparties: topCounterparties.filter(c => c.risk === 'unknown').length,
   };
 }
 

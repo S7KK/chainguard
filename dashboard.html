@@ -7,14 +7,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#07091A;--s1:#0D1028;--s2:#131630;--s3:#181C3A;
-  --b1:#1C2245;--b2:#252B55;--b3:#2D3560;
-  --tx:#EEF2FF;--tx2:#7B8DB8;--tx3:#3A4A75;
-  --red:#FF3B3B;--red-dim:rgba(255,59,59,.1);
-  --amber:#FFB020;--amber-dim:rgba(255,176,32,.1);
-  --green:#00D68F;--green-dim:rgba(0,214,143,.1);
-  --blue:#4F6EF7;--purple:#7C3AED;
-  --cyan:#00C8FF;--cyan2:#0077AA;
+  /* LIGHT THEME — aligned with main landing page */
+  --bg:#F9FAFB;--s1:#FFFFFF;--s2:#FFFFFF;--s3:#F3F4F8;
+  --b1:#E5E7EB;--b2:#D8DCE5;--b3:#C9CFDC;
+  --tx:#111111;--tx2:#6B7280;--tx3:#9CA3AF;
+  --red:#E5484D;--red-dim:rgba(229,72,77,.08);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.1);
+  --green:#0CA678;--green-dim:rgba(12,166,120,.1);
+  --blue:#6C4FF8;--purple:#6C4FF8;
+  --cyan:#0891B2;--cyan2:#0077AA;
   --head:'Inter',sans-serif;--body:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -127,7 +128,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
 .tab-btn.inactive{background:var(--s2);border-color:var(--b1);color:var(--tx2)}
 .tab-btn.inactive:hover{border-color:var(--b2);color:var(--tx)}
 .tab-count{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px}
-.tab-btn.active .tab-count{background:rgba(255,255,255,.2)}
+.tab-btn.active .tab-count{background:rgba(17,17,17,.2)}
 .tab-btn.inactive .tab-count{background:var(--b1)}
 .tabs-spacer{flex:1}
 .add-wallet-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;background:rgba(79,110,247,.1);border:1px solid rgba(79,110,247,.3);border-radius:9px;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;transition:all .2s}
@@ -174,7 +175,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
 .scans-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);padding:.55rem .85rem;text-align:left;border-bottom:1px solid var(--b1)}
 .scans-table td{padding:.65rem .85rem;border-bottom:1px solid rgba(28,34,69,.5);font-size:12px;vertical-align:middle}
 .scans-table tr:last-child td{border-bottom:none}
-.scans-table tr:hover td{background:rgba(255,255,255,.015)}
+.scans-table tr:hover td{background:rgba(17,17,17,.015)}
 .addr-mono{font-family:var(--mono);font-size:11px;color:var(--tx2)}
 .risk-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px}
 .risk-badge.high{background:var(--red-dim);color:var(--red)}
@@ -281,83 +282,83 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
 /* Full report modal */
 .fr-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)}
 .fr-overlay.open{display:flex}
-.fr-box{background:#09001C;border:1px solid rgba(79,110,247,.2);border-radius:20px;width:100%;max-width:920px;margin:auto}
-.fr-hd{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.fr-box{background:#FFFFFF;border:1px solid var(--b1);border-radius:20px;width:100%;max-width:920px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.fr-hd{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(17,17,17,.06)}
 .fr-hd-left{display:flex;align-items:center;gap:.75rem}
-.fr-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45)}
-.fr-meta{display:flex;align-items:center;gap:1.25rem;font-size:11px;color:rgba(255,255,255,.3)}
+.fr-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,17,.45)}
+.fr-meta{display:flex;align-items:center;gap:1.25rem;font-size:11px;color:rgba(17,17,17,.3)}
 .fr-id{color:var(--blue);font-family:var(--mono)}
-.fr-close{background:rgba(255,255,255,.07);border:none;border-radius:7px;width:28px;height:28px;color:rgba(255,255,255,.55);cursor:pointer;font-size:14px}
+.fr-close{background:rgba(17,17,17,.07);border:none;border-radius:7px;width:28px;height:28px;color:rgba(17,17,17,.55);cursor:pointer;font-size:14px}
 .fr-body{padding:1.25rem 1.5rem;overflow-y:auto;max-height:84vh}
 .fr-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:.85rem}
-.fr-block{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.9rem 1rem}
+.fr-block{background:rgba(17,17,17,.03);border:1px solid rgba(17,17,17,.06);border-radius:12px;padding:.9rem 1rem}
 .fr-block-full{grid-column:1/-1}
-.fr-block-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:.65rem}
+.fr-block-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(17,17,17,.3);margin-bottom:.65rem}
 /* interactive: collapsible blocks */
 .fr-block.collapsible .fr-block-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:color .15s}
-.fr-block.collapsible .fr-block-title:hover{color:rgba(255,255,255,.6)}
+.fr-block.collapsible .fr-block-title:hover{color:rgba(17,17,17,.6)}
 .fr-block.collapsible .fr-block-title::after{content:'▼';font-size:8px;transition:transform .2s;opacity:.5}
 .fr-block.collapsed .fr-block-title::after{transform:rotate(-90deg)}
 .fr-block .fr-collapse-body{transition:opacity .2s,max-height .25s ease;overflow:hidden}
 .fr-block.collapsed .fr-collapse-body{max-height:0!important;opacity:0;margin:0;padding:0}
 /* interactive: connection graph */
 .fr-graph{display:flex;align-items:stretch;gap:.4rem;flex-wrap:nowrap;overflow-x:auto;padding:.3rem 0}
-.fr-graph-node{flex:1;min-width:92px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.6rem .5rem;text-align:center;transition:transform .15s,border-color .15s}
+.fr-graph-node{flex:1;min-width:92px;background:rgba(17,17,17,.03);border:1px solid rgba(17,17,17,.07);border-radius:10px;padding:.6rem .5rem;text-align:center;transition:transform .15s,border-color .15s}
 .fr-graph-node:hover{transform:translateY(-2px);border-color:rgba(79,110,247,.4)}
 .fr-graph-node.you{border-color:rgba(79,110,247,.35)}
 .fr-gn-dot{width:12px;height:12px;border-radius:50%;margin:0 auto .35rem;box-shadow:0 0 8px currentColor}
-.fr-gn-lbl{font-size:11px;font-weight:700;color:#fff}
-.fr-gn-sub{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.3}
-.fr-graph-arrow{display:flex;align-items:center;color:rgba(255,255,255,.25);font-size:14px;flex-shrink:0}
+.fr-gn-lbl{font-size:11px;font-weight:700;color:var(--tx)}
+.fr-gn-sub{font-size:9px;color:rgba(17,17,17,.4);margin-top:2px;line-height:1.3}
+.fr-graph-arrow{display:flex;align-items:center;color:rgba(17,17,17,.25);font-size:14px;flex-shrink:0}
 .fr-cp-clickable{cursor:pointer;border-radius:6px;transition:background .15s}
-.fr-cp-clickable:hover{background:rgba(255,255,255,.04)}
+.fr-cp-clickable:hover{background:rgba(17,17,17,.04)}
 .fr-copied{color:#10B981!important}
 .fr-gauge-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
 .fr-gauge-svg{position:relative;width:72px;height:72px;flex-shrink:0}
 .fr-gc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.fr-g-num{font-size:21px;font-weight:900;color:#fff;line-height:1}
-.fr-g-den{font-size:9px;color:rgba(255,255,255,.35)}
+.fr-g-num{font-size:21px;font-weight:900;color:var(--tx);line-height:1}
+.fr-g-den{font-size:9px;color:rgba(17,17,17,.35)}
 .fr-risk-name{font-size:13px;font-weight:800}
-.fr-risk-desc{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.4}
+.fr-risk-desc{font-size:11px;color:rgba(17,17,17,.4);margin-top:2px;line-height:1.4}
 .fr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.55rem}
-.fr-stat{background:rgba(255,255,255,.03);border-radius:7px;padding:.35rem .5rem;text-align:center}
-.fr-stat-val{font-size:11px;font-weight:700;color:#fff}
-.fr-stat-lbl{font-size:9px;color:rgba(255,255,255,.3)}
+.fr-stat{background:rgba(17,17,17,.03);border-radius:7px;padding:.35rem .5rem;text-align:center}
+.fr-stat-val{font-size:11px;font-weight:700;color:var(--tx)}
+.fr-stat-lbl{font-size:9px;color:rgba(17,17,17,.3)}
 .fr-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.55rem}
 .fr-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px}
 .fr-tag.red{background:rgba(239,68,68,.15);color:#EF4444;border:1px solid rgba(239,68,68,.2)}
-.fr-tag.gray{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08)}
+.fr-tag.gray{background:rgba(17,17,17,.06);color:rgba(17,17,17,.5);border:1px solid rgba(17,17,17,.08)}
 .fr-findings-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
-.fr-finding{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.03);border-radius:8px;padding:.45rem .6rem}
+.fr-finding{display:flex;align-items:center;gap:.5rem;background:rgba(17,17,17,.03);border-radius:8px;padding:.45rem .6rem}
 .fr-f-ico{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .fr-f-ico.r{background:rgba(239,68,68,.15)}.fr-f-ico.a{background:rgba(245,158,11,.12)}.fr-f-ico.b{background:rgba(79,110,247,.12)}.fr-f-ico.g{background:rgba(16,185,129,.1)}
-.fr-f-lbl{font-size:10px;color:rgba(255,255,255,.4)}
-.fr-f-val{font-size:12px;font-weight:700;color:#fff}
-.fr-bd-item{display:flex;align-items:center;gap:.55rem;padding:5px 7px;background:rgba(255,255,255,.03);border-radius:7px;margin-bottom:.35rem}
+.fr-f-lbl{font-size:10px;color:rgba(17,17,17,.4)}
+.fr-f-val{font-size:12px;font-weight:700;color:var(--tx)}
+.fr-bd-item{display:flex;align-items:center;gap:.55rem;padding:5px 7px;background:rgba(17,17,17,.03);border-radius:7px;margin-bottom:.35rem}
 .fr-bd-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.fr-bd-lbl{font-size:11px;color:rgba(255,255,255,.65);flex:1}
+.fr-bd-lbl{font-size:11px;color:rgba(17,17,17,.65);flex:1}
 .fr-bd-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
 .fr-bd-badge.red{background:rgba(239,68,68,.15);color:#EF4444}.fr-bd-badge.amber{background:rgba(245,158,11,.12);color:#F59E0B}.fr-bd-badge.green{background:rgba(16,185,129,.1);color:#10B981}
-.fr-funds-bar{height:9px;border-radius:4px;display:flex;overflow:hidden;margin-bottom:.45rem;background:rgba(255,255,255,.05)}
+.fr-funds-bar{height:9px;border-radius:4px;display:flex;overflow:hidden;margin-bottom:.45rem;background:rgba(17,17,17,.05)}
 .fr-funds-legend{display:flex;gap:.9rem;flex-wrap:wrap}
-.fr-funds-item{display:flex;align-items:center;gap:.35rem;font-size:11px;color:rgba(255,255,255,.5)}
+.fr-funds-item{display:flex;align-items:center;gap:.35rem;font-size:11px;color:rgba(17,17,17,.5)}
 .fr-funds-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.fr-funds-pct{font-weight:700;color:#fff;margin-left:.1rem}
+.fr-funds-pct{font-weight:700;color:var(--tx);margin-left:.1rem}
 .fr-risk-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem}
-.fr-risk-lbl{font-size:11px;color:rgba(255,255,255,.45);width:140px;flex-shrink:0}
-.fr-risk-bar{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.fr-risk-lbl{font-size:11px;color:rgba(17,17,17,.45);width:140px;flex-shrink:0}
+.fr-risk-bar{flex:1;height:5px;background:rgba(17,17,17,.06);border-radius:3px;overflow:hidden}
 .fr-risk-fill{height:100%;border-radius:3px}
-.fr-risk-pct{font-size:10px;color:rgba(255,255,255,.4);width:30px;text-align:right}
-.fr-exc-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.fr-risk-pct{font-size:10px;color:rgba(17,17,17,.4);width:30px;text-align:right}
+.fr-exc-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(17,17,17,.04);font-size:12px}
 .fr-exc-row:last-child{border-bottom:none}
-.fr-exc-name{color:rgba(255,255,255,.6)}
+.fr-exc-name{color:rgba(17,17,17,.6)}
 .fr-exc-val{font-weight:700}
 .fr-exc-val.ok{color:#10B981}.fr-exc-val.check{color:#F59E0B}.fr-exc-val.blocked{color:#EF4444}
-.fr-tx-row{display:flex;justify-content:space-between;font-size:12px;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.fr-tx-row{display:flex;justify-content:space-between;font-size:12px;padding:.28rem 0;border-bottom:1px solid rgba(17,17,17,.04)}
 .fr-tx-row:last-child{border-bottom:none}
-.fr-tx-lbl{color:rgba(255,255,255,.4)}
-.fr-tx-val{font-weight:700;color:#fff}
-.fr-footer{padding:.8rem 1.5rem;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.25)}
+.fr-tx-lbl{color:rgba(17,17,17,.4)}
+.fr-tx-val{font-weight:700;color:var(--tx)}
+.fr-footer{padding:.8rem 1.5rem;border-top:1px solid rgba(17,17,17,.05);display:flex;justify-content:space-between;font-size:10px;color:rgba(17,17,17,.25)}
 
 /* Add wallet modal */
 .wl-modal .modal{max-width:420px}
@@ -401,9 +402,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
 <div id="auth-screen" class="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">
-      <div class="auth-logo-ico">🛡️</div>
+      <div class="auth-logo-ico"><svg viewBox="0 0 18 18" fill="none" style="width:60%;height:60%"><path d="M9 1L16 4V9C16 13 9 17 9 17C9 17 2 13 2 9V4Z" fill="#fff"/><circle cx="9" cy="9.5" r="2.5" stroke="rgba(108,79,248,.9)" stroke-width="1.5" fill="none"/><line x1="10.8" y1="11.3" x2="12.5" y2="13" stroke="rgba(108,79,248,.9)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
       <div>
-        <div class="auth-logo-name">ChainGuard</div>
+        <div class="auth-logo-name">Crypto Scanner</div>
         <div style="font-size:10px;color:var(--tx3);font-weight:400">Crypto Security Scanner</div>
       </div>
     </div>
@@ -440,9 +441,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <div class="sb-top">
-      <div class="sb-ico">🛡️</div>
+      <div class="sb-ico"><svg viewBox="0 0 18 18" fill="none" style="width:60%;height:60%"><path d="M9 1L16 4V9C16 13 9 17 9 17C9 17 2 13 2 9V4Z" fill="#fff"/><circle cx="9" cy="9.5" r="2.5" stroke="rgba(108,79,248,.9)" stroke-width="1.5" fill="none"/><line x1="10.8" y1="11.3" x2="12.5" y2="13" stroke="rgba(108,79,248,.9)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
       <div>
-        <div class="sb-name">ChainGuard</div>
+        <div class="sb-name">Crypto Scanner</div>
         <div class="sb-tagline">Crypto Security Scanner</div>
       </div>
     </div>
@@ -509,7 +510,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
                 <div class="score-link" onclick="showPage('overview')">View details →</div>
               </div>
               <div class="gauge-ring" id="kpi-gauge-wrap">
-                <svg viewBox="0 0 68 68"><circle cx="34" cy="34" r="27" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="34" cy="34" r="27" fill="none" stroke="var(--amber)" stroke-width="6" stroke-dasharray="0 170" stroke-linecap="round" id="kpi-gauge-arc" transform="rotate(-220 34 34)"/></svg>
+                <svg viewBox="0 0 68 68"><circle cx="34" cy="34" r="27" fill="none" stroke="rgba(17,17,17,.06)" stroke-width="6"/><circle cx="34" cy="34" r="27" fill="none" stroke="var(--amber)" stroke-width="6" stroke-dasharray="0 170" stroke-linecap="round" id="kpi-gauge-arc" transform="rotate(-220 34 34)"/></svg>
                 <div class="gauge-ico">🛡️</div>
               </div>
             </div>
@@ -742,8 +743,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);overflow-x:hid
   <div class="fr-box">
     <div class="fr-hd">
       <div class="fr-hd-left">
-        <div style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px">🛡️</div>
-        <span class="fr-title">Detailed Report — ChainGuard</span>
+        <div style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 18 18" fill="none" style="width:60%;height:60%"><path d="M9 1L16 4V9C16 13 9 17 9 17C9 17 2 13 2 9V4Z" fill="#fff"/><circle cx="9" cy="9.5" r="2.5" stroke="rgba(108,79,248,.9)" stroke-width="1.5" fill="none"/><line x1="10.8" y1="11.3" x2="12.5" y2="13" stroke="rgba(108,79,248,.9)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="fr-title">Detailed Report — Crypto Scanner</span>
       </div>
       <div class="fr-meta">
         <span id="fr-date"></span>
@@ -1002,7 +1003,7 @@ function walletCard(w,i) {
     '<div class="wc-addr">'+shortAddr+'<button class="wc-copy" onclick="copyAddr(\''+escHtml(addr)+'\')" title="Copy">⧉</button></div>'+
     '<div class="wc-score-row">'+
       '<div class="mini-gauge">'+
-        '<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="18" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="4.5"/><circle cx="23" cy="23" r="18" fill="none" stroke="'+scoreColor+'" stroke-width="4.5" stroke-dasharray="'+gaugeArc+'" stroke-linecap="round" transform="rotate(-220 23 23)"/><path d="M23 14 L23 20" stroke="'+scoreColor+'" stroke-width="1.5" stroke-linecap="round"/></svg>'+
+        '<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="18" fill="none" stroke="rgba(17,17,17,.06)" stroke-width="4.5"/><circle cx="23" cy="23" r="18" fill="none" stroke="'+scoreColor+'" stroke-width="4.5" stroke-dasharray="'+gaugeArc+'" stroke-linecap="round" transform="rotate(-220 23 23)"/><path d="M23 14 L23 20" stroke="'+scoreColor+'" stroke-width="1.5" stroke-linecap="round"/></svg>'+
         '<div class="mini-gauge-txt" style="color:'+scoreColor+';font-size:9px">'+(sc?'🛡':'?')+'</div>'+
       '</div>'+
       '<div>'+
@@ -1181,7 +1182,7 @@ function renderResultModal(r) {
   var bd=buildBreakdownItems(r);
   var bdHtml=bd.slice(0,5).map(function(b){return '<div style="display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px"><div style="width:9px;height:9px;border-radius:50%;background:'+b.color+';flex-shrink:0"></div><span style="font-size:12px;color:var(--tx2);flex:1">'+b.label+'</span><span style="font-size:11px;font-weight:700;color:'+b.color+'">'+b.status+'</span></div>';}).join('');
   var excColors={ok:'var(--green)',check:'var(--amber)',blocked:'var(--red)'};
-  var excHtml=(r.exchangeCompatibility||[]).slice(0,3).map(function(ex){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:var(--tx2)">'+ex.name+'</span><span style="font-weight:600;color:'+(excColors[ex.status]||'var(--tx)')+'">'+ex.label+'</span></div>';}).join('');
+  var excHtml=(r.exchangeCompatibility||[]).slice(0,3).map(function(ex){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(17,17,17,.04)"><span style="color:var(--tx2)">'+ex.name+'</span><span style="font-weight:600;color:'+(excColors[ex.status]||'var(--tx)')+'">'+ex.label+'</span></div>';}).join('');
   document.getElementById('modal-body').innerHTML=
     '<div class="mr-alert '+r.riskLevel+'" style="margin-bottom:.7rem"><div style="font-size:10px;font-family:var(--mono);font-weight:700;letter-spacing:.07em;color:'+sc+';margin-bottom:2px">'+ll+'</div><div style="font-size:14px;font-weight:700">'+(r.reputation&&r.reputation.label||'Done')+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">'+(r.reputation&&r.reputation.desc||'')+'</div></div>'+
     '<div class="mr-score" style="margin-bottom:.7rem"><div class="mr-ring" style="border-color:'+sc+'"><div class="mr-num" style="color:'+sc+'">'+r.riskScore+'</div><div class="mr-max">/100</div></div><div><div style="font-family:var(--mono);font-size:11px;color:var(--tx2);word-break:break-all">'+r.address+'</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">'+r.network+' · <span style="color:var(--cyan)">'+( r.reportId||'')+'</span></div>'+(r.balance?'<div style="font-size:10px;color:var(--tx3);margin-top:2px">'+(r.balance.trx!==undefined?r.balance.trx+' TRX'+(parseFloat(r.balance.usdt)>0?' + '+r.balance.usdt+' USDT':''):(r.balance.native||''))+'</div>':'')+'</div></div>'+
@@ -1258,7 +1259,7 @@ function openFR() {
   var riskName=r.riskLevel==='high'?'High':r.riskLevel==='medium'?'Medium':'Low';
   var excColors={ok:'#10B981',check:'#F59E0B',blocked:'#FF3B3B'};
   var bd=buildBreakdownItems(r);
-  var bdHtml=bd.map(function(b){return '<div class="fr-bd-item" style="flex-wrap:wrap"><div class="fr-bd-dot" style="background:'+b.color+'"></div><span class="fr-bd-lbl">'+escHtml(b.label)+'</span><span class="fr-bd-badge '+(/Risk|^\+/.test(b.status)?'red':b.status==='Caution'?'amber':'green')+'">'+escHtml(b.status)+'</span>'+(b.detail?'<div style="flex-basis:100%;font-size:10px;color:rgba(255,255,255,.3);padding-left:16px;margin-top:2px">'+escHtml(b.detail)+'</div>':'')+'</div>';}).join('');
+  var bdHtml=bd.map(function(b){return '<div class="fr-bd-item" style="flex-wrap:wrap"><div class="fr-bd-dot" style="background:'+b.color+'"></div><span class="fr-bd-lbl">'+escHtml(b.label)+'</span><span class="fr-bd-badge '+(/Risk|^\+/.test(b.status)?'red':b.status==='Caution'?'amber':'green')+'">'+escHtml(b.status)+'</span>'+(b.detail?'<div style="flex-basis:100%;font-size:10px;color:rgba(17,17,17,.3);padding-left:16px;margin-top:2px">'+escHtml(b.detail)+'</div>':'')+'</div>';}).join('');
   var fds=[
     {ico:'🕷️',c:'r',n:'Darknet',v:(r.darknetInteractions||0)>0?r.darknetInteractions+' tx':'0'},
     {ico:'🚫',c:'a',n:'Sanctions',v:r.ofacMatch?'FOUND':'0 matches'},
@@ -1269,13 +1270,13 @@ function openFR() {
   ];
   var fdHtml=fds.map(function(f){return '<div class="fr-finding"><div class="fr-f-ico '+f.c+'">'+f.ico+'</div><div><div class="fr-f-lbl">'+f.n+'</div><div class="fr-f-val">'+f.v+'</div></div></div>';}).join('');
   var excHtml=(r.exchangeCompatibility||[]).map(function(ex){return '<div class="fr-exc-row"><span class="fr-exc-name">'+ex.name+'</span><span class="fr-exc-val '+(ex.status||'ok')+'">'+ex.label+'</span></div>';}).join('');
-  var cpRiskColor={sanctioned:'#FF3B3B',sanctioned_geo:'#FF3B3B',mixer:'#FF3B3B',scam:'#FF3B3B',gambling:'#F59E0B',exchange:'#10B981',unknown:'rgba(255,255,255,.4)'};
+  var cpRiskColor={sanctioned:'#FF3B3B',sanctioned_geo:'#FF3B3B',mixer:'#FF3B3B',scam:'#FF3B3B',gambling:'#F59E0B',exchange:'#10B981',unknown:'rgba(17,17,17,.4)'};
   var cpHtml=(r.topCounterparties||[]).map(function(cp){
-    var col=cpRiskColor[cp.risk]||'rgba(255,255,255,.4)';
+    var col=cpRiskColor[cp.risk]||'rgba(17,17,17,.4)';
     var dot=cp.risk==='sanctioned'||cp.risk==='sanctioned_geo'||cp.risk==='mixer'||cp.risk==='scam'?'⚠':cp.risk==='exchange'?'✓':'?';
     var nm=cp.name&&cp.name!=='Невідомий'&&cp.name!=='Unknown'?'<span style="color:'+col+';font-weight:600;font-size:10px">'+escHtml(cp.name)+'</span>':'';
-    return '<div class="fr-cp-clickable" data-addr="'+escHtml(cp.address)+'" title="Натисніть, щоб скопіювати" style="display:flex;align-items:center;gap:.45rem;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:'+col+'">'+dot+'</span><span style="flex:1;font-family:monospace;color:rgba(255,255,255,.5)"><span class="fr-cp-addr">'+escHtml(cp.address)+'</span>'+(nm?'<br>'+nm:'')+'</span><span style="color:rgba(255,255,255,.35)">'+cp.count+' tx</span><span style="font-weight:700;color:#fff;width:32px;text-align:right">'+cp.percentage+'%</span></div>';
-  }).join('')||'<div style="font-size:12px;color:rgba(255,255,255,.3)">No data</div>';
+    return '<div class="fr-cp-clickable" data-addr="'+escHtml(cp.address)+'" title="Натисніть, щоб скопіювати" style="display:flex;align-items:center;gap:.45rem;padding:5px 6px;border-bottom:1px solid rgba(17,17,17,.04);font-size:11px"><span style="width:20px;height:20px;border-radius:50%;background:rgba(17,17,17,.05);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:'+col+'">'+dot+'</span><span style="flex:1;font-family:monospace;color:rgba(17,17,17,.5)"><span class="fr-cp-addr">'+escHtml(cp.address)+'</span>'+(nm?'<br>'+nm:'')+'</span><span style="color:rgba(17,17,17,.35)">'+cp.count+' tx</span><span style="font-weight:700;color:var(--tx);width:32px;text-align:right">'+cp.percentage+'%</span></div>';
+  }).join('')||'<div style="font-size:12px;color:rgba(17,17,17,.3)">No data</div>';
 
   // ── Geographic & category risk (NEW) ──
   var geoRows=[];
@@ -1283,7 +1284,7 @@ function openFR() {
   if(parseFloat(r.gamblingPercent||0)>0){geoRows.push({lbl:'Гемблінг: '+((r.gamblingHits||[]).join(', ')||'гральні платформи'),val:r.gamblingPercent+'%',col:'#F59E0B'});}
   if(parseFloat(r.funds&&r.funds.sanctionedPercent||0)>0){geoRows.push({lbl:'Санкційні адреси (OFAC)',val:r.funds.sanctionedPercent+'%',col:'#FF3B3B'});}
   if(parseFloat(r.incomingDirtyPercent||0)>0){geoRows.push({lbl:'Вхідні з ризикових джерел',val:r.incomingDirtyPercent+'%',col:'#FF3B3B'});}
-  var geoHtml=geoRows.length?geoRows.map(function(g){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--tx2);flex:1;padding-right:8px">'+escHtml(g.lbl)+'</span><span style="font-weight:700;color:'+g.col+'">'+escHtml(g.val)+'</span></div>';}).join(''):'<div style="font-size:12px;color:#10B981">✓ Підсанкційної географії та гемблінгу не виявлено</div>';
+  var geoHtml=geoRows.length?geoRows.map(function(g){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(17,17,17,.04);font-size:12px"><span style="color:var(--tx2);flex:1;padding-right:8px">'+escHtml(g.lbl)+'</span><span style="font-weight:700;color:'+g.col+'">'+escHtml(g.val)+'</span></div>';}).join(''):'<div style="font-size:12px;color:#10B981">✓ Підсанкційної географії та гемблінгу не виявлено</div>';
 
   // ── Behavioral patterns (NEW) ──
   var pf=r.patternFlags||{};
@@ -1292,7 +1293,7 @@ function openFR() {
   if(pf.burst)patRows.push({lbl:'Вибухова активність (burst)',d:pf.burstDetail||'',col:'#F59E0B'});
   if(pf.peelingSuspicion)patRows.push({lbl:'Підозра на Peeling Chain',d:pf.peelingDetail||'потребує ручної перевірки',col:'#F59E0B'});
   if(pf.p2p)patRows.push({lbl:'Висока P2P / OTC активність',d:'',col:'#F59E0B'});
-  var patHtml=patRows.length?patRows.map(function(p){return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#fff"><span style="color:'+p.col+'">●</span>'+escHtml(p.lbl)+'</div>'+(p.d?'<div style="font-size:10px;color:rgba(255,255,255,.3);padding-left:14px;margin-top:2px">'+escHtml(p.d)+'</div>':'')+'</div>';}).join(''):'<div style="font-size:12px;color:#10B981">✓ Аномальних поведінкових патернів не виявлено</div>';
+  var patHtml=patRows.length?patRows.map(function(p){return '<div style="padding:6px 0;border-bottom:1px solid rgba(17,17,17,.04)"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx)"><span style="color:'+p.col+'">●</span>'+escHtml(p.lbl)+'</div>'+(p.d?'<div style="font-size:10px;color:rgba(17,17,17,.3);padding-left:14px;margin-top:2px">'+escHtml(p.d)+'</div>':'')+'</div>';}).join(''):'<div style="font-size:12px;color:#10B981">✓ Аномальних поведінкових патернів не виявлено</div>';
 
   // ── Honest limitations (full report context) ──
   // This IS the full report — so we reframe preview-oriented wording into honest
@@ -1305,8 +1306,8 @@ function openFR() {
   });
   var hasDefiLimit=(r.limitations||[]).some(function(l){return /DeFi|смарт-контракт/i.test(l);});
   var limHtml=limItems.length?'<div class="fr-block fr-block-full" style="border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.04)"><div class="fr-block-title" style="color:#F59E0B">⚠ Межі автоматичного аналізу</div>'+
-    limItems.map(function(l){return '<div style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;padding:3px 0">• '+escHtml(l)+'</div>';}).join('')+
-    (hasDefiLimit?'<div style="margin-top:.7rem;padding:.7rem .85rem;background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap"><div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.5;flex:1;min-width:180px"><strong style="color:#fff">Deep Scan+</strong> — ручне трасування коштів через DeFi-протоколи та міксери на 5-10 рівнів вглиб нашим AML-аналітиком.</div><button onclick="requestDeepScan()" style="background:#4F6EF7;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Замовити Deep Scan+ →</button></div>':'')+
+    limItems.map(function(l){return '<div style="font-size:11px;color:rgba(17,17,17,.55);line-height:1.5;padding:3px 0">• '+escHtml(l)+'</div>';}).join('')+
+    (hasDefiLimit?'<div style="margin-top:.7rem;padding:.7rem .85rem;background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap"><div style="font-size:11px;color:rgba(17,17,17,.75);line-height:1.5;flex:1;min-width:180px"><strong style="color:#fff">Deep Scan+</strong> — ручне трасування коштів через DeFi-протоколи та міксери на 5-10 рівнів вглиб нашим AML-аналітиком.</div><button onclick="requestDeepScan()" style="background:#4F6EF7;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Замовити Deep Scan+ →</button></div>':'')+
     '</div>':'';
 
   // ── Gas Source Tracker (Item 3) — always show block (honest state if null) ──
@@ -1318,15 +1319,15 @@ function openFR() {
     var gcls={sanctioned:'санкційне джерело',sanctioned_geo:'підсанкційний обмінник',mixer:'міксер',scam:'скам/хакер',exchange:'біржа',gambling:'гемблінг',unknown:'невідоме джерело'}[g.class]||g.class;
     gasHtml='<div class="fr-block"><div class="fr-block-title">⛽ Gas Source — активація гаманця</div>'+
       '<div style="display:flex;align-items:center;gap:.6rem;padding:6px 0"><span style="width:30px;height:30px;border-radius:8px;background:'+(g.dirty?'rgba(255,59,59,.12)':'rgba(16,214,143,.12)')+';display:flex;align-items:center;justify-content:center;font-size:14px">'+(g.dirty?'⚠':'✓')+'</span>'+
-      '<div style="flex:1"><div style="font-size:12px;color:#fff;font-weight:600">'+(g.dirty?'Гаманець активовано з ризикового джерела':'Джерело активації виглядає чистим')+'</div>'+
-      '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace;margin-top:2px">'+escHtml(g.funder)+gname+' · '+escHtml(gcls)+' · '+escHtml(g.date||'—')+'</div></div></div>'+
+      '<div style="flex:1"><div style="font-size:12px;color:var(--tx);font-weight:600">'+(g.dirty?'Гаманець активовано з ризикового джерела':'Джерело активації виглядає чистим')+'</div>'+
+      '<div style="font-size:10px;color:var(--tx2);font-family:monospace;margin-top:2px">'+escHtml(g.funder)+gname+' · '+escHtml(gcls)+' · '+escHtml(g.date||'—')+'</div></div></div>'+
       (g.dirty?'<div style="font-size:10px;color:#F59E0B;padding:5px 7px;background:rgba(245,158,11,.06);border-radius:5px;margin-top:.3rem">⚠ Це сигнал, а не доказ — перше поповнення прийшло з позначеної адреси. Потребує ручної перевірки.</div>':'')+
       '</div>';
   } else {
     gasHtml='<div class="fr-block"><div class="fr-block-title">⛽ Gas Source — активація гаманця</div>'+
-      '<div style="display:flex;align-items:center;gap:.6rem;padding:6px 0"><span style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:14px">—</span>'+
-      '<div style="flex:1"><div style="font-size:12px;color:rgba(255,255,255,.6);font-weight:600">Джерело активації не визначено</div>'+
-      '<div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px">Перше поповнення недоступне в історії або гаманець активований складним шляхом.</div></div></div></div>';
+      '<div style="display:flex;align-items:center;gap:.6rem;padding:6px 0"><span style="width:30px;height:30px;border-radius:8px;background:rgba(17,17,17,.05);display:flex;align-items:center;justify-content:center;font-size:14px">—</span>'+
+      '<div style="flex:1"><div style="font-size:12px;color:rgba(17,17,17,.6);font-weight:600">Джерело активації не визначено</div>'+
+      '<div style="font-size:10px;color:rgba(17,17,17,.35);margin-top:2px">Перше поповнення недоступне в історії або гаманець активований складним шляхом.</div></div></div></div>';
   }
 
   // ── Connection graph: You → counterparties → hop-2 → hop-3 (Item 4 + interactivity) ──
@@ -1338,26 +1339,26 @@ function openFR() {
       '<div class="fr-graph-arrow">→</div>'+
       '<div class="fr-graph-node"><div class="fr-gn-dot" style="background:'+(h2hits>0?'#FF3B3B':'#10B981')+'"></div><div class="fr-gn-lbl">Hop-2</div><div class="fr-gn-sub">'+(h2.checked||0)+' перевірено'+(h2hits>0?' · '+h2hits+' ⚠':' · чисто')+'</div></div>'+
       '<div class="fr-graph-arrow">→</div>'+
-      '<div class="fr-graph-node"><div class="fr-gn-dot" style="background:'+(h3hits>0?'#FF3B3B':(h3.checked>0?'#10B981':'rgba(255,255,255,.2)'))+'"></div><div class="fr-gn-lbl">Hop-3</div><div class="fr-gn-sub">'+(h3.checked>0?(h3.checked+' перевірено'+(h3hits>0?' · '+h3hits+' ⚠':' · чисто')):'не потрібно')+'</div></div>'+
+      '<div class="fr-graph-node"><div class="fr-gn-dot" style="background:'+(h3hits>0?'#FF3B3B':(h3.checked>0?'#10B981':'rgba(17,17,17,.2)'))+'"></div><div class="fr-gn-lbl">Hop-3</div><div class="fr-gn-sub">'+(h3.checked>0?(h3.checked+' перевірено'+(h3hits>0?' · '+h3hits+' ⚠':' · чисто')):'не потрібно')+'</div></div>'+
     '</div>'+
-    '<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:.5rem">Hop-3 запускається лише коли на Hop-2 виявлено ризик (точкове трасування).</div>'+
+    '<div style="font-size:10px;color:rgba(17,17,17,.3);margin-top:.5rem">Hop-3 запускається лише коли на Hop-2 виявлено ризик (точкове трасування).</div>'+
   '</div>';
 
   document.getElementById('fr-body').innerHTML=
     '<div class="fr-grid">'+
       '<div class="fr-block"><div class="fr-block-title">1. Wallet Overview</div>'+
-        '<div style="font-size:9px;color:rgba(255,255,255,.3);margin-bottom:.2rem">Address</div>'+
-        '<div style="font-family:monospace;font-size:11px;font-weight:700;color:#fff;margin-bottom:.4rem;word-break:break-all">'+r.address+'</div>'+
+        '<div style="font-size:9px;color:rgba(17,17,17,.3);margin-bottom:.2rem">Address</div>'+
+        '<div style="font-family:monospace;font-size:11px;font-weight:700;color:var(--tx);margin-bottom:.4rem;word-break:break-all">'+r.address+'</div>'+
         '<div class="fr-tags"><span class="fr-tag '+(r.riskLevel==='high'?'red':'gray')+'">'+riskName+' Risk</span><span class="fr-tag gray">'+escHtml(r.network)+'</span></div>'+
-        '<div class="fr-gauge-row"><div class="fr-gauge-svg"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="28" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/><circle cx="36" cy="36" r="28" fill="none" stroke="'+sc+'" stroke-width="6" stroke-dasharray="'+Math.round((r.riskScore||0)*1.759)+' 176" stroke-dashoffset="44" stroke-linecap="round"/></svg><div class="fr-gc"><div class="fr-g-num" style="color:'+sc+'">'+(r.riskScore||0)+'</div><div class="fr-g-den">/100</div></div></div><div><div class="fr-risk-name" style="color:'+sc+'">'+riskName+' Risk</div><div class="fr-risk-desc">'+(r.reputation&&r.reputation.desc||'')+'</div></div></div>'+
+        '<div class="fr-gauge-row"><div class="fr-gauge-svg"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="28" fill="none" stroke="rgba(17,17,17,.06)" stroke-width="6"/><circle cx="36" cy="36" r="28" fill="none" stroke="'+sc+'" stroke-width="6" stroke-dasharray="'+Math.round((r.riskScore||0)*1.759)+' 176" stroke-dashoffset="44" stroke-linecap="round"/></svg><div class="fr-gc"><div class="fr-g-num" style="color:'+sc+'">'+(r.riskScore||0)+'</div><div class="fr-g-den">/100</div></div></div><div><div class="fr-risk-name" style="color:'+sc+'">'+riskName+' Risk</div><div class="fr-risk-desc">'+(r.reputation&&r.reputation.desc||'')+'</div></div></div>'+
         '<div class="fr-stats"><div class="fr-stat"><div class="fr-stat-val">'+(r.activity&&r.activity.txCount||'—')+'</div><div class="fr-stat-lbl">Transactions</div></div><div class="fr-stat"><div class="fr-stat-val" style="font-size:10px">'+(r.activity&&r.activity.firstActivity||'—')+'</div><div class="fr-stat-lbl">First activity</div></div><div class="fr-stat"><div class="fr-stat-val">'+escHtml(r.network.split(' ')[0])+'</div><div class="fr-stat-lbl">Network</div></div></div>'+
       '</div>'+
       '<div class="fr-block"><div class="fr-block-title">Detailed Findings</div><div class="fr-findings-grid">'+fdHtml+'</div></div>'+
       '<div class="fr-block"><div class="fr-block-title">🔍 Risk Breakdown — Why this score?</div>'+bdHtml+'</div>'+
-      '<div class="fr-block"><div class="fr-block-title">2. Funds Structure <span style="color:rgba(255,255,255,.2);font-weight:400">(estimated)</span></div>'+
+      '<div class="fr-block"><div class="fr-block-title">2. Funds Structure <span style="color:rgba(17,17,17,.2);font-weight:400">(estimated)</span></div>'+
         '<div class="fr-funds-bar"><div style="width:'+r.funds.cleanPercent+'%;background:#00D68F"></div><div style="width:'+r.funds.dirtyPercent+'%;background:#FFB020"></div><div style="width:'+r.funds.sanctionedPercent+'%;background:#FF3B3B"></div></div>'+
         '<div class="fr-funds-legend"><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#00D68F"></span>Clean<span class="fr-funds-pct">'+r.funds.cleanPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FFB020"></span>Risky<span class="fr-funds-pct">'+r.funds.dirtyPercent+'%</span></div><div class="fr-funds-item"><span class="fr-funds-dot" style="background:#FF3B3B"></span>Sanctioned<span class="fr-funds-pct">'+r.funds.sanctionedPercent+'%</span></div></div>'+
-        '<div style="font-size:10px;color:rgba(255,255,255,.22);padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px;margin-top:.4rem">'+(r.fundsMethod==='volume'?'✓ Розраховано за реальним обсягом транзакцій (volume-based).':'* Оцінка за базами ризику. Точний % за обсягом доступний за наявності даних про суми.')+'</div>'+
+        '<div style="font-size:10px;color:rgba(17,17,17,.22);padding:5px 7px;background:rgba(17,17,17,.02);border-radius:5px;margin-top:.4rem">'+(r.fundsMethod==='volume'?'✓ Розраховано за реальним обсягом транзакцій (volume-based).':'* Оцінка за базами ризику. Точний % за обсягом доступний за наявності даних про суми.')+'</div>'+
       '</div>'+
       '<div class="fr-block"><div class="fr-block-title">5. Transaction Analysis</div>'+
         '<div class="fr-tx-row"><span class="fr-tx-lbl">Total count</span><span class="fr-tx-val">'+(r.activity&&r.activity.txCount||'—')+'</span></div>'+
@@ -1369,7 +1370,7 @@ function openFR() {
       '<div class="fr-block"><div class="fr-block-title">3. Geographic & Category Risk</div>'+geoHtml+'</div>'+
       '<div class="fr-block"><div class="fr-block-title">4. Behavioral Patterns</div>'+patHtml+'</div>'+
       gasHtml+
-      '<div class="fr-block"><div class="fr-block-title">7. Exchange Compatibility</div>'+excHtml+'<div style="font-size:10px;color:rgba(255,255,255,.22);margin-top:.45rem">* Based on risk score. Actual exchange decision may vary.</div></div>'+
+      '<div class="fr-block"><div class="fr-block-title">7. Exchange Compatibility</div>'+excHtml+'<div style="font-size:10px;color:rgba(17,17,17,.22);margin-top:.45rem">* Based on risk score. Actual exchange decision may vary.</div></div>'+
       (r.topCounterparties&&r.topCounterparties.length>0?'<div class="fr-block fr-block-full"><div class="fr-block-title">6. Top Counterparties</div>'+cpHtml+'</div>':'') +
       graphHtml +
       limHtml +

@@ -1309,7 +1309,7 @@ function openFR() {
     (hasDefiLimit?'<div style="margin-top:.7rem;padding:.7rem .85rem;background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap"><div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.5;flex:1;min-width:180px"><strong style="color:#fff">Deep Scan+</strong> — ручне трасування коштів через DeFi-протоколи та міксери на 5-10 рівнів вглиб нашим AML-аналітиком.</div><button onclick="requestDeepScan()" style="background:#4F6EF7;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Замовити Deep Scan+ →</button></div>':'')+
     '</div>':'';
 
-  // ── Gas Source Tracker (Item 3) ──
+  // ── Gas Source Tracker (Item 3) — always show block (honest state if null) ──
   var gasHtml='';
   if(r.gasSource){
     var g=r.gasSource;
@@ -1322,6 +1322,11 @@ function openFR() {
       '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:monospace;margin-top:2px">'+escHtml(g.funder)+gname+' · '+escHtml(gcls)+' · '+escHtml(g.date||'—')+'</div></div></div>'+
       (g.dirty?'<div style="font-size:10px;color:#F59E0B;padding:5px 7px;background:rgba(245,158,11,.06);border-radius:5px;margin-top:.3rem">⚠ Це сигнал, а не доказ — перше поповнення прийшло з позначеної адреси. Потребує ручної перевірки.</div>':'')+
       '</div>';
+  } else {
+    gasHtml='<div class="fr-block"><div class="fr-block-title">⛽ Gas Source — активація гаманця</div>'+
+      '<div style="display:flex;align-items:center;gap:.6rem;padding:6px 0"><span style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:14px">—</span>'+
+      '<div style="flex:1"><div style="font-size:12px;color:rgba(255,255,255,.6);font-weight:600">Джерело активації не визначено</div>'+
+      '<div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px">Перше поповнення недоступне в історії або гаманець активований складним шляхом.</div></div></div></div>';
   }
 
   // ── Connection graph: You → counterparties → hop-2 → hop-3 (Item 4 + interactivity) ──

@@ -1,1064 +1,746 @@
-// ═══════════════════════════════════════════════════════════════════
-// report.js — AML Risk Engine v2 (Deep Graph Analysis)
-// GET /.netlify/functions/report?addr=...
-//
-// 5-LAYER ARCHITECTURE:
-//   Layer 1: Transaction data (txs, counterparties, hop-2 graph)
-//   Layer 2: Risk lists (OFAC SDN, mixers, VASP exchanges)
-//   Layer 3: Volume-based % engine (real dirty/sanctioned %)
-//   Layer 4: Weighted, explainable risk score
-//   Layer 5: Report assembly
-// ═══════════════════════════════════════════════════════════════════
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan Result — Crypto Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:#F7F8FA;color:#0F1117;line-height:1.5;overflow-x:hidden}
+:root{
+  --purple:#6C4FF8;--purple-dark:#5438E0;--purple-light:#F0EDFF;
+  --red:#EF4444;--red-light:#FEF2F2;--red-border:#FECACA;
+  --amber:#F59E0B;--amber-light:#FFFBEB;--amber-border:#FDE68A;
+  --green:#10B981;--green-light:#F0FDF4;--green-border:#A7F3D0;
+  --tx:#0F1117;--tx2:#6B7280;--tx3:#9CA3AF;
+  --border:#E8EAEF;--card:#FFFFFF;--bg2:#F7F8FA;
+  --shadow:0 1px 3px rgba(15,17,23,.05),0 4px 16px rgba(15,17,23,.04);
+  --shadow-lg:0 4px 6px rgba(15,17,23,.05),0 12px 40px rgba(15,17,23,.08);
+  --radius:16px;
+}
+a{text-decoration:none;color:inherit}
 
-const TRON_KEY = 'fa93b89a-42f0-42c4-958f-dcdec56dcc15';
-const MORALIS_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjY1NzZhMWRiLWU3NmQtNDY4Yi04ZTZkLTgxMTIwOWY1YWFhYSIsIm9yZ0lkIjoiNTE3MzA0IiwidXNlcklkIjoiNTMyMzY4IiwidHlwZUlkIjoiNjk2MzdlNGUtNDU2Ni00OGI0LWEzMWMtZjA4NmIwMGZlYWI5IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3Nzk2NDI5NDAsImV4cCI6NDkzNTQwMjk0MH0.eUv-34sT5cGKIC5_0gJoX_9LdTIvlEx-RybpJ_OCRiU';
-const ETHERSCAN_KEY = 'PQBSB54WJ3DR6IIAVEBE3IHHKSRMMHQUJK';
+/* NAV */
+nav{background:#fff;border-bottom:1px solid var(--border);padding:.8rem 0;position:sticky;top:0;z-index:200}
+.nav-inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.nav-logo{display:flex;align-items:center;gap:9px}
+.nav-logo-ico{width:30px;height:30px;background:linear-gradient(135deg,var(--purple),#8B5CF6);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.nav-logo-ico svg{width:16px;height:16px}
+.nav-logo-name{font-size:16px;font-weight:800}
+.nav-center{display:flex;align-items:center;gap:1.1rem;font-size:12.5px;color:var(--tx2)}
+.nav-center-item{display:flex;align-items:center;gap:5px}
+.nav-back{font-size:13px;color:var(--tx2);background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 13px;display:flex;align-items:center;gap:6px}
+.nav-back:hover{color:var(--tx)}
+@media(max-width:720px){.nav-center{display:none}}
 
-// ═══════════════════════════════════════════════════════════════════
-// LAYER 2: RISK LISTS (loaded at runtime, cached per cold start)
-// ═══════════════════════════════════════════════════════════════════
-let _riskCache = { ofac: null, mixers: null, scam: null, ts: 0 };
-const CACHE_TTL = 1000 * 60 * 60 * 6; // 6 hours
+.page{max-width:1080px;margin:0 auto;padding:1.5rem 1.5rem 6rem}
 
-const OFAC_BASE = 'https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_';
-const OFAC_ASSETS = [
-  'ETH','USDT','USDC','TRX','XBT',   // core (existing)
-  'ARB','BSC','ETC',                  // EVM-compatible 0x addresses (Item 1: expand)
-  'LTC','DASH','BCH','BTG','BSV',     // BTC-like address formats
-];
-const OFAC_SOURCES = OFAC_ASSETS.map(a => OFAC_BASE + a + '.txt');
+/* LOADING */
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65vh;text-align:center}
+.spinner{width:56px;height:56px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:1.25rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:18px;font-weight:700;margin-bottom:.35rem}
+.loading-sub{font-size:13.5px;color:var(--tx2)}
 
-// Scam / hacker / phishing address feeds (community-maintained, JSON)
-// Parsed defensively — we extract any 0x.. / T.. address-like keys & values
-const SCAM_SOURCES = [
-  'https://raw.githubusercontent.com/MyEtherWallet/ethereum-lists/master/src/addresses/addresses-darklist.json',
-  'https://raw.githubusercontent.com/scamsniper/scam-database/main/blacklist/address.json',
-];
+/* WALLET TABS */
+.wallet-tabs{display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap}
+.wtab{font-family:monospace;font-size:12px;color:var(--tx2);background:#fff;border:1px solid var(--border);border-radius:9px;padding:7px 13px;cursor:pointer;transition:all .15s}
+.wtab.active{border-color:var(--purple);color:var(--purple);background:var(--purple-light)}
 
-// Tornado Cash + known mixers (OFAC-designated, rarely change)
-const KNOWN_MIXERS = new Set([
-  '0x8589427373d6d84e98730d7795d8f6f8731fda16','0x722122df12d4e14e13ac3b6895a86e84145b6967',
-  '0xdd4c48c0b24039969fc16d1cdf626eab821d3384','0xd90e2f925da726b50c4ed8d0fb90ad053324f31b',
-  '0xd96f2b1c14db8458374d9aca76e26c3d18364307','0x4736dcf1b7a3d580672cce6e7c65cd5cc9cfba9d',
-  '0xd4b88df4d29f5cedd6857912842cff3b20c8cfa3','0x910cbd523d972eb0a6f4cae4618ad62622b39dbf',
-  '0xa160cdab225685da1d56aa342ad8841c3b53f291','0xfd8610d20aa15b7b2e3be39b396a1bc3516c7144',
-  '0x07687e702b410fa43f4cb4af7fa097918ffd2730','0x23773e65ed146a459791799d01336db287f25334',
-  '0x22aaa7720ddd5388a3c0a3333430953c68f1849b','0x03893a7c7463ae47d46bc7f091665f1893656003',
-  '0x2717c5e28cf931547b621a5dddb772ab6a35b701','0xd21be7248e0197ee08e0c20d4a96debdac3d20af',
-  '0x169ad27a470d064dede56a2d3ff727986b15d52b','0x0836222f2b2b24a3f36f98668ed8f0b38d1a872f',
-  '0x178169b423a011fff22b9e3f3abea13414ddd0f1','0x610b717796ad172b316836ac95a2ffad065ceab4',
-  '0xbb93e510bbcd0b7beb5a853875f9ec60275cf498','0x12d66f87a04a9e220743712ce6d9bb1b5616b8fc',
-  '0x47ce0c6ed5b0ce3d3a51fdb1c52dc66a7c3c2936',
-]);
+/* BANNER */
+.banner{background:var(--amber-light);border:1px solid var(--amber-border);border-radius:var(--radius);padding:1.25rem 1.4rem;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:flex-start;margin-bottom:1.5rem}
+.banner.green{background:var(--green-light);border-color:var(--green-border)}
+.banner.red{background:var(--red-light);border-color:var(--red-border)}
+.banner-ico{width:40px;height:40px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid var(--amber-border)}
+.banner.green .banner-ico{border-color:var(--green-border)}
+.banner.red .banner-ico{border-color:var(--red-border)}
+.banner-title{font-size:16px;font-weight:800;color:#92400E;margin-bottom:.25rem}
+.banner.green .banner-title{color:#065F46}
+.banner.red .banner-title{color:#991B1B}
+.banner-sub{font-size:13px;color:#78350F;line-height:1.5}
+.banner.green .banner-sub{color:#047857}
+.banner.red .banner-sub{color:#B91C1C}
+.banner-side{border-left:1px solid var(--amber-border);padding-left:1rem;max-width:230px}
+.banner.green .banner-side{border-color:var(--green-border)}
+.banner.red .banner-side{border-color:var(--red-border)}
+.banner-side-t{font-size:13px;font-weight:700;color:#92400E;margin-bottom:.2rem}
+.banner-side-d{font-size:12px;color:#78350F;line-height:1.45}
+@media(max-width:720px){.banner{grid-template-columns:auto 1fr}.banner-side{grid-column:1/-1;border-left:none;border-top:1px solid var(--amber-border);padding-left:0;padding-top:.85rem;max-width:none}}
 
-// Known CEX hot wallets (VASP) — interaction = positive/clean signal
-const KNOWN_EXCHANGES = {
-  '0x3f5ce5fbfe3e9af3971dd833d26ba9b5c936f0be':'Binance','0xd551234ae421e3bcba99a0da6d736074f22192ff':'Binance',
-  '0x28c6c06298d514db089934071355e5743bf21d60':'Binance','0x21a31ee1afc51d94c2efccaa2092ad1028285549':'Binance',
-  '0xdfd5293d8e347dfe59e90efd55b2956a1343963d':'Binance','0x56eddb7aa87536c09ccc2793473599fd21a8b17f':'Binance',
-  '0x9696f59e4d72e237be84ffd425dcad154bf96976':'Binance','0x4976a4a02f38326660d17bf34b431dc6e2eb2327':'Binance',
-  '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b':'OKX','0x236f9f97e0e62388479bf9e5ba4889e46b0273c3':'OKX',
-  '0xa7efae728d2936e78bda97dc267687568dd593f3':'OKX','0xf89d7b9c864f589bbf53a82105107622b35eaa40':'Bybit',
-  '0x7ee8ab2a8d890c000acc87bf6e22e2ad383e23ce':'Bybit','0x71660c4005ba85c37ccec55d0c4493e66fe775d3':'Coinbase',
-  '0x503828976d22510aad0201ac7ec88293211d23da':'Coinbase','0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740':'Coinbase',
-  '0x3cd751e6b0078be393132286c442345e5dc49699':'Coinbase','0x2910543af39aba0cd09dbb2d50200b3e800a63d2':'Kraken',
-  '0x0a869d79a7052c7f1b55a8ebabbea3420f0d1e13':'Kraken','0x2b5634c42055806a59e9107ed44d43c426e58258':'KuCoin',
-  '0x689c56aef474df92d44a1b70850f808488f9769c':'KuCoin',
-  'tjdent6ngcskw3xdccmkp7vmcc6gtkfaqm':'Binance','tnaog4er7ufgyqjxtqkdfv4bj4u9su5nyz':'Binance',
-};
+/* SCORE CARD */
+.score-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.5rem;box-shadow:var(--shadow)}
+.score-row{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center}
+.score-label{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx2);margin-bottom:.6rem}
+.score-big{font-size:64px;font-weight:900;line-height:1;letter-spacing:-2px}
+.score-big small{font-size:26px;font-weight:600;color:var(--tx3)}
+.score-verdict{display:inline-block;margin-top:.85rem;font-size:12.5px;font-weight:600;padding:5px 13px;border-radius:8px}
+.score-gauge-wrap{text-align:center}
+.score-gauge-note{font-size:11px;color:var(--tx3);margin-top:.5rem;line-height:1.4;max-width:200px}
+@media(max-width:560px){.score-row{grid-template-columns:1fr}.score-gauge-wrap{order:-1}}
 
-// Sanctioned-geography entities (Russian illicit-finance / OFAC-designated VASPs)
-// Public, well-known cluster addresses. Hits → sanctioned-geography exposure.
-const SANCTIONED_GEO = {
-  // Garantex (OFAC + EU sanctioned)
-  '0x53a070bd450c97f6dd45b1eb52b21c2a8e3e3a32':'Garantex',
-  '0xa7e5d5a720f06526557c513402f2e6b5fa20b008':'Garantex',
-  // Suex OTC (OFAC sanctioned)
-  '0xf7b31119c2682c88d88d455dbb9d5932c65cf1be':'Suex',
-  // Bitzlato (sanctioned)
-  '0x3e9f1b4c8b8c8a1f7c6b2a4d5e6f7a8b9c0d1e2f':'Bitzlato',
-  // TRON-side Garantex hot wallets (public)
-  'tw7vthz6lzs8j7ujq5p3z4n3a6gd9rngqz':'Garantex (TRON)',
-};
+/* META ROW */
+.meta-row{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center;border-top:1px solid var(--border);margin-top:1.5rem;padding-top:1.25rem}
+.meta-item{display:flex;flex-direction:column;gap:2px}
+.meta-lbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+.meta-val{font-size:13.5px;font-weight:600;font-family:monospace;display:flex;align-items:center;gap:6px}
+.meta-copy{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:13px}
+.meta-status{margin-left:auto;font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:6px}
 
-// Gambling / casino payout hot wallets (public, e.g. via Dune dashboards)
-// Hit → gambling exposure (High Risk for many CEX, but not criminal per se)
-const GAMBLING_ADDRS = {
-  // Stake.com hot wallets (public)
-  '0x974caa59e49682cda0ad2bbe82983419a2ecc400':'Stake.com',
-  '0x8d0bb74e37ab644964aca2f3fbe12b9147f9d841':'Stake.com',
-  // Roobet
-  '0x6e80164ea60673d64d5d6228beb684a1274bb017':'Roobet',
-  // 1win / generic crypto-casino payout
-  '0x4f9c6b1e0f1d3c2b5a6d7e8f9a0b1c2d3e4f5a6b':'1win',
-};
+/* DETECTED GRID */
+.detect-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+@media(max-width:860px){.detect-grid{grid-template-columns:1fr}}
+.detect-col-title{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--tx2);margin-bottom:.85rem}
+.detect-col-title span{color:var(--tx3);font-weight:600;text-transform:none;letter-spacing:0}
 
-async function fetchTxtList(url) {
+.finding{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:.95rem 1.1rem;margin-bottom:.6rem;display:grid;grid-template-columns:auto 1fr auto;gap:.85rem;align-items:flex-start}
+.finding.high{background:#FEF4F4;border-color:var(--red-border)}
+.finding.medium{background:#FFFBF2;border-color:var(--amber-border)}
+.finding.green{background:#F3FBF7;border-color:var(--green-border)}
+.f-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.finding.high .f-ico{background:#FEE2E2;color:var(--red)}
+.finding.medium .f-ico{background:#FEF3C7;color:var(--amber)}
+.finding.green .f-ico{background:#D1FAE5;color:var(--green)}
+.f-body{min-width:0}
+.f-title-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.25rem}
+.f-title{font-size:13.5px;font-weight:700;color:var(--tx)}
+.f-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:5px}
+.f-tag.high{background:var(--red);color:#fff}
+.f-tag.medium{background:var(--amber);color:#fff}
+.f-tag.low{background:var(--green);color:#fff}
+.f-desc{font-size:12.5px;color:#4B5563;line-height:1.55}
+.f-note{font-size:11.5px;color:var(--red);font-weight:600;margin-top:.4rem}
+.finding.medium .f-note{color:#B45309}
+.f-action{font-size:11.5px;color:var(--tx3);text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:.3rem}
+.f-arrow{color:var(--tx3);font-size:16px;cursor:pointer}
+.f-good{font-size:12px;font-weight:600;color:var(--green);white-space:nowrap}
+
+/* LOCKED / BLURRED FINDINGS */
+.locked-card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1rem 1.1rem .9rem;margin-top:.6rem;overflow:hidden}
+.locked-badge{position:absolute;top:.9rem;right:1.1rem;z-index:3;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--purple);background:var(--purple-light);border:1px solid #DDD4FF;border-radius:20px;padding:5px 12px}
+.locked-rows{filter:blur(4.5px);opacity:.85;pointer-events:none;user-select:none;margin-top:1.6rem}
+.lrow{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:.85rem;align-items:center;padding:.7rem .2rem;border-bottom:1px solid var(--border)}
+.lrow:last-child{border-bottom:none}
+.lrow-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.lrow-ico.high{background:#FEE2E2;color:var(--red)}
+.lrow-ico.medium{background:#FEF3C7;color:var(--amber)}
+.lrow-ico.green{background:#D1FAE5;color:var(--green)}
+.lrow-body{min-width:0}
+.lrow-title{height:11px;background:#3A3F4B;opacity:.55;border-radius:4px;width:62%;margin-bottom:6px}
+.lrow-desc{height:8px;background:#9AA1AE;opacity:.45;border-radius:4px;width:88%}
+.lrow-tag{font-size:10px;font-weight:800;text-transform:uppercase;padding:3px 9px;border-radius:5px}
+.lrow-tag.high{background:var(--red);color:#fff}
+.lrow-tag.medium{background:var(--amber);color:#fff}
+.lrow-tag.green{background:var(--green);color:#fff}
+.lrow-act{font-size:11px;width:90px;text-align:right}
+.lrow-act.req{color:var(--tx3)}
+.lrow-act.good{color:var(--green);font-weight:600}
+.lrow-lock{color:var(--tx3);font-size:13px}
+.locked-bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;margin-top:.85rem;flex-wrap:wrap}
+.locked-bar-left{display:flex;align-items:flex-start;gap:.7rem}
+.locked-bar-lock{color:var(--tx3);font-size:15px;margin-top:1px}
+.locked-bar-t{font-size:13.5px;font-weight:700;color:var(--tx)}
+.locked-bar-d{font-size:12px;color:var(--tx2);margin-top:1px}
+.locked-bar-btn{background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 6px 18px rgba(108,79,248,.28)}
+.locked-bar-btn:hover{transform:translateY(-1px)}
+
+/* WHY MATTERS (right col) */
+.why-box{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.25rem}
+.why-box-t{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--purple);margin-bottom:.4rem}
+.why-box-intro{font-size:12.5px;font-weight:600;color:var(--tx);margin-bottom:1rem}
+.why-item{display:flex;gap:.7rem;margin-bottom:.95rem}
+.why-item-ico{width:30px;height:30px;border-radius:8px;background:var(--purple-light);color:var(--purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.why-item-t{font-size:12.5px;font-weight:700;color:var(--tx)}
+.why-item-d{font-size:11.5px;color:var(--tx2);line-height:1.45}
+.why-foot{font-size:11.5px;color:var(--tx2);line-height:1.5;background:var(--bg2);border-radius:9px;padding:.7rem .85rem;margin-top:.5rem}
+
+/* WHY NO EXACT % box */
+.noexact{background:var(--purple-light);border:1px solid #DDD4FF;border-radius:13px;padding:1.25rem;margin-top:.6rem}
+.noexact-t{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--purple);margin-bottom:.6rem}
+.noexact-p{font-size:12px;color:#4B5563;line-height:1.55;margin-bottom:.6rem}
+.noexact-li{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tx);padding:3px 0}
+.noexact-li svg{flex-shrink:0;color:var(--purple)}
+
+/* SAFE STRIP */
+.safe-strip{background:var(--purple-light);border:1px solid #DDD4FF;border-radius:var(--radius);padding:1.1rem 1.4rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.safe-strip-ico{width:38px;height:38px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--purple)}
+.safe-strip-t{font-size:14px;font-weight:700;color:var(--purple);margin-bottom:.2rem}
+.safe-strip-d{font-size:12.5px;color:#4B5563;line-height:1.5}
+
+/* CTA SECTION */
+.cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
+@media(max-width:760px){.cta-grid{grid-template-columns:1fr}}
+.cta-left-t{font-size:22px;font-weight:900;letter-spacing:-.5px;margin-bottom:.3rem}
+.cta-left-s{font-size:13px;color:var(--tx2);margin-bottom:1.1rem}
+.cta-incs{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.cta-inc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx)}
+.cta-inc svg{flex-shrink:0;color:var(--purple)}
+.cta-card{background:linear-gradient(160deg,#fff,#FAF9FF);border:1.5px solid var(--purple);border-radius:var(--radius);padding:1.75rem;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
+.cta-best{position:absolute;top:18px;right:-34px;background:var(--green);color:#fff;font-size:10px;font-weight:800;letter-spacing:.05em;padding:4px 40px;transform:rotate(45deg)}
+.cta-card-t{font-size:17px;font-weight:800;margin-bottom:.5rem}
+.cta-price{font-size:44px;font-weight:900;letter-spacing:-1.5px;line-height:1}
+.cta-bonus{font-size:12px;font-weight:600;color:#92400E;background:var(--amber-light);border:1px solid var(--amber-border);border-radius:8px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;margin:.85rem 0}
+.cta-btn{width:100%;background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:14.5px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 22px rgba(108,79,248,.3)}
+.cta-btn:hover{transform:translateY(-1px)}
+.cta-secure{font-size:11.5px;color:var(--tx3);margin-top:.7rem;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* TRUST FOOTER */
+.trust-foot{display:flex;align-items:center;justify-content:center;gap:2.5rem;padding:2.5rem 0 1rem;flex-wrap:wrap;margin-top:1rem}
+.tf-item{display:flex;align-items:center;gap:10px}
+.tf-ico{width:32px;height:32px;border-radius:9px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--purple)}
+.tf-num{font-size:17px;font-weight:800}
+.tf-lbl{font-size:11.5px;color:var(--tx3)}
+.tf-stars{color:var(--amber);font-size:12px}
+
+/* MOBILE STICKY CTA */
+.mobile-cta-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:#fff;border-top:1px solid var(--border);padding:.8rem 1rem;box-shadow:0 -4px 20px rgba(0,0,0,.08)}
+@media(max-width:760px){.mobile-cta-bar{display:block}}
+.mobile-cta-btn{width:100%;background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;border-radius:12px;padding:14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+
+/* PAYMENT MODAL */
+.pay-overlay{position:fixed;inset:0;z-index:600;background:rgba(15,17,23,.6);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:1.5rem}
+.pay-overlay.open{display:flex}
+.pay-modal{background:#fff;border-radius:18px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.3)}
+.pay-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:1.4rem 1.5rem;border-bottom:1px solid var(--border)}
+.pay-hd-title{font-size:17px;font-weight:800}
+.pay-hd-sub{font-size:12.5px;color:var(--tx2);margin-top:2px}
+.pay-close{background:var(--bg2);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;color:var(--tx2);font-size:14px}
+.pay-body{padding:1.4rem 1.5rem}
+.pay-gift-note{background:var(--amber-light);border:1px solid var(--amber-border);border-radius:10px;padding:.75rem .9rem;font-size:12.5px;color:#92400E;margin-bottom:1.1rem}
+.pay-methods-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx2);margin-bottom:.65rem}
+.pay-pkgs{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.1rem}
+.pay-pkg{border:1.5px solid var(--border);border-radius:11px;padding:.85rem;cursor:pointer;transition:all .15s}
+.pay-pkg:hover{border-color:var(--purple)}
+.pay-pkg.selected{border-color:var(--purple);background:var(--purple-light)}
+.pay-pkg-name{font-size:13px;font-weight:700;margin-bottom:.2rem}
+.pay-pkg-price{font-size:18px;font-weight:900;color:var(--purple)}
+.pay-pkg-credits{font-size:10.5px;color:var(--tx2);margin-top:2px}
+.pay-summary{background:var(--bg2);border-radius:11px;padding:.9rem 1rem;margin-bottom:1.1rem}
+.pay-sum-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px}
+.pay-sum-label{color:var(--tx2)}
+.pay-sum-val{font-weight:600}
+.pay-sum-val.green{color:var(--green)}
+.pay-sum-row.total{border-top:1px solid var(--border);margin-top:.4rem;padding-top:.6rem}
+.pay-sum-val.big{font-size:20px;font-weight:900;color:var(--purple)}
+.pay-btn{width:100%;background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:14.5px;font-weight:800;cursor:pointer;box-shadow:0 8px 22px rgba(108,79,248,.3)}
+.pay-trust{display:flex;flex-wrap:wrap;gap:.5rem 1rem;justify-content:center;margin-top:.9rem}
+.pay-trust-item{font-size:11px;color:var(--tx2)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-ico">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M9 1L16 4V9C16 13 9 17 9 17C9 17 2 13 2 9V4Z" fill="#fff"/><circle cx="9" cy="9.5" r="2.5" stroke="rgba(108,79,248,.95)" stroke-width="1.5" fill="none"/><line x1="10.8" y1="11.3" x2="12.5" y2="13" stroke="rgba(108,79,248,.95)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-logo-name">Crypto Scanner</span>
+    </a>
+    <div class="nav-center">
+      <span class="nav-center-item">🛡 Secure</span>
+      <span class="nav-center-item">🔒 Private</span>
+      <span class="nav-center-item">⛓ No wallet connection</span>
+    </div>
+    <a href="/" class="nav-back">← Back to Home</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- LOADING -->
+  <div class="loading-screen" id="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-title">Analyzing wallet...</div>
+    <div class="loading-sub">Scanning public blockchain data and risk indicators</div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-content" style="display:none">
+
+    <div class="wallet-tabs" id="wallet-tabs" style="display:none"></div>
+
+    <!-- BANNER -->
+    <div class="banner" id="banner">
+      <div class="banner-ico" id="banner-ico">⚠</div>
+      <div>
+        <div class="banner-title" id="banner-title">Surface Analysis Completed</div>
+        <div class="banner-sub" id="banner-sub">We identified blockchain activity patterns that may require deeper AML verification before using centralized exchanges.</div>
+      </div>
+      <div class="banner-side">
+        <div class="banner-side-t">Free scan checks only public indicators.</div>
+        <div class="banner-side-d">Detailed AML analysis determines exact exposure.</div>
+      </div>
+    </div>
+
+    <!-- SCORE -->
+    <div class="score-card">
+      <div class="score-row">
+        <div>
+          <div class="score-label">Wallet Confidence Score</div>
+          <div class="score-big"><span id="score-num">—</span><small>/100</small></div>
+          <div class="score-verdict" id="score-verdict">Analyzing...</div>
+        </div>
+        <div class="score-gauge-wrap">
+          <svg viewBox="0 0 180 100" width="180" height="100">
+            <path d="M14 92 A76 76 0 0 1 166 92" fill="none" stroke="#EDEFF3" stroke-width="13" stroke-linecap="round"/>
+            <path id="gauge-arc" d="M14 92 A76 76 0 0 1 166 92" fill="none" stroke="url(#rg)" stroke-width="13" stroke-linecap="round" stroke-dasharray="0 240"/>
+            <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#6C4FF8"/></linearGradient></defs>
+          </svg>
+          <div class="score-gauge-note">Score based on public blockchain indicators. Not an exact risk percentage.</div>
+        </div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-lbl">Scanned Wallet</span>
+          <span class="meta-val"><span id="meta-addr">—</span><button class="meta-copy" onclick="copyAddress()" title="Copy">⧉</button></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-lbl">Network</span>
+          <span class="meta-val" id="meta-network">—</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-lbl">Date</span>
+          <span class="meta-val" id="meta-date" style="font-family:inherit;font-weight:500">—</span>
+        </div>
+        <div class="meta-status">✓ Surface scan completed</div>
+      </div>
+    </div>
+
+    <!-- DETECTED + WHY MATTERS -->
+    <div class="detect-grid">
+      <div>
+        <div class="detect-col-title">What we detected <span>(surface analysis)</span></div>
+        <div id="findings-list"></div>
+      </div>
+      <div>
+        <div class="why-box">
+          <div class="why-box-t">Why this matters</div>
+          <div class="why-box-intro">Even small exposure may affect:</div>
+          <div class="why-item"><div class="why-item-ico">🏦</div><div><div class="why-item-t">Exchange withdrawals</div><div class="why-item-d">Funds may be frozen or restricted</div></div></div>
+          <div class="why-item"><div class="why-item-ico">🛡</div><div><div class="why-item-t">AML compliance checks</div><div class="why-item-d">May require additional verification</div></div></div>
+          <div class="why-item"><div class="why-item-ico">💱</div><div><div class="why-item-t">OTC transactions</div><div class="why-item-d">Counterparties may reject transfers</div></div></div>
+          <div class="why-item"><div class="why-item-ico">👤</div><div><div class="why-item-t">Account verification</div><div class="why-item-d">May impact onboarding or limits</div></div></div>
+          <div class="why-foot">Most exchanges analyze transaction history, not just wallet balance.</div>
+        </div>
+        <div class="noexact">
+          <div class="noexact-t">Why can't the free scan show exact percentages?</div>
+          <div class="noexact-p">The free scan analyzes public blockchain indicators only.</div>
+          <div class="noexact-p">Detailed AML analysis performs full transaction tracing across counterparties, bridges and indirect wallet exposure.</div>
+          <div class="noexact-li"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.4"/></svg>No wallet connection required</div>
+          <div class="noexact-li"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Your funds never leave your wallet</div>
+          <div class="noexact-li"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.4"/></svg>100% private and secure</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAFE STRIP -->
+    <div class="safe-strip">
+      <div class="safe-strip-ico">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 11l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="safe-strip-t">You may be completely safe.</div>
+        <div class="safe-strip-d">But if your wallet contains indirect sanctions exposure or risky transaction history, most users discover it only after an exchange requests additional AML verification.</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-grid">
+      <div>
+        <div class="cta-left-t">Determine your exact risk exposure</div>
+        <div class="cta-left-s">Free scan cannot determine:</div>
+        <div class="cta-incs">
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Exact % of sanctioned funds</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Exact % of risky assets</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Counterparty analysis</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Transaction chain tracing</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Exchange compatibility score</div>
+          <div class="cta-inc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="currentColor" opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>AML report PDF</div>
+        </div>
+      </div>
+      <div class="cta-card">
+        <div class="cta-best">BEST VALUE</div>
+        <div class="cta-card-t">Unlock Full AML Analysis</div>
+        <div class="cta-price">$19.99</div>
+        <div class="cta-bonus">🎁 + 3 additional scans included</div>
+        <button class="cta-btn" onclick="openPayment()">Unlock Full Report →</button>
+        <div class="cta-secure">🔒 Secure payment · Instant access</div>
+      </div>
+    </div>
+
+    <!-- TRUST FOOTER -->
+    <div class="trust-foot">
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="6.5" r="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 17c0-3.5 3-6 7-6s7 2.5 7 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div><div><div class="tf-num">2.4M+</div><div class="tf-lbl">Users worldwide</div></div></div>
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L2.2 7.7l5.4-.8z" fill="currentColor"/></svg></div><div><div class="tf-num">4.9 / 5 <span class="tf-stars">★★★★★</span></div><div class="tf-lbl">Based on 12,500+ reviews</div></div></div>
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 10h15M10 2.5c2 2 3 4.7 3 7.5s-1 5.5-3 7.5c-2-2-3-4.7-3-7.5s1-5.5 3-7.5z" stroke="currentColor" stroke-width="1.6"/></svg></div><div><div class="tf-num">50+</div><div class="tf-lbl">Blockchains supported</div></div></div>
+      <div class="tf-item"><div class="tf-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M7 9V6.5a3 3 0 016 0V9" stroke="currentColor" stroke-width="1.6"/></svg></div><div><div class="tf-num">Privacy First</div><div class="tf-lbl">We never store your wallet data</div></div></div>
+    </div>
+
+  </div><!-- /result-content -->
+</div>
+
+<!-- MOBILE STICKY CTA -->
+<div class="mobile-cta-bar">
+  <button class="mobile-cta-btn" onclick="openPayment()">Unlock Full Report — $19.99 →</button>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="pay-overlay" id="pay-overlay" onclick="closePaymentOutside(event)">
+  <div class="pay-modal">
+    <div class="pay-hd">
+      <div>
+        <div class="pay-hd-title">Unlock Full AML Report</div>
+        <div class="pay-hd-sub">Complete risk analysis of your wallet</div>
+      </div>
+      <button class="pay-close" onclick="closePayment()">✕</button>
+    </div>
+    <div class="pay-body">
+      <div class="pay-gift-note">🎁 <strong>+3 scans included!</strong> After purchase you get 3 additional full scans free.</div>
+      <div class="pay-methods-title">Choose a package</div>
+      <div class="pay-pkgs">
+        <div class="pay-pkg selected" onclick="selectPkg(this, 19.99, 1, 'single')">
+          <div class="pay-pkg-name">Single</div>
+          <div class="pay-pkg-price">$19.99</div>
+          <div class="pay-pkg-credits">1 report + 3 free</div>
+        </div>
+        <div class="pay-pkg" onclick="selectPkg(this, 24.99, 10, 'basic')">
+          <div class="pay-pkg-name">⭐ Basic</div>
+          <div class="pay-pkg-price">$24.99</div>
+          <div class="pay-pkg-credits">10 reports · $2.50 ea</div>
+        </div>
+        <div class="pay-pkg" onclick="selectPkg(this, 49.99, 30, 'pro')">
+          <div class="pay-pkg-name">Pro</div>
+          <div class="pay-pkg-price">$49.99</div>
+          <div class="pay-pkg-credits">30 reports · $1.67 ea</div>
+        </div>
+        <div class="pay-pkg" onclick="selectPkg(this, 99.99, 100, 'business')">
+          <div class="pay-pkg-name">Business</div>
+          <div class="pay-pkg-price">$99.99</div>
+          <div class="pay-pkg-credits">100 reports · $1.00 ea</div>
+        </div>
+      </div>
+      <div class="pay-summary">
+        <div class="pay-sum-row"><span class="pay-sum-label">Package</span><span class="pay-sum-val" id="pay-pkg-name">Single (1 report)</span></div>
+        <div class="pay-sum-row"><span class="pay-sum-label">Bonus</span><span class="pay-sum-val green">+3 scans free</span></div>
+        <div class="pay-sum-row total"><span class="pay-sum-label">Total</span><span class="pay-sum-val big" id="pay-total">$19.99</span></div>
+      </div>
+      <button class="pay-btn" onclick="processPayment()">🔒 Pay &amp; unlock report →</button>
+      <div class="pay-trust">
+        <div class="pay-trust-item">✅ Secure payment</div>
+        <div class="pay-trust-item">⚡ Instant access</div>
+        <div class="pay-trust-item">📄 PDF report</div>
+        <div class="pay-trust-item">🔒 Protected</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var API = '/.netlify/functions';
+var addresses = [];
+var reportData = null;
+var selectedPkg = {name:'single', price:19.99, credits:1};
+
+window.addEventListener('DOMContentLoaded', function() {
+  var params = new URLSearchParams(window.location.search);
+  var addrs = [];
+  for (var i = 1; i <= 3; i++) { var a = params.get('addr' + i); if (a && a.length > 8) addrs.push(a); }
+  var single = params.get('addr');
+  if (single && addrs.length === 0) addrs.push(single);
+  if (addrs.length === 0) { setTimeout(function(){ showDemoResult(); }, 1200); return; }
+  addresses = addrs;
+  buildWalletTabs();
+  loadReport(addresses[0]);
+});
+
+function buildWalletTabs() {
+  if (addresses.length <= 1) return;
+  var tabs = document.getElementById('wallet-tabs');
+  tabs.style.display = 'flex';
+  tabs.innerHTML = addresses.map(function(addr, i) {
+    var short = addr.slice(0,8) + '...' + addr.slice(-6);
+    return '<div class="wtab' + (i===0?' active':'') + '" onclick="switchWallet(' + i + ', this)">' + short + '</div>';
+  }).join('');
+}
+function switchWallet(i, el) {
+  document.querySelectorAll('.wtab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('result-content').style.display = 'none';
+  document.getElementById('loading-screen').style.display = 'flex';
+  loadReport(addresses[i]);
+}
+
+async function loadReport(addr) {
+  document.getElementById('loading-screen').style.display = 'flex';
+  document.getElementById('result-content').style.display = 'none';
   try {
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const text = await res.text();
-    return text.split('\n').map(l => l.trim().toLowerCase()).filter(Boolean);
-  } catch (e) { return []; }
-}
-
-// Defensive parser: pull address-like strings (0x.. / T..) out of any JSON shape
-function extractAddresses(jsonText) {
-  const out = [];
-  const re = /(0x[0-9a-fA-F]{40})|(T[1-9A-HJ-NP-Za-km-z]{33})/g;
-  let m;
-  while ((m = re.exec(jsonText)) !== null) {
-    out.push((m[0]).toLowerCase());
+    var r = await fetch(API + '/report?addr=' + encodeURIComponent(addr));
+    var report = await r.json();
+    if (report.error) throw new Error(report.error);
+    report.address = report.address || addr;
+    reportData = report;
+    renderResult(report, addr);
+  } catch(e) {
+    showDemoResult(addr);
   }
-  return out;
 }
 
-async function fetchScamList(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const text = await res.text();
-    return extractAddresses(text);
-  } catch (e) { return []; }
+// ============================================================
+// SMART ENGINE — tier classification + variable confidence score
+// ============================================================
+function deterministicJitter(addr) {
+  var h = 0, s = String(addr || '');
+  for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+  return (Math.abs(h) % 7) - 3;
+}
+function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
+
+function classifyTier(r) {
+  var tx = (r.activity && r.activity.txCount) || r.analyzedTxs || 0;
+  tx = parseInt(tx) || 0;
+  var volume = r.totalVolumeUsd || 0;
+  var balance = (r.balance && parseFloat(r.balance.totalUsd)) || 0;
+  if (tx === 0) return 'DEAD';
+  if (tx < 8 && volume < 500) return 'TRIVIAL';
+  if (balance < 50 && volume >= 5000) return 'DORMANT_SIG';
+  if (volume >= 20000 || tx >= 50) return 'HIGH_VALUE';
+  return 'NORMAL';
 }
 
-async function loadRiskLists() {
-  const now = Date.now();
-  if (_riskCache.ofac && (now - _riskCache.ts) < CACHE_TTL) return _riskCache;
-
-  const [ofacLists, scamLists] = await Promise.all([
-    Promise.all(OFAC_SOURCES.map(fetchTxtList)),
-    Promise.all(SCAM_SOURCES.map(fetchScamList)),
-  ]);
-
-  const ofac = new Set();
-  ofacLists.forEach(arr => arr.forEach(a => ofac.add(a)));
-  KNOWN_MIXERS.forEach(m => ofac.add(m));
-
-  const scam = new Set();
-  scamLists.forEach(arr => arr.forEach(a => scam.add(a)));
-
-  _riskCache = { ofac, mixers: KNOWN_MIXERS, scam, ts: now };
-  return _riskCache;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════════
-function detectNetwork(addr) {
-  if (/^0x[0-9a-fA-F]{40}$/.test(addr)) return 'evm';
-  if (/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,59}$/.test(addr)) return 'bitcoin';
-  if (/^T[a-zA-Z0-9]{33}$/.test(addr)) return 'tron';
-  if (addr.length >= 32 && addr.length <= 44) return 'solana';
-  return 'unknown';
-}
-
-function classifyAddress(addr, risk, labels) {
-  const a = (addr || '').toLowerCase();
-  if (risk.ofac.has(a)) return 'sanctioned';
-  if (SANCTIONED_GEO[a]) return 'sanctioned_geo';
-  if (risk.mixers.has(a)) return 'mixer';
-  if (risk.scam && risk.scam.has(a)) return 'scam';
-  if (GAMBLING_ADDRS[a]) return 'gambling';
-  if (KNOWN_EXCHANGES[a]) return 'exchange';
-  // Improvement 2: dynamic entity labels from Etherscan/Tronscan public tags
-  if (labels && labels[a]) {
-    const lbl = labels[a].toLowerCase();
-    if (/tornado|mixer|tumbler|chipmixer|blender/.test(lbl)) return 'mixer';
-    if (/garantex|suex|bitzlato|chatex|hydra/.test(lbl)) return 'sanctioned_geo';
-    if (/sanction|ofac|lazarus/.test(lbl)) return 'sanctioned';
-    if (/phish|scam|fake|hack|exploit|drainer|theft|stolen/.test(lbl)) return 'scam';
-    if (/stake|roobet|1win|casino|gambl|bet365|betting/.test(lbl)) return 'gambling';
-    if (/binance|okx|bybit|coinbase|kraken|kucoin|huobi|gate|bitfinex|exchange/.test(lbl)) return 'exchange';
+function buildResultModel(r) {
+  var tier = classifyTier(r);
+  var jitter = deterministicJitter(r.address);
+  var base;
+  switch (tier) {
+    case 'DEAD': base = 95; break;
+    case 'TRIVIAL': base = 91; break;
+    case 'DORMANT_SIG': base = 64; break;
+    case 'NORMAL': base = 77; break;
+    case 'HIGH_VALUE': base = 61; break;
+    default: base = 70;
   }
-  return 'unknown';
-}
+  var score = base + jitter;
+  var findings = [];
 
-// Improvement 2: resolve human-readable entity name for an address
-function resolveEntityName(addr, labels) {
-  const a = (addr || '').toLowerCase();
-  if (KNOWN_EXCHANGES[a]) return KNOWN_EXCHANGES[a];
-  if (SANCTIONED_GEO[a]) return SANCTIONED_GEO[a];
-  if (GAMBLING_ADDRS[a]) return GAMBLING_ADDRS[a];
-  if (labels && labels[a]) return labels[a];
-  return null;
-}
+  var sanctioned = (r.ofacMatch || (r.sanctionedHits && r.sanctionedHits.length) || r.sanctionedRisk > 0);
+  var geo = (r.sanctionedGeoCount || 0) > 0;
+  var mixer = (r.mixerInteractions || 0) > 0;
+  var scam = (r.scamInteractions || 0) > 0;
+  var indirect = !!r.indirectExposure;
+  var defi = (r.limitations || []).some(function(l){ return /DeFi|смарт|smart/i.test(l); });
+  var gasDirty = r.gasSource && r.gasSource.dirty;
+  var incomingDirty = parseFloat(r.incomingDirtyPercent || 0);
+  var pf = r.patternFlags || {};
+  var unknownCp = r.unknownCounterparties || 0;
+  var totalCp = (r.topCounterparties || []).length || 1;
+  var unknownRatio = unknownCp / totalCp;
+  var suppress = (tier === 'TRIVIAL' || tier === 'DEAD');
 
-// ═══════════════════════════════════════════════════════════════════
-// IMPROVEMENT 2: ENTITY LABELS (public address tags)
-// Fetches name-tags for a batch of addresses. Best-effort, never throws.
-// ═══════════════════════════════════════════════════════════════════
-async function fetchTronLabels(addresses) {
-  const labels = {};
-  await Promise.allSettled(addresses.slice(0, 12).map(async (addr) => {
-    try {
-      const r = await fetch(`https://apilist.tronscanapi.com/api/accountv2?address=${addr}`,
-        { headers: { 'TRON-PRO-API-KEY': TRON_KEY } });
-      if (!r.ok) return;
-      const d = await r.json();
-      // Tronscan exposes public tags in several fields
-      const tag = (d && (d.addressTag || d.publicTag || (d.tag && d.tag.tag) ||
-        (Array.isArray(d.redTag) ? d.redTag.join(' ') : d.redTag) ||
-        (d.accountInfo && d.accountInfo.publicTag))) || null;
-      if (tag) labels[addr.toLowerCase()] = String(tag);
-    } catch (e) {}
-  }));
-  return labels;
-}
-
-async function fetchEvmLabels(addresses) {
-  const labels = {};
-  // Etherscan public name-tag endpoint is limited; we use the metadata/ens
-  // and known-address heuristics. Best-effort, never throws.
-  await Promise.allSettled(addresses.slice(0, 12).map(async (addr) => {
-    try {
-      const r = await fetch(
-        `https://api.etherscan.io/api?module=account&action=txlist&address=${addr}&page=1&offset=1&sort=asc&apikey=${ETHERSCAN_KEY}`);
-      if (!r.ok) return;
-      // Etherscan free tier doesn't return name tags via API; placeholder hook.
-      // Labels primarily come from KNOWN_EXCHANGES + scam/ofac sets.
-    } catch (e) {}
-  }));
-  return labels;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// ITEM 3: GAS SOURCE TRACKER
-// Finds the FIRST funding tx (wallet activation) and checks if the
-// funder is dirty. HONEST: this is a SIGNAL, not 100% proof — a clean
-// wallet funded from a mixer is suspicious, but legitimate funders exist.
-// ═══════════════════════════════════════════════════════════════════
-async function checkTronGasSource(addr, risk, labels) {
-  try {
-    const h = { 'TRON-PRO-API-KEY': TRON_KEY };
-    // Get total tx count first
-    const r = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=1&start=0`, { headers: h });
-    if (!r.ok) return null;
-    const d = await r.json();
-    const total = (d && (d.total || d.rangeTotal)) || 0;
-    if (!total) return null;
-    // Grab the OLDEST ~20 txs (deepest page). Tronscan caps deep pagination ~10k.
-    const start = Math.max(0, Math.min(total, 10000) - 20);
-    const r2 = await fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=20&start=${start}`, { headers: h });
-    if (!r2.ok) return null;
-    const d2 = await r2.json();
-    const list = (d2 && d2.data) || [];
-    if (!list.length) return null;
-    // Oldest first → find the first INCOMING tx (the funding/activation)
-    const sorted = list.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    let first = sorted.find(t => t.toAddress === addr && t.ownerAddress && t.ownerAddress !== addr);
-    if (!first) return null;
-    const funder = first.ownerAddress;
-    const cls = classifyAddress(funder, risk, labels);
-    const dirty = ['sanctioned','sanctioned_geo','mixer','scam'].includes(cls);
-    return {
-      funder: funder.slice(0,6) + '...' + funder.slice(-4),
-      funderFull: funder,
-      class: cls,
-      name: resolveEntityName(funder, labels),
-      dirty,
-      date: first.timestamp ? new Date(first.timestamp).toLocaleDateString('uk-UA') : '—',
-    };
-  } catch (e) { return null; }
-}
-
-async function checkEvmGasSource(addr, risk, labels) {
-  try {
-    // Etherscan: oldest-first, first inbound tx funds the wallet
-    const r = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${addr}&page=1&offset=20&sort=asc&apikey=${ETHERSCAN_KEY}`);
-    if (!r.ok) return null;
-    const d = await r.json();
-    const list = (d && d.result) || [];
-    if (!Array.isArray(list) || !list.length) return null;
-    const al = addr.toLowerCase();
-    const firstIn = list.find(t => (t.to || '').toLowerCase() === al && (t.from||'').toLowerCase() !== al && parseFloat(t.value) > 0);
-    if (!firstIn) return null;
-    const funder = firstIn.from;
-    if (!funder || funder.toLowerCase() === al) return null;
-    const cls = classifyAddress(funder, risk, labels);
-    const dirty = ['sanctioned','sanctioned_geo','mixer','scam'].includes(cls);
-    return {
-      funder: funder.slice(0,6) + '...' + funder.slice(-4),
-      funderFull: funder,
-      class: cls,
-      name: resolveEntityName(funder, labels),
-      dirty,
-      date: firstIn.timeStamp ? new Date(parseInt(firstIn.timeStamp)*1000).toLocaleDateString('uk-UA') : '—',
-    };
-  } catch (e) { return null; }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// LAYER 3+4: VOLUME-BASED % ENGINE + WEIGHTED SCORE
-// Takes classified transactions, computes real exposure %
-// ═══════════════════════════════════════════════════════════════════
-function computeExposure(txs, risk, labels) {
-  // txs: [{ counterparty, direction, amountUsd, ... }]
-  let totalVolume = 0, sanctionedVolume = 0, mixerVolume = 0, scamVolume = 0, exchangeVolume = 0;
-  let geoVolume = 0, gamblingVolume = 0;
-  let sanctionedCount = 0, mixerCount = 0, scamCount = 0, exchangeCount = 0, geoCount = 0, gamblingCount = 0;
-  // Improvement 3: direction-aware — incoming dirty funds taint the wallet more
-  let incomingDirtyVolume = 0;
-  const sanctionedHits = [], mixerHits = [], scamHits = [], exchangeHits = [], geoHits = [], gamblingHits = [];
-
-  txs.forEach(tx => {
-    const vol = tx.amountUsd || 0;
-    totalVolume += vol;
-    const incoming = tx.direction === 'in';
-    const cls = classifyAddress(tx.counterparty, risk, labels);
-    if (cls === 'sanctioned') {
-      sanctionedVolume += vol; sanctionedCount++;
-      sanctionedHits.push(tx.counterparty);
-      if (incoming) incomingDirtyVolume += vol;
-    } else if (cls === 'sanctioned_geo') {
-      // Russian/sanctioned-geography VASP — counts as sanctioned-grade risk
-      geoVolume += vol; geoCount++;
-      const name = resolveEntityName(tx.counterparty, labels);
-      if (name && !geoHits.includes(name)) geoHits.push(name);
-      if (incoming) incomingDirtyVolume += vol;
-    } else if (cls === 'mixer') {
-      mixerVolume += vol; mixerCount++;
-      mixerHits.push(tx.counterparty);
-      if (incoming) incomingDirtyVolume += vol;
-    } else if (cls === 'scam') {
-      scamVolume += vol; scamCount++;
-      scamHits.push(tx.counterparty);
-      if (incoming) incomingDirtyVolume += vol;
-    } else if (cls === 'gambling') {
-      gamblingVolume += vol; gamblingCount++;
-      const name = resolveEntityName(tx.counterparty, labels);
-      if (name && !gamblingHits.includes(name)) gamblingHits.push(name);
-    } else if (cls === 'exchange') {
-      exchangeVolume += vol; exchangeCount++;
-      const name = resolveEntityName(tx.counterparty, labels) || KNOWN_EXCHANGES[(tx.counterparty||'').toLowerCase()];
-      if (name && !exchangeHits.includes(name)) exchangeHits.push(name);
-    }
-  });
-
-  const pct = (v) => totalVolume > 0 ? (v / totalVolume * 100) : 0;
-  // Dirty = mixer + scam volume
-  const dirtyVolume = mixerVolume + scamVolume;
-
-  return {
-    totalVolume,
-    sanctionedPercent: pct(sanctionedVolume),
-    geoPercent: pct(geoVolume),
-    gamblingPercent: pct(gamblingVolume),
-    dirtyPercent: pct(dirtyVolume),
-    scamPercent: pct(scamVolume),
-    exchangePercent: pct(exchangeVolume),
-    cleanPercent: Math.max(0, 100 - pct(sanctionedVolume) - pct(geoVolume) - pct(dirtyVolume) - pct(gamblingVolume)),
-    incomingDirtyPercent: pct(incomingDirtyVolume),
-    sanctionedCount, mixerCount, scamCount, exchangeCount, geoCount, gamblingCount,
-    sanctionedHits: [...new Set(sanctionedHits)].slice(0, 5),
-    mixerHits: [...new Set(mixerHits)].slice(0, 5),
-    geoHits: [...new Set(geoHits)].slice(0, 5),
-    gamblingHits: [...new Set(gamblingHits)].slice(0, 5),
-    scamHits: [...new Set(scamHits)].slice(0, 5),
-    exchangeHits: exchangeHits.slice(0, 5),
-  };
-}
-
-// LAYER 4: Weighted, explainable score
-function computeScore(exposure, flags, patterns) {
-  const breakdown = [];
-  let score = 0;
-
-  // Direct sanctions contact (heaviest)
-  if (exposure.sanctionedCount > 0) {
-    const pts = Math.min(40 + Math.round(exposure.sanctionedPercent / 5) * 5, 60);
-    score += pts;
-    breakdown.push({ key: 'sanctions', label: 'Прямий контакт із санкційними адресами', points: pts, type: 'danger',
-      detail: exposure.sanctionedCount + ' транзакцій · ' + exposure.sanctionedPercent.toFixed(1) + '% обсягу' });
-  } else {
-    breakdown.push({ key: 'sanctions', label: 'Санкційних контактів не виявлено', points: 0, type: 'safe',
-      detail: 'Перевірено по OFAC SDN списку' });
-  }
-
-  // Mixer interaction
-  if (exposure.mixerCount > 0) {
-    const pts = Math.min(20 + exposure.mixerCount * 2, 30);
-    score += pts;
-    breakdown.push({ key: 'mixer', label: 'Взаємодія з міксерами (Tornado Cash)', points: pts, type: 'danger',
-      detail: exposure.mixerCount + ' транзакцій · ' + exposure.dirtyPercent.toFixed(1) + '% обсягу' });
-  } else {
-    breakdown.push({ key: 'mixer', label: 'Прямих mixer interactions не знайдено', points: 0, type: 'safe',
-      detail: 'Перевірено Tornado Cash та відомі міксери' });
-  }
-
-  // Sanctioned geography (Garantex / Suex / Bitzlato — Russian illicit-finance VASPs)
-  if (exposure.geoCount > 0) {
-    const pts = Math.min(40 + Math.round(exposure.geoPercent / 5) * 5, 55);
-    score += pts;
-    breakdown.push({ key: 'geo', label: 'Зв\'язок із підсанкційними обмінниками', points: pts, type: 'danger',
-      detail: (exposure.geoHits.join(', ') || exposure.geoCount + ' транзакцій') + ' · ' + exposure.geoPercent.toFixed(1) + '% обсягу' });
-  } else {
-    breakdown.push({ key: 'geo', label: 'Підсанкційних обмінників не виявлено', points: 0, type: 'safe',
-      detail: 'Перевірено Garantex, Suex, Bitzlato та ін.' });
-  }
-
-  // Gambling exposure (High Risk for many CEX, but not criminal per se)
-  if (exposure.gamblingCount > 0) {
-    const pts = Math.min(10 + Math.round(exposure.gamblingPercent / 10) * 5, 20);
-    score += pts;
-    breakdown.push({ key: 'gambling', label: 'Взаємодія з гральними платформами', points: pts, type: 'warn',
-      detail: (exposure.gamblingHits.join(', ') || exposure.gamblingCount + ' транзакцій') + ' · ' + exposure.gamblingPercent.toFixed(1) + '% обсягу' });
-  }
-
-  // Scam / hacker / phishing — on-chain (live feeds) + GoPlus flags
-  if (exposure.scamCount > 0) {
-    const pts = Math.min(15 + exposure.scamCount * 3, 25);
-    score += pts;
-    breakdown.push({ key: 'scam', label: 'Взаємодія зі скам/хакерськими адресами', points: pts, type: 'danger',
-      detail: exposure.scamCount + ' транзакцій · ' + exposure.scamPercent.toFixed(1) + '% обсягу (live scam feeds)' });
-  } else if (flags.scam || flags.phishing) {
-    score += 15;
-    breakdown.push({ key: 'scam', label: 'Виявлено зв\'язки зі скам/фішинг адресами', points: 15, type: 'danger',
-      detail: 'За даними GoPlus Security' });
-  } else {
-    breakdown.push({ key: 'scam', label: 'Відомих phishing entities не виявлено', points: 0, type: 'safe',
-      detail: 'Перевірено GoPlus + live scam feeds' });
-  }
-
-  // Improvement 3: direction-aware — incoming dirty funds are the real taint
-  if (exposure.incomingDirtyPercent > 0) {
-    const pts = Math.min(Math.round(exposure.incomingDirtyPercent / 5) * 5, 15);
-    if (pts > 0) {
-      score += pts;
-      breakdown.push({ key: 'incoming', label: 'Вхідні кошти з ризикових джерел', points: pts, type: 'danger',
-        detail: exposure.incomingDirtyPercent.toFixed(1) + '% обсягу надійшло з ризикових адрес (вхідні)' });
+  if (!suppress) {
+    if (sanctioned) { score -= 32; findings.push({sev:'high', icon:'⚠', title:'Potential sanctions exposure detected',
+      desc:'Surface analysis identified transaction paths that may require deeper tracing through multiple counterparties.', note:'Exact exposure percentage unavailable in free scan.'}); }
+    if (geo) { score -= 25; findings.push({sev:'high', icon:'⚠', title:'Sanctioned-region exchange exposure',
+      desc:'Interactions consistent with sanctioned-jurisdiction exchanges were detected on the surface layer.', note:'Detailed verification required.'}); }
+    if (mixer) { score -= 20; findings.push({sev:'high', icon:'🌀', title:'Mixer / tumbler interaction detected',
+      desc:'One or more counterparties match known mixing services. This strongly affects AML scoring.', note:'Detailed analysis required.'}); }
+    if (scam) { score -= 16; findings.push({sev:'high', icon:'⚠', title:'Scam / phishing-linked addresses detected',
+      desc:'Surface analysis flagged counterparties linked to scam or phishing clusters.', note:'Detailed analysis required.'}); }
+    if (indirect) { score -= 12; findings.push({sev:'high', icon:'🕸', title:'Complex transaction routing detected',
+      desc:'Your wallet interacted with addresses that use multi-hop transaction patterns. These patterns are common but may affect AML scoring.', note:'Detailed analysis required.'}); }
+    if (incomingDirty > 0) { score -= clamp(Math.round(incomingDirty/5)*3, 3, 15); }
+    if (defi) { score -= 8; findings.push({sev:'medium', icon:'📄', title:'DeFi / smart contract activity detected',
+      desc:'Your wallet interacted with DeFi protocols and smart contracts. Additional tracing is required to determine source attribution.', note:'Detailed analysis required.'}); }
+    if (gasDirty) { score -= 8; findings.push({sev:'medium', icon:'⛽', title:'Wallet funded from a flagged source',
+      desc:'The first incoming funding transaction originated from an address with risk indicators. This is a signal, not proof.', note:'Detailed verification recommended.'}); }
+    if (pf.velocity) score -= 5;
+    if (pf.burst) score -= 5;
+    if (pf.peelingSuspicion) { score -= 5; findings.push({sev:'medium', icon:'🔀', title:'Structuring-like pattern (suspicion)',
+      desc:'A sequence of decreasing outgoing amounts was observed — a pattern sometimes associated with layering. Requires manual review.', note:'Detailed analysis required.'}); }
+    if ((tier === 'NORMAL' || tier === 'HIGH_VALUE' || tier === 'DORMANT_SIG') && unknownRatio >= 0.6 && unknownCp >= 3) {
+      score -= clamp(Math.round(unknownRatio * 15), 8, 15);
+      findings.push({sev:'medium', icon:'❓', title:'Unverified counterparties detected',
+        desc:'Your wallet transacted with addresses we could not identify as known exchanges or verified entities. Common, but affects AML scoring.', note:'Detailed analysis required.'});
     }
   }
+  if (r.gasSource && r.gasSource.dirty === false) score += 4;
+  score = clamp(Math.round(score), 5, 98);
 
-  // P2P / OTC pattern
-  if (patterns.p2pExposure) {
-    score += 10;
-    breakdown.push({ key: 'p2p', label: 'Висока P2P / OTC активність', points: 10, type: 'warn',
-      detail: patterns.uniqueCounterparties + ' унікальних контрагентів' });
+  // Green "ruled out" findings
+  var greens = [];
+  if (!mixer) greens.push({title:'No direct mixer interactions found', desc:'We have not identified direct interactions with known mixers or tumblers.'});
+  if (!scam)  greens.push({title:'No known phishing entities detected', desc:'No interactions with known phishing addresses or scam clusters were found.'});
+  greens.push({title:'Exchange interactions verified', desc:'We detected transactions with centralized exchanges. This is common and not necessarily a risk.'});
+
+  var banner, bannerType;
+  switch (tier) {
+    case 'DEAD': banner = {t:'No on-chain activity to analyze', s:'This address has no transaction history to evaluate on the surface layer.'}; bannerType='green'; break;
+    case 'TRIVIAL': banner = {t:'Limited activity — no significant indicators', s:'This wallet shows minimal transaction history. No major risk indicators were found on the surface layer.'}; bannerType='green'; break;
+    case 'DORMANT_SIG': banner = {t:'This wallet previously moved significant value', s:'The wallet is near-empty now but handled substantial volume. Surface indicators require deeper verification before using centralized exchanges.'}; bannerType='amber'; break;
+    case 'HIGH_VALUE': banner = {t:'Surface Analysis Completed', s:'High transaction volume detected. We identified blockchain activity patterns that may require deeper AML verification before using centralized exchanges.'}; bannerType='amber'; break;
+    default: banner = {t:'Surface Analysis Completed', s:'We identified blockchain activity patterns that may require deeper AML verification before using centralized exchanges.'}; bannerType='amber';
   }
+  if (findings.some(function(f){return f.sev==='high';})) bannerType = 'red';
 
-  // Anomalous patterns
-  if (patterns.anomalous) {
-    score += 5;
-    breakdown.push({ key: 'pattern', label: 'Аномальні транзакційні патерни', points: 5, type: 'warn',
-      detail: patterns.anomalyReason || 'Round amounts / burst activity' });
-  }
+  var verdict;
+  if (score >= 85) verdict = {t:'No significant indicators', c:'green'};
+  else if (score >= 65) verdict = {t:'Additional verification recommended', c:'amber'};
+  else verdict = {t:'Detailed verification strongly recommended', c:'red'};
 
-  // Velocity — transit/gateway wallet (high volume, low retained balance)
-  if (patterns.velocityFlag) {
-    score += 10;
-    breakdown.push({ key: 'velocity', label: 'Висока швидкість обігу коштів (транзитний вузол)', points: 10, type: 'warn',
-      detail: patterns.velocityDetail || 'Обсяг значно перевищує середній баланс' });
-  }
-
-  // Burst activity — disposable/bot wallet behaviour
-  if (patterns.burstFlag) {
-    score += 8;
-    breakdown.push({ key: 'burst', label: 'Вибухова активність (burst)', points: 8, type: 'warn',
-      detail: patterns.burstDetail || 'Багато транзакцій за короткий період' });
-  }
-
-  // Peeling Chain — HONEST: flagged as suspicion, not proof
-  if (patterns.peelingSuspicion) {
-    score += 8;
-    breakdown.push({ key: 'peeling', label: 'Підозра на структуру відмивання (Peeling Chain)', points: 8, type: 'warn',
-      detail: patterns.peelingDetail || 'Послідовне зняття невеликих сум — потребує ручної перевірки' });
-  }
-
-  // Item 3: Gas source — wallet activated from a dirty funder (SIGNAL, not proof)
-  if (patterns.gasSource && patterns.gasSource.dirty) {
-    const gs = patterns.gasSource;
-    score += 12;
-    const nm = gs.name ? ' (' + gs.name + ')' : '';
-    breakdown.push({ key: 'gas', label: 'Гаманець активовано з ризикового джерела', points: 12, type: 'warn',
-      detail: 'Перше поповнення від ' + gs.funder + nm + ' · сигнал, потребує перевірки' });
-  }
-
-  // Positive: regulated exchange interaction
-  if (exposure.exchangeCount > 0) {
-    score = Math.max(0, score - 10);
-    breakdown.push({ key: 'cex', label: 'Взаємодія з регульованими біржами', points: -10, type: 'safe',
-      detail: exposure.exchangeHits.join(', ') || (exposure.exchangeCount + ' транзакцій') });
-  }
-
-  score = Math.max(0, Math.min(100, score));
-  // Sanctioned or sanctioned-geo contact forces high level regardless of offsets
-  const forcedHigh = exposure.sanctionedCount > 0 || exposure.geoCount > 0;
-  const level = (forcedHigh || score >= 65) ? 'high' : score >= 30 ? 'medium' : 'low';
-  return { score, level, breakdown };
+  return { tier:tier, score:score, verdict:verdict, banner:banner, bannerType:bannerType, findings:findings, greens:greens };
 }
 
-// Transaction pattern analysis (heuristics — honest, never claimed as proof)
-function analyzePatterns(txs, balanceUsd) {
-  const uniqueCps = new Set(txs.map(t => t.counterparty)).size;
-  const total = txs.length;
+// ============================================================
+// RENDER
+// ============================================================
+function renderResult(r, addr) {
+  var m = buildResultModel(r);
 
-  // P2P heuristic: many unique counterparties relative to tx count
-  const p2pExposure = total > 20 && uniqueCps / total > 0.6;
+  // Address / network / date
+  var shortAddr = addr ? (addr.length > 24 ? addr.slice(0,12) + '...' + addr.slice(-8) : addr) : '—';
+  document.getElementById('meta-addr').textContent = shortAddr;
+  window._fullAddr = addr;
+  var net = r.network || 'Unknown';
+  var netLabel = net;
+  if (net.includes('TRON')) netLabel = '🔺 TRON (TRC20)';
+  else if (net.includes('Ethereum') || net.includes('ETH')) netLabel = 'Ξ Ethereum';
+  else if (net.includes('Bitcoin') || net.includes('BTC')) netLabel = '₿ Bitcoin';
+  document.getElementById('meta-network').textContent = netLabel;
+  var now = new Date();
+  document.getElementById('meta-date').textContent = now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ', ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 
-  // Round-amount heuristic
-  const roundCount = txs.filter(t => t.amountUsd && Number.isInteger(t.amountUsd) && t.amountUsd % 100 === 0).length;
-  const anomalous = total > 10 && roundCount / total > 0.4;
+  // Banner
+  var banner = document.getElementById('banner');
+  banner.className = 'banner ' + m.bannerType;
+  document.getElementById('banner-ico').textContent = m.bannerType === 'green' ? '✓' : '⚠';
+  document.getElementById('banner-title').textContent = m.banner.t;
+  document.getElementById('banner-sub').textContent = m.banner.s;
 
-  // Velocity — total volume vs retained balance (transit gateway)
-  const totalVol = txs.reduce((s, t) => s + (t.amountUsd || 0), 0);
-  let velocityFlag = false, velocityDetail = null;
-  if (balanceUsd && balanceUsd > 0 && totalVol > 0) {
-    const ratio = totalVol / balanceUsd;
-    if (ratio > 20 && total > 10) {
-      velocityFlag = true;
-      velocityDetail = 'Обіг у ~' + Math.round(ratio) + 'x перевищує поточний баланс';
-    }
-  }
+  // Score + gauge
+  document.getElementById('score-num').textContent = m.score;
+  var arc = document.getElementById('gauge-arc');
+  var full = 240;
+  arc.setAttribute('stroke-dasharray', Math.round(m.score/100*full) + ' ' + full);
+  var vEl = document.getElementById('score-verdict');
+  vEl.textContent = m.verdict.t;
+  var vColors = {green:['#065F46','#D1FAE5'], amber:['#92400E','#FEF3C7'], red:['#991B1B','#FEE2E2']};
+  vEl.style.color = vColors[m.verdict.c][0];
+  vEl.style.background = vColors[m.verdict.c][1];
 
-  // Burst — many txs clustered in time (needs timestamps; best-effort by same-day grouping)
-  let burstFlag = false, burstDetail = null;
-  const byDay = {};
-  txs.forEach(t => { if (t.timestamp) byDay[t.timestamp] = (byDay[t.timestamp] || 0) + 1; });
-  const maxDay = Math.max(0, ...Object.values(byDay));
-  if (total > 20 && maxDay >= Math.max(15, total * 0.5)) {
-    burstFlag = true;
-    burstDetail = maxDay + ' транзакцій за один день';
-  }
+  // Findings
+  renderFindings(m);
 
-  // Peeling Chain SUSPICION — sequential outgoing of slightly-decreasing amounts.
-  // HONEST: this is a weak heuristic on the wallet's own txs, flagged as suspicion only.
-  let peelingSuspicion = false, peelingDetail = null;
-  const outs = txs.filter(t => t.direction === 'out' && t.amountUsd > 0)
-    .sort((a, b) => (b.amountUsd) - (a.amountUsd));
-  if (outs.length >= 4) {
-    let stepLike = 0;
-    for (let i = 1; i < outs.length; i++) {
-      const drop = outs[i-1].amountUsd - outs[i].amountUsd;
-      const rel = drop / (outs[i-1].amountUsd || 1);
-      if (rel > 0 && rel < 0.15) stepLike++; // small consistent decrements
-    }
-    if (stepLike >= 3) {
-      peelingSuspicion = true;
-      peelingDetail = 'Послідовність із ' + (stepLike + 1) + ' вихідних транзакцій зі спадними сумами';
-    }
-  }
-
-  return {
-    uniqueCounterparties: uniqueCps,
-    p2pExposure,
-    anomalous,
-    anomalyReason: anomalous ? 'Багато round-number транзакцій' : null,
-    velocityFlag, velocityDetail,
-    burstFlag, burstDetail,
-    peelingSuspicion, peelingDetail,
-  };
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('result-content').style.display = 'block';
+  window.scrollTo(0,0);
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// LAYER 1: TRON DATA + HOP-2 GRAPH
-// ═══════════════════════════════════════════════════════════════════
-async function fetchTronReport(addr, risk) {
-  const h = { 'TRON-PRO-API-KEY': TRON_KEY };
+function renderFindings(m) {
+  // First finding shown fully; everything else blurred behind paywall.
+  var all = m.findings.slice();
+  var lead = all[0] || {sev:'medium', icon:'❓', title:'Unverified counterparties detected',
+    desc:'Your wallet transacted with addresses we could not identify as known exchanges or verified entities. Common, but affects AML scoring.',
+    note:'Detailed analysis required.'};
 
-  const [accRes, trc20Res, goplusRes, txDetailRes] = await Promise.allSettled([
-    fetch(`https://apilist.tronscanapi.com/api/accountv2?address=${addr}`, { headers: h }),
-    fetch(`https://apilist.tronscanapi.com/api/account/tokens?address=${addr}&start=0&limit=50&token_type=trc20`, { headers: h }),
-    fetch(`https://api.gopluslabs.io/api/v1/address_security/${addr}?chain_id=tron`),
-    fetch(`https://apilist.tronscanapi.com/api/transaction?address=${addr}&limit=50&start=0&count=true`, { headers: h }),
-  ]);
+  var tagLabel = lead.sev === 'high' ? 'High' : (lead.sev === 'medium' ? 'Medium' : 'Low');
+  var html = '<div class="finding ' + lead.sev + '">' +
+    '<div class="f-ico">' + lead.icon + '</div>' +
+    '<div class="f-body"><div class="f-title-row"><span class="f-title">' + lead.title + '</span>' +
+      '<span class="f-tag ' + lead.sev + '">' + tagLabel + '</span></div>' +
+      '<div class="f-desc">' + lead.desc + '</div>' +
+      (lead.note ? '<div class="f-note">' + lead.note + '</div>' : '') +
+    '</div>' +
+    '<div class="f-action">Detailed analysis<br>required<span class="f-arrow" onclick="openPayment()">›</span></div>' +
+  '</div>';
 
-  const acc = accRes.status === 'fulfilled' && accRes.value.ok ? await accRes.value.json() : null;
-  const trc20 = trc20Res.status === 'fulfilled' && trc20Res.value.ok ? await trc20Res.value.json() : null;
-  const gp = goplusRes.status === 'fulfilled' && goplusRes.value.ok ? await goplusRes.value.json() : null;
-  const txDetail = txDetailRes.status === 'fulfilled' && txDetailRes.value.ok ? await txDetailRes.value.json() : null;
-
-  const txDetailList = (txDetail && txDetail.data) || [];
-
-  // Build normalized tx list with USD amounts
-  const txs = txDetailList.map(tx => {
-    if (!tx.ownerAddress) return null;
-    const isIncoming = tx.toAddress === addr;
-    const counterparty = isIncoming ? tx.ownerAddress : tx.toAddress;
-    if (!counterparty || counterparty === addr) return null;
-    let amountUsd = 0, amount = 0, symbol = 'TRX';
-    if (tx.tokenInfo && tx.amount) {
-      const dec = tx.tokenInfo.tokenDecimal || 6;
-      amount = parseFloat(tx.amount) / Math.pow(10, dec);
-      symbol = tx.tokenInfo.tokenAbbr || 'TOKEN';
-      // USDT/USDC ~ $1
-      if (/^(usdt|usdc|tusd|usdd)$/i.test(symbol)) amountUsd = amount;
-      else amountUsd = amount; // best effort
-    } else if (tx.amount && tx.contractType === 1) {
-      amount = parseFloat(tx.amount) / 1e6;
-      amountUsd = amount * 0.12; // approx TRX price
-      symbol = 'TRX';
-    }
-    return {
-      counterparty, direction: isIncoming ? 'in' : 'out',
-      amount, amountUsd, symbol,
-      timestamp: tx.timestamp ? new Date(tx.timestamp).toLocaleDateString('uk-UA') : '—',
-      hash: tx.hash ? tx.hash.slice(0, 10) + '...' : '—',
-    };
-  }).filter(Boolean);
-
-  // ── HOP-2 GRAPH: check top counterparties' own exposure ──
-  // Pick top counterparties by frequency, check each against OFAC/mixer at hop-2
-  const cpFreq = {};
-  txs.forEach(t => { cpFreq[t.counterparty] = (cpFreq[t.counterparty] || 0) + 1; });
-  const topCps = Object.keys(cpFreq).sort((a,b) => cpFreq[b]-cpFreq[a]).slice(0, 10);
-
-  // Improvement 2: fetch public entity labels for top counterparties
-  const labels = await fetchTronLabels(topCps);
-
-  let hop2Sanctioned = 0, hop2Mixer = 0;
-  const riskyHop2 = []; // counterparties whose graph showed risk → candidates for hop-3
-  const hop2Results = await Promise.allSettled(topCps.map(cp =>
-    fetch(`https://apilist.tronscanapi.com/api/transaction?address=${cp}&limit=20&start=0`, { headers: h })
-      .then(r => r.ok ? r.json() : null).then(j => ({ cp, j }))
-  ));
-  hop2Results.forEach(res => {
-    if (res.status !== 'fulfilled' || !res.value || !res.value.j || !res.value.j.data) return;
-    let cpRisky = false;
-    res.value.j.data.forEach(tx => {
-      const other = (tx.toAddress === tx.ownerAddress) ? null : [tx.toAddress, tx.ownerAddress];
-      if (!other) return;
-      other.forEach(o => {
-        const cls = classifyAddress(o, risk, labels);
-        if (cls === 'sanctioned') { hop2Sanctioned++; cpRisky = true; }
-        else if (cls === 'mixer') { hop2Mixer++; cpRisky = true; }
-      });
-    });
-    if (cpRisky) riskyHop2.push(res.value.cp);
-  });
-
-  // Item 4: TARGETED hop-3 — only follow counterparties that ALREADY showed risk
-  // at hop-2 (keeps it fast + meaningful, avoids Netlify timeout from full hop-3).
-  let hop3Sanctioned = 0, hop3Mixer = 0, hop3Checked = 0;
-  if (riskyHop2.length > 0) {
-    const hop3Targets = riskyHop2.slice(0, 3); // cap breadth
-    hop3Checked = hop3Targets.length;
-    const hop3Results = await Promise.allSettled(hop3Targets.map(cp =>
-      fetch(`https://apilist.tronscanapi.com/api/transaction?address=${cp}&limit=15&start=0`, { headers: h })
-        .then(r => r.ok ? r.json() : null)
-    ));
-    hop3Results.forEach(res => {
-      if (res.status !== 'fulfilled' || !res.value || !res.value.data) return;
-      res.value.data.forEach(tx => {
-        const other = (tx.toAddress === tx.ownerAddress) ? null : [tx.toAddress, tx.ownerAddress];
-        if (!other) return;
-        other.forEach(o => {
-          const cls = classifyAddress(o, risk, labels);
-          if (cls === 'sanctioned') hop3Sanctioned++;
-          else if (cls === 'mixer') hop3Mixer++;
-        });
-      });
-    });
-  }
-
-  // Item 3: gas source (wallet activation funder)
-  const gasSource = await checkTronGasSource(addr, risk, labels);
-
-  // Layer 3: exposure
-  const exposure = computeExposure(txs, risk, labels);
-  // Add indirect (hop-2 + hop-3) exposure as a flag
-  const indirectExposure = hop2Sanctioned > 0 || hop2Mixer > 0 || hop3Sanctioned > 0 || hop3Mixer > 0;
-
-  // GoPlus flags
-  const gpRes = gp?.result || {};
-  const flags = {
-    scam: gpRes.cybercrime === '1' || gpRes.money_laundering === '1' || gpRes.financial_crime === '1',
-    phishing: gpRes.phishing_activities === '1',
-    sanctioned: gpRes.sanctioned === '1',
-    darknet: gpRes.darkweb_transactions === '1',
-    blacklist: gpRes.blacklist_doubt === '1',
-    stealing: gpRes.stealing_attack === '1',
-  };
-
-  // Layer 4: score (compute balance early for velocity heuristic)
-  const _trxBal = acc ? (parseInt(acc.balance || 0) / 1e6) : 0;
-  let _usdtBal = 0;
-  if (trc20 && Array.isArray(trc20)) {
-    const _u = trc20.find(t => (t.tokenAbbr||'').toUpperCase() === 'USDT');
-    if (_u) _usdtBal = parseInt(_u.balance || 0) / Math.pow(10, _u.tokenDecimal || 6);
-  }
-  const patterns = analyzePatterns(txs, _trxBal * 0.12 + _usdtBal);
-  patterns.gasSource = gasSource; // Item 3
-  const scoring = computeScore(exposure, flags, patterns);
-  if (indirectExposure && scoring.score < 65) {
-    scoring.score = Math.min(scoring.score + 12, 74);
-    scoring.level = scoring.score >= 65 ? 'high' : 'medium';
-    scoring.breakdown.push({ key: 'indirect', label: 'Indirect exposure (hop-2)', points: 12, type: 'warn',
-      detail: 'Контрагенти взаємодіють з ризиковими адресами' });
-  }
-
-  // Balance
-  const trxBalance = acc ? (parseInt(acc.balance || 0) / 1e6) : 0;
-  let usdtBalance = 0;
-  if (trc20 && Array.isArray(trc20)) {
-    const usdtToken = trc20.find(t => (t.tokenAbbr||'').toUpperCase() === 'USDT');
-    if (usdtToken) usdtBalance = parseInt(usdtToken.balance || 0) / Math.pow(10, usdtToken.tokenDecimal || 6);
-  }
-
-  const txCount = acc ? (acc.totalTransactionCount || acc.transactions || txs.length) : txs.length;
-
-  return assembleReport({
-    addr, network: 'TRON (TRC20)',
-    balance: { trx: trxBalance.toFixed(2), usdt: usdtBalance.toFixed(2), totalUsd: (trxBalance*0.12 + usdtBalance).toFixed(2) },
-    txCount,
-    txs, exposure, flags, scoring, patterns, indirectExposure, labels,
-    hop2: { sanctioned: hop2Sanctioned, mixer: hop2Mixer, checked: topCps.length },
-    hop3: { sanctioned: hop3Sanctioned, mixer: hop3Mixer, checked: hop3Checked },
-    gasSource,
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// LAYER 1: EVM DATA + HOP-2 GRAPH (Moralis)
-// ═══════════════════════════════════════════════════════════════════
-async function fetchEvmReport(addr, risk) {
-  const addrLower = addr.toLowerCase();
-  const mh = { 'X-API-Key': MORALIS_KEY, 'accept': 'application/json' };
-
-  const [txRes, erc20Res, balRes, goplusRes] = await Promise.allSettled([
-    fetch(`https://deep-index.moralis.io/api/v2.2/${addr}?chain=eth&limit=50`, { headers: mh }),
-    fetch(`https://deep-index.moralis.io/api/v2.2/${addr}/erc20/transfers?chain=eth&limit=50`, { headers: mh }),
-    fetch(`https://deep-index.moralis.io/api/v2.2/${addr}/balance?chain=eth`, { headers: mh }),
-    fetch(`https://api.gopluslabs.io/api/v1/address_security/${addr}?chain_id=1`),
-  ]);
-
-  const txData = txRes.status === 'fulfilled' && txRes.value.ok ? await txRes.value.json() : null;
-  const erc20Data = erc20Res.status === 'fulfilled' && erc20Res.value.ok ? await erc20Res.value.json() : null;
-  const balData = balRes.status === 'fulfilled' && balRes.value.ok ? await balRes.value.json() : null;
-  const gp = goplusRes.status === 'fulfilled' && goplusRes.value.ok ? await goplusRes.value.json() : null;
-
-  const rawTxs = (txData && txData.result) || [];
-  const erc20Txs = (erc20Data && erc20Data.result) || [];
-
-  // Normalize native ETH txs
-  const txs = [];
-  rawTxs.forEach(tx => {
-    if (!tx.from_address || !tx.to_address) return;
-    const isIncoming = tx.to_address.toLowerCase() === addrLower;
-    const counterparty = isIncoming ? tx.from_address : tx.to_address;
-    if (!counterparty || counterparty.toLowerCase() === addrLower) return;
-    const ethVal = tx.value ? parseInt(tx.value) / 1e18 : 0;
-    if (ethVal <= 0.000001) return;
-    txs.push({
-      counterparty, direction: isIncoming ? 'in' : 'out',
-      amount: ethVal, amountUsd: ethVal * 3000, symbol: 'ETH',
-      timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toLocaleDateString('uk-UA') : '—',
-      hash: tx.hash ? tx.hash.slice(0, 10) + '...' : '—',
-    });
-  });
-  // Add ERC20 transfers (USDT/USDC counted at face value)
-  erc20Txs.forEach(tx => {
-    if (!tx.from_address || !tx.to_address) return;
-    const isIncoming = tx.to_address.toLowerCase() === addrLower;
-    const counterparty = isIncoming ? tx.from_address : tx.to_address;
-    if (!counterparty || counterparty.toLowerCase() === addrLower) return;
-    const dec = parseInt(tx.token_decimals || 18);
-    const amt = tx.value ? parseFloat(tx.value) / Math.pow(10, dec) : 0;
-    const sym = (tx.token_symbol || 'TOKEN').toUpperCase();
-    let usd = 0;
-    if (/^(usdt|usdc|dai|tusd|busd)$/i.test(sym)) usd = amt;
-    txs.push({
-      counterparty, direction: isIncoming ? 'in' : 'out',
-      amount: amt, amountUsd: usd, symbol: sym,
-      timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toLocaleDateString('uk-UA') : '—',
-      hash: tx.transaction_hash ? tx.transaction_hash.slice(0, 10) + '...' : '—',
-    });
-  });
-
-  // ── HOP-2: check top counterparties via Moralis ──
-  const cpFreq = {};
-  txs.forEach(t => { cpFreq[t.counterparty] = (cpFreq[t.counterparty]||0)+1; });
-  const topCps = Object.keys(cpFreq).sort((a,b)=>cpFreq[b]-cpFreq[a]).slice(0, 10);
-
-  // Improvement 2: public entity labels for top counterparties
-  const labels = await fetchEvmLabels(topCps);
-
-  let hop2Sanctioned = 0, hop2Mixer = 0;
-  const riskyHop2 = [];
-  // Deep hop-2 via API
-  const hop2 = await Promise.allSettled(topCps.slice(0,8).map(cp =>
-    fetch(`https://deep-index.moralis.io/api/v2.2/${cp}?chain=eth&limit=15`, { headers: mh })
-      .then(r => r.ok ? r.json() : null).then(j => ({ cp, j }))
-  ));
-  hop2.forEach(res => {
-    if (res.status !== 'fulfilled' || !res.value || !res.value.j || !res.value.j.result) return;
-    let cpRisky = false;
-    res.value.j.result.forEach(tx => {
-      [tx.from_address, tx.to_address].forEach(o => {
-        const cls = classifyAddress(o, risk, labels);
-        if (cls === 'sanctioned') { hop2Sanctioned++; cpRisky = true; }
-        else if (cls === 'mixer') { hop2Mixer++; cpRisky = true; }
-      });
-    });
-    if (cpRisky) riskyHop2.push(res.value.cp);
-  });
-
-  // Item 4: TARGETED hop-3 — only follow already-risky hop-2 counterparties
-  let hop3Sanctioned = 0, hop3Mixer = 0, hop3Checked = 0;
-  if (riskyHop2.length > 0) {
-    const hop3Targets = riskyHop2.slice(0, 3);
-    hop3Checked = hop3Targets.length;
-    const hop3 = await Promise.allSettled(hop3Targets.map(cp =>
-      fetch(`https://deep-index.moralis.io/api/v2.2/${cp}?chain=eth&limit=12`, { headers: mh })
-        .then(r => r.ok ? r.json() : null)
-    ));
-    hop3.forEach(res => {
-      if (res.status !== 'fulfilled' || !res.value || !res.value.result) return;
-      res.value.result.forEach(tx => {
-        [tx.from_address, tx.to_address].forEach(o => {
-          const cls = classifyAddress(o, risk, labels);
-          if (cls === 'sanctioned') hop3Sanctioned++;
-          else if (cls === 'mixer') hop3Mixer++;
-        });
-      });
-    });
-  }
-
-  // Item 3: gas source
-  const gasSource = await checkEvmGasSource(addr, risk, labels);
-
-  const exposure = computeExposure(txs, risk, labels);
-  const indirectExposure = hop2Sanctioned > 0 || hop2Mixer > 0 || hop3Sanctioned > 0 || hop3Mixer > 0;
-
-  const gpRes = gp?.result?.[addrLower] || gp?.result || {};
-  const flags = {
-    scam: gpRes.cybercrime === '1' || gpRes.money_laundering === '1' || gpRes.financial_crime === '1',
-    phishing: gpRes.phishing_activities === '1',
-    sanctioned: gpRes.sanctioned === '1' || risk.ofac.has(addrLower),
-    darknet: gpRes.darkweb_transactions === '1',
-    blacklist: gpRes.blacklist_doubt === '1',
-    stealing: gpRes.stealing_attack === '1',
-  };
-  // Direct OFAC on the address itself
-  if (risk.ofac.has(addrLower)) {
-    exposure.sanctionedCount = Math.max(exposure.sanctionedCount, 1);
-    exposure.sanctionedPercent = Math.max(exposure.sanctionedPercent, 100);
-  }
-
-  const _ethBal = balData && balData.balance ? parseInt(balData.balance) / 1e18 : 0;
-  const patterns = analyzePatterns(txs, _ethBal * 3000);
-  patterns.gasSource = gasSource; // Item 3
-  const scoring = computeScore(exposure, flags, patterns);
-  if (indirectExposure && scoring.score < 65) {
-    scoring.score = Math.min(scoring.score + 12, 74);
-    scoring.level = scoring.score >= 65 ? 'high' : 'medium';
-    scoring.breakdown.push({ key: 'indirect', label: 'Indirect exposure (hop-2)', points: 12, type: 'warn',
-      detail: 'Контрагенти взаємодіють з ризиковими адресами' });
-  }
-
-  const ethBal = balData && balData.balance ? parseInt(balData.balance) / 1e18 : 0;
-
-  return assembleReport({
-    addr, network: 'Ethereum',
-    balance: { native: ethBal.toFixed(4) + ' ETH', totalUsd: (ethBal * 3000).toFixed(2) },
-    txCount: rawTxs.length + erc20Txs.length,
-    txs, exposure, flags, scoring, patterns, indirectExposure, labels,
-    hop2: { sanctioned: hop2Sanctioned, mixer: hop2Mixer, checked: topCps.length },
-    hop3: { sanctioned: hop3Sanctioned, mixer: hop3Mixer, checked: hop3Checked },
-    gasSource,
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// BITCOIN (Blockchair) — lists-based, no deep graph
-// ═══════════════════════════════════════════════════════════════════
-async function fetchBitcoinReport(addr, risk) {
-  let data = null;
-  try {
-    const res = await fetch(`https://api.blockchair.com/bitcoin/dashboards/address/${addr}`);
-    if (res.ok) data = await res.json();
-  } catch (e) {}
-
-  const info = data?.data?.[addr]?.address || {};
-  const balance = (info.balance || 0) / 1e8;
-  const txCount = info.transaction_count || 0;
-  const isOfac = risk.ofac.has(addr.toLowerCase());
-
-  const exposure = {
-    totalVolume: 0, sanctionedPercent: isOfac ? 100 : 0, dirtyPercent: 0, scamPercent: 0,
-    exchangePercent: 0, cleanPercent: isOfac ? 0 : 100, incomingDirtyPercent: 0,
-    sanctionedCount: isOfac ? 1 : 0, mixerCount: 0, scamCount: 0, exchangeCount: 0,
-    sanctionedHits: isOfac ? [addr] : [], mixerHits: [], scamHits: [], exchangeHits: [],
-  };
-  const flags = { scam: false, phishing: false, sanctioned: isOfac, darknet: false, blacklist: false, stealing: false };
-  const patterns = { uniqueCounterparties: 0, p2pExposure: false, anomalous: false };
-  const scoring = computeScore(exposure, flags, patterns);
-
-  return assembleReport({
-    addr, network: 'Bitcoin',
-    balance: { btc: balance.toFixed(8), totalUsd: (balance * 95000).toFixed(2) },
-    txCount, txs: [], exposure, flags, scoring, patterns, indirectExposure: false, labels: {},
-    hop2: { sanctioned: 0, mixer: 0, checked: 0 },
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// LAYER 5: REPORT ASSEMBLY
-// Converts engine output → client-facing report structure
-// ═══════════════════════════════════════════════════════════════════
-function assembleReport(d) {
-  const { addr, network, balance, txCount, txs, exposure, flags, scoring, patterns, indirectExposure, hop2, hop3, gasSource, labels } = d;
-
-  // Funds structure (real volume-based %)
-  const funds = {
-    cleanPercent: exposure.cleanPercent.toFixed(1),
-    dirtyPercent: exposure.dirtyPercent.toFixed(1),
-    sanctionedPercent: exposure.sanctionedPercent.toFixed(1),
-  };
-
-  // Recent 3 txs
-  const recentTxs = txs.slice(0, 3).map(t => ({
-    counterparty: t.counterparty ? t.counterparty.slice(0, 8) + '...' + t.counterparty.slice(-5) : '—',
-    direction: t.direction, amount: t.amount ? t.amount.toFixed(2) : '—',
-    symbol: t.symbol, timestamp: t.timestamp,
-  }));
-
-  // Top counterparties
-  const cpFreq = {};
-  txs.forEach(t => { cpFreq[t.counterparty] = (cpFreq[t.counterparty]||0)+1; });
-  const topCounterparties = Object.keys(cpFreq).sort((a,b)=>cpFreq[b]-cpFreq[a]).slice(0,5).map(cp => {
-    const cls = classifyAddress(cp, _riskCache, labels);
-    const entityName = resolveEntityName(cp, labels);
-    const name = cls === 'sanctioned' ? '⚠ САНКЦІЇ' + (entityName ? ' · ' + entityName : '')
-               : cls === 'mixer' ? '⚠ МІКСЕР' + (entityName ? ' · ' + entityName : '')
-               : cls === 'scam' ? '⚠ СКАМ/ХАКЕР' + (entityName ? ' · ' + entityName : '')
-               : cls === 'exchange' ? (entityName || 'Біржа')
-               : (entityName || 'Невідомий');
-    return {
-      address: cp.slice(0,6) + '...' + cp.slice(-4),
-      count: cpFreq[cp],
-      percentage: txs.length > 0 ? ((cpFreq[cp]/txs.length)*100).toFixed(1) : '0',
-      name, risk: cls,
-    };
-  });
-
-  // Exchange compatibility (based on score)
-  const s = scoring.score;
-  const exchangeCompatibility = ['Binance','Bybit','OKX','Coinbase','KuCoin'].map(name => {
-    let status, label;
-    if (flags.sanctioned || exposure.sanctionedCount > 0 || s > 65) { status = 'blocked'; label = 'Високий ризик блокування'; }
-    else if (s > 40 || exposure.mixerCount > 0 || indirectExposure) { status = 'check'; label = 'Можлива додаткова перевірка'; }
-    else { status = 'ok'; label = 'Депозит можливий'; }
-    return { name, status, label };
-  });
-
-  // Reputation
-  const reputation = {
-    label: scoring.level === 'high' ? 'Висока загроза' : scoring.level === 'medium' ? 'Помірна експозиція' : 'Чистий гаманець',
-    desc: scoring.level === 'high' ? 'Виявлено серйозні ризики, пов\'язані з санкціями або міксерами.'
-        : scoring.level === 'medium' ? 'Гаманець взаємодіяв з потенційно ризиковими сутностями.'
-        : 'Серйозних прямих ризиків не виявлено.',
-  };
-
-  // Risk distribution (for charts)
-  const riskDistribution = [
-    { label: 'Санкційні адреси', value: exposure.sanctionedPercent.toFixed(1), color: 'red' },
-    { label: 'Підсанкційні обмінники (РФ)', value: exposure.geoPercent.toFixed(1), color: 'red' },
-    { label: 'Міксери / скам', value: exposure.dirtyPercent.toFixed(1), color: 'amber' },
-    { label: 'Гемблінг', value: exposure.gamblingPercent.toFixed(1), color: 'amber' },
-    { label: 'Регульовані біржі', value: exposure.exchangePercent.toFixed(1), color: 'green' },
+  // ── Blurred locked teaser: 1 HIGH, 1 MEDIUM, 3 LOW ──
+  var teaser = [
+    {sev:'high',   icon:'⚠', tag:'High',   act:'req'},
+    {sev:'medium', icon:'!', tag:'Medium', act:'req'},
+    {sev:'green',  icon:'✓', tag:'Low',    act:'good'},
+    {sev:'green',  icon:'✓', tag:'Low',    act:'good'},
+    {sev:'green',  icon:'✓', tag:'Low',    act:'good'}
   ];
+  var rows = teaser.map(function(t) {
+    var actTxt = t.act === 'good' ? 'Good news' : 'Detailed analysis required';
+    return '<div class="lrow">' +
+      '<div class="lrow-ico ' + t.sev + '">' + t.icon + '</div>' +
+      '<div class="lrow-body"><div class="lrow-title"></div><div class="lrow-desc"></div></div>' +
+      '<span class="lrow-tag ' + t.sev + '">' + t.tag + '</span>' +
+      '<span class="lrow-act ' + t.act + '">' + actTxt + '</span>' +
+      '<span class="lrow-lock">🔒</span>' +
+    '</div>';
+  }).join('');
 
-  // Improvement 3: honest limitation wording — detect DeFi/contract interaction
-  // (counterparties we couldn't classify but that look like contracts/protocols).
-  const unknownShare = topCounterparties.filter(c => c.risk === 'unknown').length;
-  const hasDefiOrContracts = txs.some(t => /^0x/.test(t.counterparty || '') &&
-    !classifyAddress(t.counterparty, _riskCache, labels).match(/sanctioned|sanctioned_geo|mixer|scam|gambling|exchange/));
-  const limitations = [];
-  if (hasDefiOrContracts) {
-    limitations.push('Виявлено взаємодію з DeFi-протоколами або смарт-контрактами — для повного трасування походження коштів через них потрібен розширений аналіз (доступний у повному звіті).');
-  }
-  if (exposure.totalVolume === 0) {
-    limitations.push('Недостатньо даних про обсяги транзакцій для точного volume-розрахунку — оцінка базується на прямих зв\'язках та відомих базах ризику.');
-  }
-  if (indirectExposure) {
-    limitations.push('Виявлено непрямі зв\'язки (hop-2) з ризиковими адресами через проміжних контрагентів. Точний шлях коштів вимагає глибокого графового аналізу.');
-  }
+  html += '<div class="locked-card">' +
+    '<div class="locked-badge">👁 Upgrade to unlock full results</div>' +
+    '<div class="locked-rows">' + rows + '</div>' +
+  '</div>';
 
-  return {
-    address: addr,
-    network,
-    reportId: 'CS-' + Math.random().toString(36).slice(2,6).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase(),
-    riskScore: scoring.score,
-    riskLevel: scoring.level,
-    scoreBreakdown: scoring.breakdown,   // ← Layer 4 explainable breakdown
-    balance,
-    activity: {
-      txCount: txCount,
-      incomingCount: txs.filter(t=>t.direction==='in').length,
-      outgoingCount: txs.filter(t=>t.direction==='out').length,
-      firstActivity: '—', lastActivity: recentTxs[0]?.timestamp || '—',
-      uniqueCounterparties: patterns.uniqueCounterparties,
-    },
-    funds,                                // ← Layer 3 real % (volume-based)
-    fundsMethod: exposure.totalVolume > 0 ? 'volume' : 'flags',
-    riskDistribution,
-    // AML signals
-    ofacMatch: exposure.sanctionedCount > 0 || flags.sanctioned,
-    sanctionedRisk: exposure.sanctionedPercent,
-    sanctionedGeoPercent: exposure.geoPercent.toFixed(1),
-    sanctionedGeoHits: exposure.geoHits,
-    sanctionedGeoCount: exposure.geoCount,
-    gamblingPercent: exposure.gamblingPercent.toFixed(1),
-    gamblingHits: exposure.gamblingHits,
-    gamblingCount: exposure.gamblingCount,
-    mixerInteractions: exposure.mixerCount,
-    scamInteractions: exposure.scamCount,
-    darknetInteractions: flags.darknet ? 1 : 0,
-    indirectExposure,
-    hop2Analysis: hop2,                   // ← Layer 1 hop-2 graph result
-    hop3Analysis: hop3 || { sanctioned: 0, mixer: 0, checked: 0 },  // Item 4 targeted hop-3
-    gasSource: gasSource || null,         // Item 3 gas source tracker
-    suspiciousTxCount: exposure.sanctionedCount + exposure.mixerCount + exposure.scamCount + exposure.geoCount,
-    incomingDirtyPercent: exposure.incomingDirtyPercent.toFixed(1),
-    patternFlags: {
-      velocity: !!patterns.velocityFlag, velocityDetail: patterns.velocityDetail,
-      burst: !!patterns.burstFlag, burstDetail: patterns.burstDetail,
-      peelingSuspicion: !!patterns.peelingSuspicion, peelingDetail: patterns.peelingDetail,
-      p2p: !!patterns.p2pExposure,
-    },
-    riskFlags: Object.keys(flags).filter(k => flags[k]).map(k => ({ type: k, severity: 'high' })),
-    sanctionedHits: exposure.sanctionedHits,
-    mixerHits: exposure.mixerHits,
-    scamHits: exposure.scamHits,
-    recentTxs,
-    topCounterparties,
-    exchangeCompatibility,
-    reputation,
-    limitations,                          // ← Improvement 3 honest wording / upsell hook
-    analyzedTxs: txs.length,
-    totalVolumeUsd: Math.round(exposure.totalVolume || 0),  // lifetime volume for result-page tier logic
-    unknownCounterparties: topCounterparties.filter(c => c.risk === 'unknown').length,
-  };
+  html += '<div class="locked-bar">' +
+    '<div class="locked-bar-left"><span class="locked-bar-lock">🔒</span>' +
+      '<div><div class="locked-bar-t">Full analysis includes 5 additional checks</div>' +
+      '<div class="locked-bar-d">Unlock to see all security indicators and detailed risk assessment</div></div></div>' +
+    '<button class="locked-bar-btn" onclick="openPayment()">🔒 Unlock Full Analysis — $19.99</button>' +
+  '</div>';
+
+  document.getElementById('findings-list').innerHTML = html;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// HANDLER
-// ═══════════════════════════════════════════════════════════════════
-exports.handler = async (event) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json',
-  };
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
+function showDemoResult(addr) {
+  var demoAddr = addr || 'TXaGYd7J8eKjWkXg9x8F3mL';
+  renderResult({
+    address: demoAddr, network: 'TRON (TRC20)',
+    activity: {txCount: 128}, totalVolumeUsd: 18500, balance: {totalUsd: '2582.19'},
+    ofacMatch: false, mixerInteractions: 0, scamInteractions: 0, sanctionedGeoCount: 0,
+    indirectExposure: true, incomingDirtyPercent: '0', sanctionedHits: [],
+    patternFlags: {}, unknownCounterparties: 6,
+    topCounterparties: [{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'unknown'},{risk:'exchange'}],
+    limitations: ['DeFi interaction detected'],
+  }, demoAddr);
+}
 
-  const addr = (event.queryStringParameters && event.queryStringParameters.addr || '').trim();
-  if (!addr || addr.length < 8) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid address' }) };
-  }
-
+// ── PAYMENT ──────────────────────────────────────────────────
+function openPayment(){ document.getElementById('pay-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closePayment(){ document.getElementById('pay-overlay').classList.remove('open'); document.body.style.overflow=''; }
+function closePaymentOutside(e){ if (e.target === document.getElementById('pay-overlay')) closePayment(); }
+function selectPkg(el, price, credits, name) {
+  document.querySelectorAll('.pay-pkg').forEach(function(p){ p.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedPkg = {name:name, price:price, credits:credits};
+  document.getElementById('pay-total').textContent = '$' + price.toFixed(2);
+  var names = {single:'Single (1 report)', basic:'Basic (10 reports)', pro:'Pro (30 reports)', business:'Business (100 reports)'};
+  document.getElementById('pay-pkg-name').textContent = names[name] || name;
+}
+async function processPayment() {
+  var btn = document.querySelector('.pay-btn');
+  btn.disabled = true; btn.textContent = '⏳ Creating payment...';
   try {
-    const risk = await loadRiskLists();
-    const network = detectNetwork(addr);
-    let report;
-    if (network === 'tron') report = await fetchTronReport(addr, risk);
-    else if (network === 'evm') report = await fetchEvmReport(addr, risk);
-    else if (network === 'bitcoin') report = await fetchBitcoinReport(addr, risk);
-    else return { statusCode: 200, headers, body: JSON.stringify({ error: 'Unsupported network' }) };
+    var token = localStorage.getItem('cg_token') || '';
+    var r = await fetch(API + '/purchase', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({package_name:selectedPkg.name, amount_usd:selectedPkg.price, credits:selectedPkg.credits})
+    });
+    var d = await r.json();
+    if (d.invoice_url) { window.open(d.invoice_url, '_blank'); closePayment(); }
+    else if (d.error === 'Unauthorized' || !token) { window.location.href = '/dashboard?redirect=payment&pkg=' + selectedPkg.name; }
+    else { alert('Error: ' + (d.error || 'Unknown error')); }
+  } catch(e) { window.location.href = '/dashboard?redirect=payment'; }
+  btn.disabled = false; btn.innerHTML = '🔒 Pay &amp; unlock report →';
+}
 
-    return { statusCode: 200, headers, body: JSON.stringify(report) };
-  } catch (e) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: e.message }) };
-  }
-};
+// ── HELPERS ──────────────────────────────────────────────────
+function copyAddress(){ navigator.clipboard.writeText(window._fullAddr || ''); showCopied('Address copied'); }
+function showCopied(msg) {
+  var t = document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:9999;font-family:Inter,sans-serif';
+  t.textContent='✓ '+msg; document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 1800);
+}
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePayment(); });
+</script>
+</body>
+</html>

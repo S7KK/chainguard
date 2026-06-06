@@ -207,7 +207,25 @@
   var PURCHASE_ENDPOINT = '/.netlify/functions/purchase';
 
   var params = new URLSearchParams(location.search);
-  var ADDRESS = (params.get('address') || params.get('addr') || '').trim();
+
+  // Accept any of the address param names the scan flow might use, and as a
+  // last resort grab any param whose value looks like an ETH/TRON address.
+  function pickAddress(p) {
+    var keys = ['address', 'addr', 'addr1', 'wallet', 'a'];
+    for (var i = 0; i < keys.length; i++) {
+      var v = (p.get(keys[i]) || '').trim();
+      if (v) return v;
+    }
+    var re = /^(0x[0-9a-fA-F]{40}|T[1-9A-HJ-NP-Za-km-z]{33})$/;
+    var found = '';
+    p.forEach(function (val) {
+      var t = (val || '').trim();
+      if (!found && re.test(t)) found = t;
+    });
+    return found;
+  }
+
+  var ADDRESS = pickAddress(params);
   var CHAIN = (params.get('chain') || '').trim();
 
   var root = document.getElementById('root');

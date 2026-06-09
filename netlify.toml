@@ -1,3 +1,5 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+[functions."monitor-check"]
+  schedule = "0 */12 * * *"
